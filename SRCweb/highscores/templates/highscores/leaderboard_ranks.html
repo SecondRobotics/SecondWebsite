@@ -1,0 +1,27 @@
+{% extends 'home/base.html' %}
+
+{% block content %}
+    <h1>{{robot_name}} Leaderboard</h1>
+    
+    <table class="table table-dark table-striped table-hover table-sm">
+        <thead>
+        <tr>
+            <th style="text-align:center">Rank</th>
+            <th>Player Name</th>
+            <th style="text-align:center">Score</th>
+            <th style="text-align:center">Submission Date</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{ls.score_set.all}}
+        {% for item in ls %}
+        <tr>
+            <td style="text-align:center"><b>{{item.0}}</b></td>
+            <td>{{item.1.player_name}}</td>
+            <td style="text-align:center">{{item.1.score}}</td>
+            <td style="text-align:center">{{item.1.time_set}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
