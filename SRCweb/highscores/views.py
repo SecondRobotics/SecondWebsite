@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from .models import Leaderboard, Score
 
-from .forms import SubmitScore
+from .forms import ScoreForm
 
 # Create your views here.
 
@@ -21,12 +21,12 @@ def index(response, name):
 
 def submit(response):
     if response.method == "POST":
-        form = SubmitScore(response.POST)
+        form = ScoreForm(response.POST)
         if form.is_valid():
             n = form.cleaned_data['name']
             t = Leaderboard(name=n)
             t.save()
         return HttpResponseRedirect(f'/highscores/{t.name}')
     else:
-        form = SubmitScore
+        form = ScoreForm
     return render(response, "highscores/submit.html", {"form": form})

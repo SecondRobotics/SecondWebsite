@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     # Custom stuff
     
     'home',
-    'highscores'
+    'highscores',
+    'events'
 ]
 
 MIDDLEWARE = [

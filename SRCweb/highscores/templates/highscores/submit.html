@@ -4,9 +4,11 @@
 
 {% block content %}
 submit stuff goes here
-<form method="post" action="/highscores/submit/">
-    {% csrf_token %}
-    {{form.as_p}}
-    <button type="submit", name="save">Submit Score</button>
-</form>
+<div class = "form-group">
+    <form method="post" action="/highscores/submit/">
+        {% csrf_token %}
+        {{form.as_p}}
+        <button type="submit", name="save">Submit Score</button>
+    </form>
+</div>
 {% endblock %}
