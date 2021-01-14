@@ -127,4 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Secrets
 SRCweb/SRCweb/secrets.py
+*.sqlite3
