@@ -10,7 +10,7 @@ from .forms import ScoreForm
 
 def index(response, name):
     # ls = Leaderboard.objects.get(name=name)
-    sorted = Score.objects.filter(leaderboard__name=name).order_by('-score', 'time_set')
+    sorted = Score.objects.filter(leaderboard__name=name, approved=True).order_by('-score', 'time_set')
     i = 1
     context = []
     # Create ranking numbers and append them to sorted values
