@@ -27,7 +27,7 @@ SECRET_KEY = KEYS["BASE_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["secondrobotics.org", "www.secondrobotics.org"]
+ALLOWED_HOSTS = ["secondrobotics.org", "www.secondrobotics.org", "localhost"]
 
 
 # Application definition
@@ -39,6 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # External packages
+
+    'widget_tweaks',
 
     # Custom stuff
     

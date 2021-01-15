@@ -1,14 +1,17 @@
 {% extends 'home/base.html' %}
 
-<h1>Submit a new score</h1>
-
 {% block content %}
-submit stuff goes here
+<h1>Submit a new score</h1>
 <div class = "form-group">
     <form method="post" action="/highscores/submit/">
+        {% load widget_tweaks %}
         {% csrf_token %}
-        {{form.as_p}}
-        <button type="submit", name="save">Submit Score</button>
+        {{form.errors}}
+        {% render_field form.player_name class+="form-control" placeholder="Player Name" %}
+        <br>
+        {% render_field form.leaderboard class+="form-control" %}
+        {% render_field form.score class+="form-control" %}
+        <button type="submit" class="btn btn-outline-success btn-lg">Submit Score</button>
     </form>
 </div>
 {% endblock %}
