@@ -23,7 +23,7 @@ def index(response, name):
 
 def submit(request):
     if request.method == "POST":
-        uploaded_file = request.FILES.get('memes', False)
+        uploaded_file = request.FILES.get('score-screenshot', False)
         form = ScoreForm(request.POST)
         if form.is_valid():
             fs = FileSystemStorage()

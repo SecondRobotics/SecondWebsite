@@ -17,8 +17,11 @@
         </div>
         <br>
         {% render_field form.score class+="form-control" placeholder="Score" %}
+        <div>
+            <label for="formFile" class="form-label">Upload image for verification</label>
+            <input class="form-control form-control" id="formFile" type="file", name="score-screenshot">
+        </div>
         <br>
-        <input type="file" name="memes">
         <button type="submit" class="btn btn-outline-success btn-lg">Submit Score</button>
     
         
