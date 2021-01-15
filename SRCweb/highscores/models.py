@@ -13,6 +13,7 @@ class Score(models.Model):
     player_name = models.CharField(max_length=25)
     score = models.IntegerField()
     time_set = models.DateTimeField(null=True, blank=True)
+    approved = models.BooleanField(default=False, null=False)
 
     def __str__(self):
         return f"{self.player_name} - {self.leaderboard} [{self.score}]"

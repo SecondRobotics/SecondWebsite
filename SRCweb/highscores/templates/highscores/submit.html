@@ -7,11 +7,20 @@
         {% load widget_tweaks %}
         {% csrf_token %}
         {{form.errors}}
-        {% render_field form.player_name class+="form-control" placeholder="Player Name" %}
+        <div class="row">   
+            <div class="col">
+                {% render_field form.player_name class+="form-control" placeholder="Player Name" %}
+            </div>
+            <div class="col">
+                {% render_field form.leaderboard class+="form-control" %}
+            </div>
+        </div>
         <br>
-        {% render_field form.leaderboard class+="form-control" %}
         {% render_field form.score class+="form-control" %}
+        <br>
         <button type="submit" class="btn btn-outline-success btn-lg">Submit Score</button>
+        
+        
     </form>
 </div>
 {% endblock %}
