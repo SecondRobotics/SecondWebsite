@@ -7,6 +7,9 @@ from django.core.files.storage import FileSystemStorage
 
 from .forms import ScoreForm
 
+from django.conf import settings
+# file._size > settings.MAX_UPLOAD_SIZE
+
 # Create your views here.
 
 def index(response, name):
