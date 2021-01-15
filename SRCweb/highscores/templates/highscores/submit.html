@@ -3,7 +3,7 @@
 {% block content %}
 <h1>Submit a new score</h1>
 <div class = "form-group">
-    <form method="post" action="/highscores/submit/">
+    <form method="post" action="/highscores/submit/" enctype="multipart/form-data">
         {% load widget_tweaks %}
         {% csrf_token %}
         {{form.errors}}
@@ -18,7 +18,9 @@
         <br>
         {% render_field form.score class+="form-control" placeholder="Score" %}
         <br>
+        <input type="file" name="memes">
         <button type="submit" class="btn btn-outline-success btn-lg">Submit Score</button>
+    
         
         
     </form>

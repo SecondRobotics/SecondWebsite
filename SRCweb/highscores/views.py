@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from .models import Leaderboard, Score
 from datetime import datetime
+from django.core.files.storage import FileSystemStorage
 
 from .forms import ScoreForm
 
@@ -20,10 +21,13 @@ def index(response, name):
 
     return render(response, "highscores/leaderboard_ranks.html", {"ls": context, "robot_name":name})
 
-def submit(response):
-    if response.method == "POST":
-        form = ScoreForm(response.POST)
+def submit(request):
+    if request.method == "POST":
+        uploaded_file = request.FILES.get('memes', False)
+        form = ScoreForm(request.POST)
         if form.is_valid():
+            fs = FileSystemStorage()
+            fs.save(uploaded_file.name, uploaded_file)
             obj = Score()
             obj.leaderboard = form.cleaned_data['leaderboard']
             obj.player_name = form.cleaned_data['player_name']
@@ -35,4 +39,4 @@ def submit(response):
         return HttpResponseRedirect(f'/')
     else:
         form = ScoreForm
-    return render(response, "highscores/submit.html", {"form": form})
+    return render(request, "highscores/submit.html", {"form": form})
