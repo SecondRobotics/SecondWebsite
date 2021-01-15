@@ -131,3 +131,4 @@ dmypy.json
 # Secrets
 SRCweb/SRCweb/secrets.py
 *.sqlite3
+SRCweb/secrets.py
