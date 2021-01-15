@@ -1,3 +1,7 @@
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/SecondRobotics/SecondWebsite/%F0%9F%9A%80%20Deploy%20Django?style=plastic)](https://github.com/SecondRobotics/SecondWebsite/actions)
+[![Repo License](https://img.shields.io/github/license/SecondRobotics/SecondWebsite?style=plastic)](https://github.com/SecondRobotics/SecondWebsite/blob/master/LICENSE)
+[![Discord](https://img.shields.io/discord/637407041048281098?label=xRC%20Sim%20Discord&style=plastic)](https://discord.gg/mhc9tkB)
+
 # SecondWebsite
 The official website of SECOND Robotics. The home of SRC, STC, SVC, MRC, and xRC Simulator high scores.
 
