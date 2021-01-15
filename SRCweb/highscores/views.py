@@ -2,6 +2,7 @@ from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
 from django.http import HttpResponse
 from .models import Leaderboard, Score
+from datetime import datetime
 
 from .forms import ScoreForm
 
@@ -23,10 +24,15 @@ def submit(response):
     if response.method == "POST":
         form = ScoreForm(response.POST)
         if form.is_valid():
-            n = form.cleaned_data['name']
-            t = Leaderboard(name=n)
-            t.save()
-        return HttpResponseRedirect(f'/highscores/{t.name}')
+            obj = Score()
+            obj.leaderboard = form.cleaned_data['leaderboard']
+            obj.player_name = form.cleaned_data['player_name']
+            obj.score = form.cleaned_data['score']
+            obj.time_set = datetime.now()
+            obj.approved = False
+            
+            obj.save()
+        return HttpResponseRedirect(f'/')
     else:
         form = ScoreForm
     return render(response, "highscores/submit.html", {"form": form})
