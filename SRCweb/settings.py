@@ -133,9 +133,7 @@ STATIC_URL = '/static/'
 
 MEDIA_URL = '/images/'
 
-# STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, "static")
-# ]
+STATIC_URL = '/static/'
 
 
 
@@ -143,9 +141,12 @@ plt = platform.system()
 if plt == "Windows":
     STATIC_ROOT = os.path.join(BASE_DIR, "static")
     MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+    STATICFILES_DIR = [
+        os.path.join(BASE_DIR, 'static')
+    ]
 else:
     STATIC_ROOT = "/home/bottxleg/secondrobotics.org/static"
-    MEDIA_ROOT = "/home/bottxleg/secondrobotics.org/images"
+    MEDIA_ROOT = "/home/bottxleg/secondrobotics.org/media"
 
 
 MAX_UPLOAD_SIZE = "5242880"
