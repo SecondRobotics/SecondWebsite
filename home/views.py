@@ -8,3 +8,6 @@ def index(response):
 
 def two(response):
     return render(response, "home/base.html", {})
+
+def about(response):
+    return render(response, "home/about.html", {})
