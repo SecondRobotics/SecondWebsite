@@ -1,0 +1,27 @@
+{% extends 'home/base.html' %}
+
+{% block content %}
+    <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
+        <div class="col-md-5 p-lg-5 mx-auto my-5">
+        <h1 class="display-4 fw-normal">Event and Match Rules</h1> 
+        </div>
+    </div>
+<div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-dark">
+    <p style="color:white" class="lead fw-normal">
+        Second Robotics maintains the official simulator rules that should be followed for official Second-sponsored events and official high scores. Below you will find the currently maintained official rulesets for SRC, STC, and MRC. These rulesets may be updated at any time without notice. Official referees have the final say on the interpretation and enforcement of the rules.
+    </p>
+</div>
+<div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-primary">
+    <div class="d-grid gap-2 col-6 p-lg-3 mx-auto">
+        <a href="/SRCrules">
+            <button type="button" class="btn btn-outline-light">Official SRC Rules</button>
+        </a>
+        <a href="/STCrules">
+            <button type="button" class="btn btn-outline-light">Official STC Rules</button>
+        </a>
+        <a href="/MRCrules">
+            <button type="button" class="btn btn-outline-light">Official MRC Rules</button>
+        </a>
+    </div>
+</div>
+{% endblock %}

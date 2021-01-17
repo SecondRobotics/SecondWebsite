@@ -12,6 +12,18 @@ def index(response):
 def about(response):
     return render(response, "home/about.html", {})
 
+def rules(response):
+    return render(response, "home/rules.html", {})
+
+def SRCrules(response):
+    return redirect('https://bit.ly/SRCrules')
+
+def STCrules(response):
+    return redirect('https://bit.ly/STC-rules')
+
+def MRCrules(response):
+    return redirect('https://bit.ly/MRC-rules')
+
 def registerPage(request):
     if request.user.is_authenticated:
         return redirect('/')
