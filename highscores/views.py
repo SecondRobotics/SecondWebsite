@@ -46,7 +46,7 @@ def submit(request):
             obj.save()
             message = f"{obj.player_name} [{form.cleaned_data['score']}] - {form.cleaned_data['leaderboard']}\n\n {form.cleaned_data['source']}"
             try:
-                send_mail(f"New score from {obj.player_name}", message, "test@test.com", ['brennan.bibic@gmail.com'])
+                send_mail(f"New score from {obj.player_name}", message, "noreply@secondrobotics.org", ['brennan@secondrobotics.org'], fail_silently=False)
             except BadHeaderError:
                 return HttpResponse('Invalid header found.')
             return HttpResponseRedirect(f'/highscores/submit-success')
