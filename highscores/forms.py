@@ -7,7 +7,7 @@ from django import forms
 class ScoreForm(ModelForm):
     class Meta:
         model = models.Score
-        fields = ('leaderboard', 'player_name', 'score')
+        fields = ('leaderboard', 'player_name', 'score', 'source')
     # widgets = {
     #     "leaderboard": forms.Select(attrs={'class': 'form-control'}),
     #     "player_name": forms.TextInput(attrs={'class': 'form-control'}),
