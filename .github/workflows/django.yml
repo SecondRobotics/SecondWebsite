@@ -37,6 +37,8 @@ jobs:
         python manage.py test
       env:
         BASE_KEY: ${{ secrets.BASE_KEY }}
+        SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+        SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
         
     - name: ☁ FTP Deploy
       uses: SamKirkland/FTP-Deploy-Action@4.0.0
