@@ -6,8 +6,5 @@ from django.http import HttpResponse
 def index(response):
     return render(response, "home/home.html", {})
 
-def two(response):
-    return render(response, "home/base.html", {})
-
 def about(response):
     return render(response, "home/about.html", {})
