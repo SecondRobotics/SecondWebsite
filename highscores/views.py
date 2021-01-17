@@ -5,6 +5,7 @@ from .models import Leaderboard, Score
 from datetime import datetime
 from django.core.files.storage import FileSystemStorage
 from django.core.mail import send_mail, BadHeaderError
+from django.contrib.auth.decorators import login_required
 
 from .forms import ScoreForm
 
@@ -25,25 +26,27 @@ def index(response, name):
 
     return render(response, "highscores/leaderboard_ranks.html", {"ls": context, "robot_name":name})
 
+@login_required(login_url='/login')
 def submit(request):
     if request.method == "POST":
         # uploaded_file = request.FILES.get('score-screenshot', False)
+        
         form = ScoreForm(request.POST)
         if form.is_valid():
             # fs = FileSystemStorage()
             # fs.save(uploaded_file.name, uploaded_file)
             obj = Score()
             obj.leaderboard = form.cleaned_data['leaderboard']
-            obj.player_name = form.cleaned_data['player_name']
+            obj.player_name = request.user
             obj.score = form.cleaned_data['score']
             obj.time_set = datetime.now()
             obj.approved = False
             obj.source = form.cleaned_data['source']
             
             obj.save()
-            message = f"{form.cleaned_data['player_name']} [{form.cleaned_data['score']}] - {form.cleaned_data['leaderboard']}\n\n {form.cleaned_data['source']}"
+            message = f"{obj.player_name} [{form.cleaned_data['score']}] - {form.cleaned_data['leaderboard']}\n\n {form.cleaned_data['source']}"
             try:
-                send_mail(f"New score from {form.cleaned_data['player_name']}", message, "test@test.com", ['brennan.bibic@gmail.com'])
+                send_mail(f"New score from {obj.player_name}", message, "test@test.com", ['brennan.bibic@gmail.com'])
             except BadHeaderError:
                 return HttpResponse('Invalid header found.')
             return HttpResponseRedirect(f'/highscores/submit-success')

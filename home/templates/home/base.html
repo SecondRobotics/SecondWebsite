@@ -19,6 +19,14 @@
 </head>
 
 <body>
+    <style>
+        .hello-msg{
+            font-size: 16px;
+            color: #fff;
+            margin-right: 20px;
+        }
+    </style>
+
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">
@@ -69,6 +77,15 @@
                 </form> {% endcomment %}
             </div>
         </div>
+        {% if request.user.is_authenticated %}
+            <span class="hello-msg">Hello, {{request.user}}</span>
+            <span><a class= "hello-msg" href="/logout">Logout</a></span>
+
+        {% else %}
+            <span><a class= "hello-msg" href="/login">Login</a></span>
+
+        {% endif %}
+        
     </nav>
 
     <div id="content", name="content" class= "container-fluid">
