@@ -15,16 +15,16 @@ def about(response):
 def rules(response):
     return render(response, "home/rules.html", {})
 
-def SRCrules(response):
+def src_rules(response):
     return redirect('https://bit.ly/SRCrules')
 
-def STCrules(response):
+def stc_rules(response):
     return redirect('https://bit.ly/STC-rules')
 
-def MRCrules(response):
+def mrc_rules(response):
     return redirect('https://bit.ly/MRC-rules')
 
-def registerPage(request):
+def register_page(request):
     if request.user.is_authenticated:
         return redirect('/')
     else:
@@ -40,7 +40,7 @@ def registerPage(request):
         context = {"form": form}
         return render(request, "home/register.html", context)
 
-def loginPage(request):
+def login_page(request):
     if request.user.is_authenticated:
         return redirect('/')
     else:
@@ -58,6 +58,6 @@ def loginPage(request):
         context = {}
         return render(request, "home/login.html", context)
 
-def logoutUser(request):
+def logout_user(request):
     logout(request)
     return redirect('/login')
