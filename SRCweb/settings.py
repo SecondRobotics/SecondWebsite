@@ -51,6 +51,10 @@ INSTALLED_APPS = [
     'events'
 ]
 
+# config/settings.py
+DEFAULT_FROM_EMAIL = 'webmaster@secondrobotics.org'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

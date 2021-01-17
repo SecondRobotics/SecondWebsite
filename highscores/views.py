@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from .models import Leaderboard, Score
 from datetime import datetime
 from django.core.files.storage import FileSystemStorage
+from django.core.mail import send_mail, BadHeaderError
 
 from .forms import ScoreForm
 
@@ -40,7 +41,12 @@ def submit(request):
             obj.source = form.cleaned_data['source']
             
             obj.save()
-        return HttpResponseRedirect(f'/highscores/submit-success')
+            message = f"{form.cleaned_data['player_name']} [{form.cleaned_data['score']}] - {form.cleaned_data['leaderboard']}\n\n {form.cleaned_data['source']}"
+            try:
+                send_mail(f"New score from {form.cleaned_data['player_name']}", message, "test@test.com", ['brennan.bibic@gmail.com'])
+            except BadHeaderError:
+                return HttpResponse('Invalid header found.')
+            return HttpResponseRedirect(f'/highscores/submit-success')
     else:
         form = ScoreForm
     return render(request, "highscores/submit.html", {"form": form})
