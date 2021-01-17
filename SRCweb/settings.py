@@ -139,11 +139,11 @@ STATIC_URL = '/static/'
 
 plt = platform.system()
 if plt == "Windows":
-    STATIC_ROOT = os.path.join(BASE_DIR, "static")
+    DEBUG = True
     MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-    STATICFILES_DIR = [
-        os.path.join(BASE_DIR, 'static')
-    ]
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+    # STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+    
 else:
     STATIC_ROOT = "/home/bottxleg/secondrobotics.org/static"
     MEDIA_ROOT = "/home/bottxleg/secondrobotics.org/media"
