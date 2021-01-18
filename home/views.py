@@ -5,6 +5,8 @@ from .forms import CreateUserForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 
+from highscores.models import Leaderboard, Score
+
 def index(response):
     print(response.user)
     return render(response, "home/home.html", {})
@@ -61,3 +63,12 @@ def login_page(request):
 def logout_user(request):
     logout(request)
     return redirect('/login')
+
+def user_profile(request, username):
+    scores = Score.objects.filter(player_name=username)
+    context = {"username": username, "overall": 0}
+    for score in scores:
+        context.update({score.leaderboard.name: score.score})
+        context.update({"overall": score.score + context['overall']})
+    print(context)
+    return render(request, "home/user_profile.html", context)

@@ -30,8 +30,8 @@ def index(response, name):
     return render(response, "highscores/leaderboard_ranks.html", {"ls": context, "robot_name":name})
 
 def overall(request):
-    stuff = Score.objects.filter(~Q(leaderboard__name="Pushbot2")).values('player_name').annotate(time_set=Max('time_set')).annotate(score=Sum('score'))
-    sorted = stuff.order_by('-score', 'time_set')
+    scores = Score.objects.filter(~Q(leaderboard__name="Pushbot2")).values('player_name').annotate(time_set=Max('time_set')).annotate(score=Sum('score'))
+    sorted = scores.order_by('-score', 'time_set')
     i = 1
     context = []
     # Create ranking numbers and append them to sorted values

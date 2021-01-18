@@ -1,4 +1,42 @@
 {% extends 'home/base.html' %}
 
 {% block content %}
+<div class="row">
+    <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-primary">
+        <h1 style="color:white" class="display-4 fw-normal">{{username}}</h1>
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-dark">
+            <h1 style="color:white" class="display-4 fw-normal">Roboteers</h1>
+            <p style="color:white" class="lead fw-normal">
+                {{Roboteers}}
+            </p>
+        </div>
+    </div>
+    <div class="col">
+        <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-dark">
+            <h1 style="color:white" class="display-4 fw-normal">Inertia</h1>
+            <p style="color:white" class="lead fw-normal">
+               {{Inertia}}
+            </p>
+        </div>
+    </div>
+    <div class="col">
+        <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-dark">
+            <h1 style="color:white" class="display-4 fw-normal">OG</h1>
+            <p style="color:white" class="lead fw-normal">
+                {{OG}}
+            </p>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-dark">
+        <h1 style="color:white" class="display-4 fw-normal">Total Score</h1>
+        <p style="color:white" class="lead fw-normal">{{overall}}</p>
+    </div>
+    
+</div>
 {% endblock %}
