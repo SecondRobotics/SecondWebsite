@@ -17,6 +17,7 @@ eggs/
 lib/
 lib64/
 parts/
+scripts/
 sdist/
 var/
 wheels/
@@ -26,6 +27,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+pyvenv.cfg
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -128,10 +130,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Secrets
-SRCweb/SRCweb/secrets.py
+# Database
 *.sqlite3
-SRCweb/secrets.py
-
-# Virtual Env
-Scripts/
