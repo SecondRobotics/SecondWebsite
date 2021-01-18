@@ -3,7 +3,7 @@
 {% block content %}
     <div class="position-relative overflow-hidden text-center bg-warning">
         <div class="col-md-4 p-lg-4 mx-auto">
-            <h1 style="color:black" class="display-4 fw-normal">Overall Leaderboard</h1>
+            <h1 style="color:black" class="display-4 fw-normal">Combined Leaderboard</h1>
         </div>
     </div>
     {% comment %} <nav aria-label="Page navigation example">
@@ -26,7 +26,7 @@
         {% for item in ls %}
             <tr>
                 <td style="text-align:center"><b>{{item.0}}</b></td>
-                <td>{{item.1.player_name}}</td>
+                <td><a href="/user/{{item.1.player_name}}" style="color:#fff; ;">{{item.1.player_name}}</a></td>
                 <td style="text-align:center">{{item.1.score}}</td>
                 <td style="text-align:center">{{item.1.time_set}}</td>
             </tr>

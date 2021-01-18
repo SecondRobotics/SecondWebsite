@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.http.response import HttpResponseRedirect
+from django.db.models import Q
 
 
 from highscores.models import Leaderboard, Score
@@ -70,7 +71,7 @@ def logout_user(request):
 def user_profile(request, username):
     if not User.objects.filter(username=username).exists():
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
-    scoresdata = Score.objects.filter(player_name=username)
+    scoresdata = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), player_name=username)
     scores = {"overall": 0}
     sources = {}
     for score in scoresdata:
