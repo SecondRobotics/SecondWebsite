@@ -60,7 +60,7 @@ def submit(request):
             obj.source = form.cleaned_data['source']
             
             obj.save()
-            message = f"{obj.player_name} [{form.cleaned_data['score']}] - {form.cleaned_data['leaderboard']}\n\n {form.cleaned_data['source']}"
+            message = f"{obj.player_name} [{form.cleaned_data['score']}] - {form.cleaned_data['leaderboard']}\n\n {form.cleaned_data['source']}\n\nhttps://secondrobotics.org/admin/highscores/score/"
             try:
                 send_mail(f"New score from {obj.player_name}", message, "noreply@secondrobotics.org", ['brennan@secondrobotics.org'], fail_silently=False)
             except BadHeaderError:
