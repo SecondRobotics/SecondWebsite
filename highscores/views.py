@@ -6,10 +6,13 @@ from datetime import datetime
 from django.core.files.storage import FileSystemStorage
 from django.core.mail import send_mail, BadHeaderError
 from django.contrib.auth.decorators import login_required
+from django.db.models import Sum, Max
+from django.db.models import Q
+from django.conf import settings
 
 from .forms import ScoreForm
 
-from django.conf import settings
+
 # file._size > settings.MAX_UPLOAD_SIZE
 
 # Create your views here.
@@ -25,6 +28,19 @@ def index(response, name):
         i+=1
 
     return render(response, "highscores/leaderboard_ranks.html", {"ls": context, "robot_name":name})
+
+def overall(request):
+    stuff = Score.objects.filter(~Q(leaderboard__name="Pushbot2")).values('player_name').annotate(time_set=Max('time_set')).annotate(score=Sum('score'))
+    sorted = stuff.order_by('-score', 'time_set')
+    i = 1
+    context = []
+    # Create ranking numbers and append them to sorted values
+    for item in sorted:
+        context.append([i, item])
+        i+=1
+
+    return render(request, "highscores/overall_leaderboard.html", {"ls": context})
+
 
 @login_required(login_url='/login')
 def submit(request):
