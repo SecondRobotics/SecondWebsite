@@ -132,3 +132,6 @@ dmypy.json
 SRCweb/SRCweb/secrets.py
 *.sqlite3
 SRCweb/secrets.py
+
+# Virtual Env
+Scripts/
