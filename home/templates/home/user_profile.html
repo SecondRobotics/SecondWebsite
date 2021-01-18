@@ -11,31 +11,40 @@
         <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-dark">
             <h1 style="color:white" class="display-4 fw-normal">Roboteers</h1>
             <p style="color:white" class="lead fw-normal">
-                {{Roboteers}}
+                {{scores.Roboteers}}
             </p>
+            {% if  scores.Roboteers > 0 %}
+                <img src={{sources.Roboteers}} class="img-fluid" alt="...">
+            {% endif %}
         </div>
     </div>
     <div class="col">
         <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-dark">
             <h1 style="color:white" class="display-4 fw-normal">Inertia</h1>
             <p style="color:white" class="lead fw-normal">
-               {{Inertia}}
+               {{scores.Inertia}}
             </p>
+            {% if  scores.Inertia > 0 %}
+                <img src={{sources.Inertia}} class="img-fluid" alt="...">
+            {% endif %}
         </div>
     </div>
     <div class="col">
         <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-dark">
             <h1 style="color:white" class="display-4 fw-normal">OG</h1>
             <p style="color:white" class="lead fw-normal">
-                {{OG}}
+                {{scores.OG}}
             </p>
+            {% if scores.OG > 0 %}
+                <img src={{sources.OG}} class="img-fluid" alt="...">
+            {% endif %}
         </div>
     </div>
 </div>
 <div class="row">
     <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-dark">
         <h1 style="color:white" class="display-4 fw-normal">Total Score</h1>
-        <p style="color:white" class="lead fw-normal">{{overall}}</p>
+        <p style="color:white" class="lead fw-normal">{{scores.overall}}</p>
     </div>
     
 </div>
