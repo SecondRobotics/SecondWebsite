@@ -52,8 +52,13 @@ INSTALLED_APPS = [
 ]
 
 # config/settings.py
-DEFAULT_FROM_EMAIL = 'webmaster@secondrobotics.org'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@secondrobotics.org'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get("SMTP_SERVER")
+EMAIL_HOST_USER = 'noreply@secondrobotics.org'
+EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASSWORD')
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

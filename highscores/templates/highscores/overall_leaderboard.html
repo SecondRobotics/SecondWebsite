@@ -1,9 +1,9 @@
 {% extends 'home/base.html' %}
 
 {% block content %}
-    <div class="position-relative overflow-hidden text-center bg-danger">
+    <div class="position-relative overflow-hidden text-center bg-warning">
         <div class="col-md-4 p-lg-4 mx-auto">
-            <h1 style="color:white" class="display-4 fw-normal">{{robot_name}} Leaderboard</h1>
+            <h1 style="color:black" class="display-4 fw-normal">Overall Leaderboard</h1>
         </div>
     </div>
     {% comment %} <nav aria-label="Page navigation example">
@@ -19,7 +19,7 @@
             <th style="text-align:center">Rank</th>
             <th>Player Name</th>
             <th style="text-align:center">Score</th>
-            <th style="text-align:center">Submission Date</th>
+            <th style="text-align:center">Last Submitted</th>
         </tr>
         </thead>
         <tbody>
@@ -28,7 +28,7 @@
                 <td style="text-align:center"><b>{{item.0}}</b></td>
                 <td>{{item.1.player_name}}</td>
                 <td style="text-align:center">{{item.1.score}}</td>
-                <td style="text-align:center"><a href={{item.1.source}} style="color:#fff; ;">{{item.1.time_set}}</a></td>
+                <td style="text-align:center">{{item.1.time_set}}</td>
             </tr>
         {% endfor %}
         </tbody>
