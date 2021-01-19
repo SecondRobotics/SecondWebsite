@@ -46,3 +46,7 @@ jobs:
         server: ${{ secrets.ftpserver }}
         username: ${{ secrets.ftpusername }}
         password: ${{ secrets.ftppassword }}
+        exclude: .git*
+          - .git*/**
+          - __pycache__/**
+          - *.pyc
