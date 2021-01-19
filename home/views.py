@@ -30,6 +30,9 @@ def stc_rules(response):
 def mrc_rules(response):
     return redirect('https://bit.ly/MRC-rules')
 
+def discord(response):
+    return redirect('https://www.discord.gg/Zq3HXRc')
+
 def register_page(request):
     if request.user.is_authenticated:
         return redirect('/')
