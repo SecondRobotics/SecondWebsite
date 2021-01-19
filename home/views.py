@@ -74,7 +74,7 @@ def logout_user(request):
 def user_profile(request, username):
     if not User.objects.filter(username=username).exists():
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
-    scoresdata = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), player_name=username)
+    scoresdata = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), player_name=username, approved=True)
     scores = {"overall": 0}
     sources = {}
     for score in scoresdata:
