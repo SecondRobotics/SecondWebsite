@@ -30,7 +30,7 @@ def index(response, name):
     return render(response, "highscores/leaderboard_ranks.html", {"ls": context, "robot_name":name})
 
 def combined(request):
-    scores = Score.objects.filter(~Q(leaderboard__name="Pushbot2")).values('player_name').annotate(time_set=Max('time_set')).annotate(score=Sum('score'))
+    scores = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), approved=True).values('player_name').annotate(time_set=Max('time_set')).annotate(score=Sum('score'))
     sorted = scores.order_by('-score', 'time_set')
     i = 1
     context = []
