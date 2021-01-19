@@ -3,5 +3,5 @@ from . import views
 
 
 urlpatterns = [
-    path("event1/", views.index, name="submit"),
+    path("<str:eventname>/", views.robot_event, name="robot_event"),
 ]
