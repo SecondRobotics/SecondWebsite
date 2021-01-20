@@ -2,7 +2,7 @@
 
 {% block content %}
     <div class="position-relative overflow-hidden text-center bg-danger">
-        <div class="col-md-4 p-lg-4 mx-auto">
+        <div class="p-lg-4 mx-auto">
             <h1 style="color:white" class="display-4 fw-normal">{{robot_name}} Leaderboard</h1>
         </div>
     </div>
@@ -26,9 +26,9 @@
         {% for item in ls %}
             <tr>
                 <td style="text-align:center"><b>{{item.0}}</b></td>
-                <td>{{item.1.player_name}}</td>
+                <td><a href="/user/{{item.1.player_name}}" style="color:#fff;">{{item.1.player_name}}</a></td>
                 <td style="text-align:center">{{item.1.score}}</td>
-                <td style="text-align:center"><a href={{item.1.source}} style="color:#fff; ;">{{item.1.time_set}}</a></td>
+                <td style="text-align:center"><a href={{item.1.source}} style="color:#fff;">{{item.1.time_set}}</a></td>
             </tr>
         {% endfor %}
         </tbody>

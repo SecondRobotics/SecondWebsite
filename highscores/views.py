@@ -6,8 +6,8 @@ from datetime import datetime
 from django.core.files.storage import FileSystemStorage
 from django.core.mail import send_mail, BadHeaderError
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Max
-from django.db.models import Q
+from django.db.models import Sum, Max, Q
+
 from django.conf import settings
 
 from .forms import ScoreForm
@@ -29,9 +29,9 @@ def index(response, name):
 
     return render(response, "highscores/leaderboard_ranks.html", {"ls": context, "robot_name":name})
 
-def overall(request):
-    stuff = Score.objects.filter(~Q(leaderboard__name="Pushbot2")).values('player_name').annotate(time_set=Max('time_set')).annotate(score=Sum('score'))
-    sorted = stuff.order_by('-score', 'time_set')
+def combined(request):
+    scores = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), approved=True).values('player_name').annotate(time_set=Max('time_set')).annotate(score=Sum('score'))
+    sorted = scores.order_by('-score', 'time_set')
     i = 1
     context = []
     # Create ranking numbers and append them to sorted values
@@ -39,7 +39,7 @@ def overall(request):
         context.append([i, item])
         i+=1
 
-    return render(request, "highscores/overall_leaderboard.html", {"ls": context})
+    return render(request, "highscores/combined_leaderboard.html", {"ls": context})
 
 
 @login_required(login_url='/login')
@@ -60,7 +60,7 @@ def submit(request):
             obj.source = form.cleaned_data['source']
             
             obj.save()
-            message = f"{obj.player_name} [{form.cleaned_data['score']}] - {form.cleaned_data['leaderboard']}\n\n {form.cleaned_data['source']}"
+            message = f"{obj.player_name} [{form.cleaned_data['score']}] - {form.cleaned_data['leaderboard']}\n\n {form.cleaned_data['source']}\n\nhttps://secondrobotics.org/admin/highscores/score/"
             try:
                 send_mail(f"New score from {obj.player_name}", message, "noreply@secondrobotics.org", ['brennan@secondrobotics.org'], fail_silently=False)
             except BadHeaderError:

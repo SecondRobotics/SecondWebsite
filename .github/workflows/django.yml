@@ -40,9 +40,11 @@ jobs:
         SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
         SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
         
-    - name: ☁ FTP Deploy
-      uses: SamKirkland/FTP-Deploy-Action@4.0.0
-      with:
-        server: ${{ secrets.ftpserver }}
-        username: ${{ secrets.ftpusername }}
-        password: ${{ secrets.ftppassword }}
+    - name: ☁ SFTP Deploy
+      uses: easingthemes/ssh-deploy@v2.1.5
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+        REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+        REMOTE_USER: ${{ secrets.REMOTE_USER }}
+        REMOTE_PORT: 21098
+        TARGET: ${{ secrets.REMOTE_TARGET }}

@@ -25,9 +25,15 @@
             color: #fff;
             margin-right: 20px;
         }
+        .shadowy {
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.5), 0 6px 20px 0 rgba(0, 0, 0, 0.5);
+                -webkit-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.3), 0 6px 20px 0 rgba(0, 0, 0, 0.3);
+                -moz-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .3), 0 6px 20px 0 rgba(0, 0, 0, 0.5);
+        }
     </style>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">
                 {% load static %}
@@ -66,6 +72,8 @@
                         Highscores
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="/highscores/combined/">Combined Leaderboard</a></li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="/highscores/OG/">OG</a></li>
                         <li><a class="dropdown-item" href="/highscores/Inertia/">Inertia</a></li>
                         <li><a class="dropdown-item" href="/highscores/Roboteers/">Roboteers</a></li>
@@ -82,15 +90,14 @@
                     <button class="btn btn-outline-success" type="submit">Search</button>
                 </form> {% endcomment %}
             </div>
+             {% if request.user.is_authenticated %}
+            <span class="hello-msg">{{request.user}}</span>
+            <span><a class= "navbar-text" href="/logout">Logout</a></span>
+            {% else %}
+                <span><a class= "navbar-text" href="/login">Login</a></span>
+            {% endif %}
         </div>
-        {% if request.user.is_authenticated %}
-            <span class="hello-msg">Hello, {{request.user}}</span>
-            <span><a class= "hello-msg" href="/logout">Logout</a></span>
-
-        {% else %}
-            <span><a class= "hello-msg" href="/login">Login</a></span>
-
-        {% endif %}
+       
         
     </nav>
 

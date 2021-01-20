@@ -4,6 +4,12 @@ from django.contrib.auth.forms import UserCreationForm
 from .forms import CreateUserForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.http.response import HttpResponseRedirect
+from django.db.models import Q
+
+
+from highscores.models import Leaderboard, Score
 
 def index(response):
     print(response.user)
@@ -26,6 +32,9 @@ def stc_rules(response):
 
 def mrc_rules(response):
     return redirect('https://bit.ly/MRC-rules')
+
+def discord(response):
+    return redirect('https://www.discord.gg/Zq3HXRc')
 
 def register_page(request):
     if request.user.is_authenticated:
@@ -64,3 +73,16 @@ def login_page(request):
 def logout_user(request):
     logout(request)
     return redirect('/login')
+
+def user_profile(request, username):
+    if not User.objects.filter(username=username).exists():
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+    scoresdata = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), player_name=username, approved=True)
+    scores = {"overall": 0}
+    sources = {}
+    for score in scoresdata:
+        sources.update({score.leaderboard.name: score.source})
+        scores.update({score.leaderboard.name: score.score})
+        scores.update({"overall": score.score + scores['overall']})
+    context={"scores": scores, "username": username, "sources": sources}
+    return render(request, "home/user_profile.html", context)
