@@ -16,7 +16,7 @@ Second Robotics Competition (SRC) is the flagship league of Second.  In the past
 ## License and Contributing
 This project is licensed under GNU AGPLv3.  [Read about it here.](https://choosealicense.com/licenses/agpl-3.0/)  In short, you are free to modify and distribute the repository, under the condition that you provide attribution and disclose your modified source under the same license.  We ask that you link back to this original repository if you choose to do this.
 
-Feel free to contribute to the project!  Fork this repository, commit your changes, then submit a pull request for your contributions to be reviewed.  Alternatively, you may submit and issue to report a bug or suggestion.
+Feel free to contribute to the project!  Fork this repository, commit your changes, then submit a pull request for your contributions to be reviewed.  Alternatively, you may submit and issue to report a bug or suggestion.  [See our current to-do list here.](https://github.com/SecondRobotics/SecondWebsite/projects/1)
 
 SecondWebsite is primarily developed by Brennan Bibic and Nicholas Bottone.  You can read about all Second staff on the website.
 
