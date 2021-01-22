@@ -1,17 +1,21 @@
 {% extends 'home/base.html' %}
 
 {% block content %}
-    <table class="table table-dark table-striped table-hover table-sm">
+    <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-dark">
+        <div class="p-lg-4 mx-auto">
+            <h2 style="color:white" class="display-4 fw-normal">{{event_name}}</h2>
+        </div>
+    </div>
+
+    <table class="table table-dark table-striped table-hover table-sm shadowy">
         <thead>
         <tr>
-            <th style="text-align:center">Player Number</th>
-            <th>Player Name</th>
+            <th style="text-align:center">Player Name</th>
         </tr>
         </thead>
         <tbody>
     {% for player in players %}
-        <tr>
-            <td style="text-align:center"><b></b></td>
+        <tr style="text-align:center">
             <td><a href="/user/{{player.player_name}}" style="color:#fff;">{{player.player_name}}</a></td>
         </tr>
     {% endfor %}
