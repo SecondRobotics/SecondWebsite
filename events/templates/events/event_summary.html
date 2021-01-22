@@ -1,11 +1,12 @@
 {% extends 'home/base.html' %}
 
 {% block content %}
-    {% for event in events %}
+    {% for event in context %}
         <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-primary">
             <div class="p-lg-4 mx-auto">
-                <a href="/events/{{event.name}}"><h2 style="color:white" class="display-4 fw-normal">{{event.name}}</h2></a>
-                <p>{{event.start_time}} - {{event.end_time}}</p>
+                <a href="/events/{{event.event.name}}"><h2 style="color:white" class="display-4 fw-normal">{{event.event.name}}</h2></a>
+                <p>{{event.event.start_time}} - {{event.event.end_time}}</p>
+                <h3>{{event.player_num}}/18</h3>
             </div>
         </div>
     {% endfor %}
