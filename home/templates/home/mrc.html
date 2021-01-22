@@ -1,0 +1,37 @@
+{% extends 'home/base.html' %}
+
+{% block content %}
+    <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 shadowy text-center bg-light">
+        <div class="col-md-5 p-lg-5 mx-auto my-5">
+        <h1 class="display-4 fw-normal">Minecraft Robotics Competition</h1> 
+        </div>
+    </div>
+<div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-dark">
+    <p style="color:white" class="lead fw-normal">
+        MRC is a simulated version of the FRC game Infinite Recharge inside of Minecraft. Thanks to a custom-coded plugin and a resource pack, you can play Infinite Recharge on Minecraft Java Edition or Bedrock Edition in 3v3 matches with your friends!
+    </p>
+    <p style="color:white" class="lead fw-normal">
+        The original Minecraft Robotics Competition Regional Event was held on December 19, 2020. Checkout the full event video and the MRC trailer embeded below.
+    </p>
+    <p style="color:white" class="lead fw-normal">
+        MRC is <a href="https://github.com/NicholasBottone/MinecraftRoboticsCompetition">open source</a>. Help improve it!
+    </p>
+</div>
+<div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-primary">
+    <h5 style="color:white">Play now!</h5>
+    <h2 style="color:white">mc.bottone.io</h2>
+    <a href="https://mcsrvstat.us/server/mc.bottone.io" class="btn btn-outline-light">Check the server status</a>
+</div>
+<div class="row">
+    <div class="col">
+        <div class="embed-responsive shadowy embed-responsive-16by9">
+            <iframe width="100%" height="500" src="https://www.youtube-nocookie.com/embed/ZKvIZ7NuOao" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+    </div>
+    <div class="col">
+        <div class="embed-responsive shadowy embed-responsive-16by9">
+            <iframe width="100%" height="500" src="https://www.youtube-nocookie.com/embed/_SMOkGr4IMI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+    </div>
+</div>
+{% endblock %}

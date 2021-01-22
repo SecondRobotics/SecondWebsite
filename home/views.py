@@ -18,6 +18,9 @@ def index(response):
 def about(response):
     return render(response, "home/about.html", {})
 
+def mrc(response):
+    return render(response, "home/mrc.html", {})
+
 def rules(response):
     return render(response, "home/rules.html", {})
 
