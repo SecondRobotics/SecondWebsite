@@ -10,7 +10,11 @@ class Event(models.Model):
     def __str__(self):
         return self.name
 
-class Rankings(models.Model):
+class Player(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    player_name = models.CharField(max_length=25)
+
+class Ranking(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     player_name = models.CharField(max_length=25)
     ranking_points = models.IntegerField()
