@@ -18,6 +18,8 @@ from .forms import ScoreForm
 # Create your views here.
 
 def index(response, name):
+    if not Leaderboard.objects.filter(name=name).exists():
+        return HttpResponseRedirect(response.META.get('HTTP_REFERER', '/'))
     # ls = Leaderboard.objects.get(name=name)
     sorted = Score.objects.filter(leaderboard__name=name, approved=True).order_by('-score', 'time_set')
     i = 1
