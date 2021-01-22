@@ -3,5 +3,6 @@ from . import views
 
 
 urlpatterns = [
-    path("<str:eventname>/", views.robot_event, name="robot_event"),
+    path("", views.event_summary, name="event_summary"),
+    path("<str:event_name>/", views.robot_event, name="robot_event"),
 ]

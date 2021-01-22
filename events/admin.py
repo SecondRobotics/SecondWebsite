@@ -3,7 +3,12 @@ from .models import *
 
 # Register your models here.
 
+class PlayerAdmin(admin.ModelAdmin):
+    list_display = ('player_name', 'event',)
+    list_filter = ('event',)
+    search_fields = ('player_name',)
+
 admin.site.register(Event)
-admin.site.register(Players)
-admin.site.register(Rankings)
+admin.site.register(Player, PlayerAdmin)
+admin.site.register(Ranking)
 admin.site.register(Match)
