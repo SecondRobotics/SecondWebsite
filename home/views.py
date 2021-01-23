@@ -24,6 +24,9 @@ def mrc(response):
 def rules(response):
     return render(response, "home/rules.html", {})
 
+def staff(response):
+    return render(response, "home/staff.html", {})
+
 def src_rules(response):
     return redirect('https://bit.ly/SRCrules')
 

@@ -7,6 +7,7 @@ urlpatterns = [
     path("about/", views.about, name="about"),
     path("mrc/", views.mrc, name="mrc"),
     path("rules/", views.rules, name="rules"),
+    path("staff/", views.staff, name="staff"),
     path("SRCrules/", views.src_rules, name="SRCrules"),
     path("STCrules/", views.stc_rules, name="STCrules"),
     path("MRCrules/", views.mrc_rules, name="MRCrules"),
