@@ -2,7 +2,9 @@ from .views import EventsRudView
 
 from django.urls import path
 
+app_name = "api-events"
+
 
 urlpatterns = [
-    path(r'^(?P<pk>\d+)/$', EventsRudView, name="event-rud"),
+    path('<int:pk>/', EventsRudView.as_view(), name="event-rud"),
 ]

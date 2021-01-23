@@ -21,5 +21,5 @@ urlpatterns = [
     path('', include('home.urls')),
     path('highscores/', include('highscores.urls')),
     path('events/', include('events.urls')),
-    path('api/events', include('events.api.urls', namespace="api-events")),
+    path('api/events/', include('events.api.urls', namespace="api-events")),
 ]
