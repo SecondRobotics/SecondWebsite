@@ -15,6 +15,12 @@ class Score(models.Model):
     time_set = models.DateTimeField(null=True, blank=True)
     source = models.URLField(null=False, blank=False)
     approved = models.BooleanField(default=False, null=False)
+    clean_code = models.CharField(max_length=400, null=True, blank=True)
+    
+    decrypted_code = models.CharField(max_length=400, null=True, blank=True)
+    client_version = models.CharField(max_length=20, null=True, blank=True)
+    time_of_score = models.CharField(max_length=20, null=True, blank=True)
+    robot_position = models.CharField(max_length=20, null=True, blank=True)
 
     def __str__(self):
         return f"{self.player_name} - {self.leaderboard} [{self.score}]"
