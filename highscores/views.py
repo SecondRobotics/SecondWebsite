@@ -1,7 +1,7 @@
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
 from django.http import HttpResponse
-from .models import Leaderboard, Score
+from .models import Leaderboard, Score, CleanCodeSubmission
 from datetime import datetime
 from django.core.files.storage import FileSystemStorage
 from django.core.mail import send_mail, BadHeaderError
@@ -137,9 +137,29 @@ def submit(request):
                     # Delete previous submissions for this category
                     prev_submissions.delete()
 
+                    # Search for code in database
+                    clean_code_search = CleanCodeSubmission.objects.filter(clean_code=obj.clean_code)
+
+                    if clean_code_search.exists():
+                        # Uh oh, this user submitted a clean code that has already been used.
+                        # Report this via email.
+                        
+                        message = f"{obj.player_name} attempted (and failed) to submit a score: [{obj.score}] - {obj.leaderboard}\n\n This score was already submitted by {clean_code_search[0].player_name}\n\n {obj.source}\n\nhttps://secondrobotics.org/admin/highscores/score/"
+                        try:
+                            send_mail(f"Possible cheating attempt from {obj.player_name}", message, "noreply@secondrobotics.org", ['brennan@secondrobotics.org'], fail_silently=False)
+                        except Exception as ex:
+                            print(ex)
+
+                        return HttpResponse('That clean code has already been submitted by another player.')
+
                     # Code is valid! Instantly approve!
                     obj.approved = True
                     obj.save()
+
+                    code_obj = CleanCodeSubmission()
+                    code_obj.clean_code = obj.clean_code
+                    code_obj.player_name = obj.player_name
+                    code_obj.save()
 
                     return render(request, "highscores/submit_accepted.html", {})
 

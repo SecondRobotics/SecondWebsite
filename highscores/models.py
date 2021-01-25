@@ -24,3 +24,10 @@ class Score(models.Model):
 
     def __str__(self):
         return f"{self.player_name} - {self.leaderboard} [{self.score}]"
+
+class CleanCodeSubmission(models.Model):
+    clean_code = models.CharField(max_length=400)
+    player_name = models.CharField(max_length=25)
+
+    def __str__(self):
+        return self.clean_code
