@@ -38,6 +38,9 @@ def mrc_rules(response):
 def discord(response):
     return redirect('https://www.discord.gg/Zq3HXRc')
 
+def sixmans(response):
+    return redirect('https://bit.ly/EloRanks')
+
 def register_page(request):
     if request.user.is_authenticated:
         return redirect('/')
