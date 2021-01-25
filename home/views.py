@@ -12,7 +12,6 @@ from django.db.models import Q
 from highscores.models import Leaderboard, Score
 
 def index(response):
-    print(response.user)
     return render(response, "home/home.html", {})
 
 def about(response):

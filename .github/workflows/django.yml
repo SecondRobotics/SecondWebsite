@@ -39,6 +39,7 @@ jobs:
         BASE_KEY: ${{ secrets.BASE_KEY }}
         SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
         SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        CLEAN_AES_KEY: ${{ secrets.CLEAN_AES_KEY }}
         
     - name: ☁ SFTP Deploy
       uses: easingthemes/ssh-deploy@v2.1.5
