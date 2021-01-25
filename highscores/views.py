@@ -83,7 +83,6 @@ def submit(request):
 
                     cipher = AES.new(CLEAN_AES_KEY.encode("utf-8"), AES.MODE_CBC, ivseed.encode("utf-8"))
                     obj.decrypted_code = cipher.decrypt(data).decode("utf-8")
-                    print(obj.decrypted_code)
 
                     # Clean code verification
                     dataset = obj.decrypted_code.split(',')
@@ -122,7 +121,7 @@ def submit(request):
                         if (robot_model != 'Roboteers 2481'):
                             return HttpResponse('Double-check the robot type that you selected!')
                     elif (str(obj.leaderboard) == 'Pushbot2'):
-                        if (robot_model != 'Pushbot2'):
+                        if (robot_model != 'PushBot2'):
                             return HttpResponse('Double-check the robot type that you selected!')
                     else:
                         return HttpResponse('Double-check the robot type that you selected!')
