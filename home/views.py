@@ -41,6 +41,9 @@ def discord(response):
 def sixmans(response):
     return redirect('https://bit.ly/EloRanks')
 
+def hall_of_fame(response):
+    return render(response, "home/hall_of_fame.html", {})
+
 def register_page(request):
     if request.user.is_authenticated:
         return redirect('/')

@@ -66,10 +66,10 @@
                     </li>
                     <li class="nav-item dropdown"> 
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        About Us
+                        About
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="/about">About</a></li>
+                        <li><a class="dropdown-item" href="/about">About Us</a></li>
                         <li><a class="dropdown-item" href="/staff">Staff</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="/mrc">Minecraft</a></li>
@@ -78,18 +78,11 @@
                     <a class="nav-link" aria-current="page" href="/rules">Rules</a>
                     </li>
                     <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="/hall-of-fame">Hall of Fame</a>
+                    </li>
+                    <li class="nav-item">
                     <a class="nav-link" aria-current="page" href="/events">Events</a>
                     </li>
-                    {% comment %} <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Events
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="/events/event1/">Event 1</a></li>
-                        <li><a class="dropdown-item" href="#">Event 2</a></li>
-                        <li><a class="dropdown-item" href="#">Event 3</a></li>
-                    </ul>
-                    </li> {% endcomment %}
                     <li class="nav-item dropdown"> 
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Highscores
@@ -111,10 +104,6 @@
                     </li>
 
                 </ul>
-                {% comment %} <form class="d-flex">
-                    <input class="form-control me-2" type="search" placeholder="Enter a search term" aria-label="Search">
-                    <button class="btn btn-outline-success" type="submit">Search</button>
-                </form> {% endcomment %}
             </div>
              {% if request.user.is_authenticated %}
             <span class="hello-msg">{{request.user}}</span>
