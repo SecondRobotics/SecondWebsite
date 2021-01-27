@@ -19,11 +19,16 @@ class EventsAPIView(mixins.CreateModelMixin, generics.ListAPIView):
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
+    def get_serializer_context(self, *args, **kwargs):
+        return {"request": self.request}
+
 class EventsRudView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsOwnerOrReadOnly]
     lookup_field = 'pk'
     serializer_class = EventSerializer
     queryset = Event.objects.all()
 
     def get_queryset(self):
         return Event.objects.all()
+
+    def get_serializer_context(self, *args, **kwargs):
+        return {"request": self.request}
