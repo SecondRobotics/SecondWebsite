@@ -20,6 +20,7 @@ class EventsAPIView(mixins.CreateModelMixin, generics.ListAPIView):
         return self.create(request, *args, **kwargs)
 
 class EventsRudView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsOwnerOrReadOnly]
     lookup_field = 'pk'
     serializer_class = EventSerializer
     queryset = Event.objects.all()
