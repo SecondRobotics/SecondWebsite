@@ -9,6 +9,10 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+    
+    @property
+    def owner(self):
+        return self.user
 
 class Player(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
