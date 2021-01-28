@@ -28,7 +28,7 @@ def robot_event(response, event_name, tab):
     semis = matches.filter(match_type='sf').order_by('match_number')
     finals = matches.filter(match_type='f').order_by('match_number')
 
-    rankings = Ranking.objects.filter(event__name=event_name).order_by('ranking_points')
+    rankings = Ranking.objects.filter(event__name=event_name).order_by('-ranking_points')
 
     alliances = ElimsAlliance.objects.filter(event__name=event_name).order_by('alliance_number')
 
