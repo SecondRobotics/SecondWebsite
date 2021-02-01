@@ -1,5 +1,7 @@
 from django.shortcuts import render
-from .models import Event, Player
+from .models import Event, Player, ChampionshipPoints
+
+from django.db.models import F
 
 # Create your views here.
 
@@ -21,3 +23,7 @@ def robot_event(response, event_name):
         num.append(i)
         i += 1 
     return render(response, "events/event.html", {"event_name": event_name, "players": players, "num": num})
+
+def championship_points(request):
+    points = ChampionshipPoints.objects.annotate(sum=F("event_1")+F("event_2")).order_by("-sum")
+    return render(request, "events/championship_points.html", {"points": points})
