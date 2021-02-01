@@ -34,18 +34,54 @@ class Match(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     match_number = models.IntegerField(null=True, blank=True)
     match_type = models.CharField(max_length=2, choices=MATCH_TYPES, default='q')
+
     red1 = models.CharField(max_length=25)
     red2 = models.CharField(max_length=25)
     red3 = models.CharField(max_length=25)
     blue1 = models.CharField(max_length=25)
     blue2 = models.CharField(max_length=25)
     blue3 = models.CharField(max_length=25)
+
+    red1_redcard = models.BooleanField(default=False)
+    red2_redcard = models.BooleanField(default=False)
+    red3_redcard = models.BooleanField(default=False)
+    blue1_redcard = models.BooleanField(default=False)
+    blue2_redcard = models.BooleanField(default=False)
+    blue3_redcard = models.BooleanField(default=False)
+
+    red1_surrogate = models.BooleanField(default=False)
+    red2_surrogate = models.BooleanField(default=False)
+    red3_surrogate = models.BooleanField(default=False)
+    blue1_surrogate = models.BooleanField(default=False)
+    blue2_surrogate = models.BooleanField(default=False)
+    blue3_surrogate = models.BooleanField(default=False)
+
+    red1_contribution = models.IntegerField(null=True, blank=True)
+    red2_contribution = models.IntegerField(null=True, blank=True)
+    red3_contribution = models.IntegerField(null=True, blank=True)
+    blue1_contribution = models.IntegerField(null=True, blank=True)
+    blue2_contribution = models.IntegerField(null=True, blank=True)
+    blue3_contribution = models.IntegerField(null=True, blank=True)
+
     red_score = models.IntegerField(null=True, blank=True)
-    red_climb_rp = models.BooleanField(null=True)
-    red_wheel_rp = models.BooleanField(null=True)
+    red_climb_rp = models.BooleanField(null=True, blank=True)
+    red_wheel_rp = models.BooleanField(null=True, blank=True)
+
+    red_power_cells = models.IntegerField(null=True, blank=True)
+    red_auto_points = models.IntegerField(null=True, blank=True)
+    red_teleop_points = models.IntegerField(null=True, blank=True)
+    red_endgame_points = models.IntegerField(null=True, blank=True)
+    red_power_cells = models.IntegerField(null=True, blank=True)
+
     blue_score = models.IntegerField(null=True, blank=True)
-    blue_climb_rp = models.BooleanField(null=True)
-    blue_wheel_rp = models.BooleanField(null=True)
+    blue_climb_rp = models.BooleanField(null=True, blank=True)
+    blue_wheel_rp = models.BooleanField(null=True, blank=True)
+
+    blue_power_cells = models.IntegerField(null=True, blank=True)
+    blue_auto_points = models.IntegerField(null=True, blank=True)
+    blue_teleop_points = models.IntegerField(null=True, blank=True)
+    blue_endgame_points = models.IntegerField(null=True, blank=True)
+    blue_power_cells = models.IntegerField(null=True, blank=True)
 
     @property
     def match_name(self):
