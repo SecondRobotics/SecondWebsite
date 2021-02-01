@@ -13,7 +13,7 @@ from django.contrib import messages
 
 from .forms import ScoreForm
 
-from SRCweb.settings import CLEAN_AES_KEY
+from SRCweb.settings import CLEAN_AES_KEY, NEW_AES_KEY
 
 from Crypto.Cipher import AES
 
@@ -81,8 +81,14 @@ def submit(request):
                     ivseed = indata[-4:] * 4
                     data = bytes.fromhex(indata[:-4])
 
-                    cipher = AES.new(CLEAN_AES_KEY.encode("utf-8"), AES.MODE_CBC, ivseed.encode("utf-8"))
-                    obj.decrypted_code = cipher.decrypt(data).decode("utf-8")
+                    try:
+                        # v5.8c
+                        cipher = AES.new(CLEAN_AES_KEY.encode("utf-8"), AES.MODE_CBC, ivseed.encode("utf-8"))
+                        obj.decrypted_code = cipher.decrypt(data).decode("utf-8")
+                    except Exception:
+                        # v5.8d+
+                        cipher = AES.new(NEW_AES_KEY.encode("utf-8"), AES.MODE_CBC, ivseed.encode("utf-8"))
+                        obj.decrypted_code = cipher.decrypt(data).decode("utf-8")
 
                     # Clean code verification
                     dataset = obj.decrypted_code.split(',')

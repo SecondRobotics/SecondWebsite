@@ -24,8 +24,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('BASE_KEY')
 
-# SECURITY WARNING: keep the CLEAN AES key used in production secret!
+# SECURITY WARNING: keep the AES key used in production secret!
 CLEAN_AES_KEY = os.environ.get('CLEAN_AES_KEY')
+
+# SECURITY WARNING: keep the AES key used in production secret!
+NEW_AES_KEY = os.environ.get('NEW_AES_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
