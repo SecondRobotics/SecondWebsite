@@ -15,6 +15,9 @@ class Player(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     player_name = models.CharField(max_length=25)
 
+    def __str__(self):
+        return self.player_name
+
 class Ranking(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     player_name = models.CharField(max_length=25)
@@ -117,3 +120,11 @@ class ElimsAlliance(models.Model):
 
     def __str__(self):
         return f"{self.event} - Alliance {self.alliance_number}"
+
+class ChampionshipPoints(models.Model):
+    player_name = models.CharField(max_length=25)
+    event_1 = models.IntegerField(default=0)
+    event_2 = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.player_name
