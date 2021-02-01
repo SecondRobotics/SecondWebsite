@@ -1,23 +1,324 @@
 {% extends 'home/base.html' %}
 
 {% block content %}
+    
+
     <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-dark">
         <div class="p-lg-4 mx-auto">
             <h2 style="color:white" class="display-4 fw-normal">{{event_name}}</h2>
         </div>
     </div>
 
-    <table class="table table-dark table-striped table-hover table-sm shadowy">
-        <thead>
-        <tr>
-            <th style="text-align:center">Player Name</th>
-        </tr>
-        </thead>
-        <tbody>
-    {% for player in players %}
-        <tr style="text-align:center">
-            <td><a href="/user/{{player.player_name}}" style="color:#fff;">{{player.player_name}}</a></td>
-        </tr>
-    {% endfor %}
-    </table>
+    <!-- Tabs navs -->
+    <ul class="nav nav-tabs nav-justified mb-3" id="ex1" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a
+            class="nav-link active tab-button"
+            id="players-tab-button"
+            data-mdb-toggle="tab"
+            href="javascript:switchTab('players-tab-button', 'players-tab', 'players');"
+            role="tab"
+            >Players</a
+            >
+        </li>
+        <li class="nav-item" role="presentation">
+            <a
+            class="nav-link tab-button"
+            id="quals-tab-button"
+            data-mdb-toggle="tab"
+            href="javascript:switchTab('quals-tab-button', 'quals-tab', 'quals');"
+            role="tab"
+            >Qualifications</a
+            >
+        </li>
+        <li class="nav-item" role="presentation">
+            <a
+            class="nav-link tab-button"
+            id="rankings-tab-button"
+            data-mdb-toggle="tab"
+            href="javascript:switchTab('rankings-tab-button', 'rankings-tab', 'rankings');"
+            role="tab"
+            >Rankings</a
+            >
+        </li>
+        <li class="nav-item" role="presentation">
+            <a
+            class="nav-link tab-button"
+            id="elims-tab-button"
+            data-mdb-toggle="tab"
+            href="javascript:switchTab('elims-tab-button', 'elims-tab', 'elims');"
+            >Eliminations</a
+            >
+        </li>
+    </ul>
+    <!-- Tabs navs -->
+
+    <h6 style="text-align:center">Updated {% now "h:iA" %}</h6>
+
+    <!-- Tabs content -->
+    <div class="tab-content" id="tabs-contents">
+        <div
+            class="tab-pane fade show active"
+            id="players-tab"
+            role="tabpanel"
+        >
+            <table class="table table-dark table-striped table-hover table-sm shadowy">
+                <thead>
+                <tr>
+                    <th style="text-align:center">Player Name</th>
+                </tr>
+                </thead>
+                <tbody>
+            {% for player in players %}
+                <tr style="text-align:center">
+                    <td><a href="/user/{{player.player_name}}" style="color:#fff;">{{player.player_name}}</a></td>
+                </tr>
+            {% endfor %}
+            </table>
+        </div>
+        <div
+            class="tab-pane fade"
+            id="quals-tab"
+            role="tabpanel"
+        >
+            <div class="col-md">
+                {% if quals|length > 0 %}
+                <table class="table table-striped table-hover table-sm shadowy">
+                    <thead>
+                        <tr>
+                            <th class="col-md-2" style="text-align:center">Match</th>
+                            <th class="col-md-4" colspan="3" style="text-align:center">Red Alliance</th>
+                            <th class="col-md-4" colspan="3" style="text-align:center">Blue Alliance</th>
+                            <th class="col-md-1" colspan="2" style="text-align:center">Scores</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th colspan="33" style="text-align:center">Qualifications</th>
+                        </tr>
+                            {% for match in quals %}
+                                <tr style="text-align:center">
+                                    <td>{{match.match_name}}</td>
+                                    <td style="background-color:#ffaaaa;">{{match.red1}}</td>
+                                    <td style="background-color:#ffaaaa;">{{match.red2}}</td>
+                                    <td style="background-color:#ffaaaa;">{{match.red3}}</td>
+                                    <td style="background-color:#aaaaff">{{match.blue1}}</td>
+                                    <td style="background-color:#aaaaff">{{match.blue2}}</td>
+                                    <td style="background-color:#aaaaff">{{match.blue3}}</td>
+                                    {% if match.red_score > match.blue_score %}
+                                        <td style="background-color:#ffaaaa;"><b>{{match.red_score}}{% if match.red_climb_rp %}*{% endif %}{% if match.red_wheel_rp %}*{% endif %}</b></td>
+                                        <td style="background-color:#aaaaff">{{match.blue_score}}{% if match.blue_climb_rp %}*{% endif %}{% if match.blue_wheel_rp %}*{% endif %}</td>
+                                    {% elif match.red_score < match.blue_score %}
+                                        <td style="background-color:#ffaaaa;">{{match.red_score}}{% if match.red_climb_rp %}*{% endif %}{% if match.red_wheel_rp %}*{% endif %}</td>
+                                        <td style="background-color:#aaaaff"><b>{{match.blue_score}}{% if match.blue_climb_rp %}*{% endif %}{% if match.blue_wheel_rp %}*{% endif %}</b></td>
+                                    {% else %}
+                                        <td style="background-color:#ffaaaa;">{{match.red_score}}{% if match.red_climb_rp %}*{% endif %}{% if match.red_wheel_rp %}*{% endif %}</td>
+                                        <td style="background-color:#aaaaff">{{match.blue_score}}{% if match.blue_climb_rp %}*{% endif %}{% if match.blue_wheel_rp %}*{% endif %}</td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                    </table>
+                {% else %}
+                    <h3>Looks like qualifications haven't started yet, tune in later!</h3>
+                {% endif %}
+            </div>
+        </div>
+        <div
+            class="tab-pane fade"
+            id="rankings-tab"
+            role="tabpanel"
+        >
+            {% if rankings|length > 0 %}
+                <table class="table table-striped table-hover table-sm shadowy" style="text-align:center">
+                    <thead>
+                        <tr>
+                            <th class="col-md-2">Rank</th>
+                            <th class="col-md-3">Player</th>
+                            <th class="col-md-3">Ranking Points</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rank in rankings %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{rank.player_name}}</td>
+                                <td>{{rank.ranking_points}}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <h3>Looks like matches haven't started yet, tune in later!</h3>
+            {% endif %}
+        </div>
+        <div
+            class="tab-pane fade"
+            id="elims-tab"
+            role="tabpanel"
+        >
+            {% if quarters|length > 0 or semis|length > 0 or finals|length > 0 or alliances|length > 0 %}
+                <table class="table table-striped table-hover table-sm shadowy" style="text-align:center">
+                    <thead>
+                        <tr>
+                            <th class="col-md-3">Alliance</th>
+                            <th class="col-md-3">Captain</th>
+                            <th class="col-md-3">First Pick</th>
+                            <th class="col-md-3">Second Pick</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for alliance in alliances %}
+                            <tr>
+                                <td><b>{{alliance.get_advancement_display}}</b> Alliance {{alliance.alliance_number}}</td>
+                                <td>{{alliance.player1}}</td>
+                                <td>{{alliance.player2}}</td>
+                                <td>{{alliance.player3}}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <table class="table table-striped table-hover table-sm shadowy">
+                    <thead>
+                        <tr>
+                            <th class="col-md-2" style="text-align:center">Match</th>
+                            <th class="col-md-4" colspan="3" style="text-align:center">Red Alliance</th>
+                            <th class="col-md-4" colspan="3" style="text-align:center">Blue Alliance</th>
+                            <th class="col-md-1" colspan="2" style="text-align:center">Scores</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if quarters|length > 0 %}
+                            <tr>
+                                <th colspan="33" style="text-align:center">Quarterfinals</th>
+                            </tr>
+                                {% for match in quarters %}
+                                <tr style="text-align:center">
+                                    <td>{{match.match_name}}</td>
+                                    <td style="background-color:#ffaaaa;">{{match.red1}}</td>
+                                    <td style="background-color:#ffaaaa;">{{match.red2}}</td>
+                                    <td style="background-color:#ffaaaa;">{{match.red3}}</td>
+                                    <td style="background-color:#aaaaff">{{match.blue1}}</td>
+                                    <td style="background-color:#aaaaff">{{match.blue2}}</td>
+                                    <td style="background-color:#aaaaff">{{match.blue3}}</td>
+                                    {% if match.red_score > match.blue_score %}
+                                        <td style="background-color:#ffaaaa;"><b>{{match.red_score}}{% if match.red_climb_rp %}*{% endif %}{% if match.red_wheel_rp %}*{% endif %}</b></td>
+                                        <td style="background-color:#aaaaff">{{match.blue_score}}{% if match.blue_climb_rp %}*{% endif %}{% if match.blue_wheel_rp %}*{% endif %}</td>
+                                    {% elif match.red_score < match.blue_score %}
+                                        <td style="background-color:#ffaaaa;">{{match.red_score}}{% if match.red_climb_rp %}*{% endif %}{% if match.red_wheel_rp %}*{% endif %}</td>
+                                        <td style="background-color:#aaaaff"><b>{{match.blue_score}}{% if match.blue_climb_rp %}*{% endif %}{% if match.blue_wheel_rp %}*{% endif %}</b></td>
+                                    {% else %}
+                                        <td style="background-color:#ffaaaa;">{{match.red_score}}{% if match.red_climb_rp %}*{% endif %}{% if match.red_wheel_rp %}*{% endif %}</td>
+                                        <td style="background-color:#aaaaff">{{match.blue_score}}{% if match.blue_climb_rp %}*{% endif %}{% if match.blue_wheel_rp %}*{% endif %}</td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                        {% if semis|length > 0 %}
+                            <tr>
+                                <th colspan="33" style="text-align:center">Semifinals</th>
+                            </tr>
+                                {% for match in semis %}
+                                <tr style="text-align:center">
+                                    <td>{{match.match_name}}</td>
+                                    <td style="background-color:#ffaaaa;">{{match.red1}}</td>
+                                    <td style="background-color:#ffaaaa;">{{match.red2}}</td>
+                                    <td style="background-color:#ffaaaa;">{{match.red3}}</td>
+                                    <td style="background-color:#aaaaff">{{match.blue1}}</td>
+                                    <td style="background-color:#aaaaff">{{match.blue2}}</td>
+                                    <td style="background-color:#aaaaff">{{match.blue3}}</td>
+                                    {% if match.red_score > match.blue_score %}
+                                        <td style="background-color:#ffaaaa;"><b>{{match.red_score}}{% if match.red_climb_rp %}*{% endif %}{% if match.red_wheel_rp %}*{% endif %}</b></td>
+                                        <td style="background-color:#aaaaff">{{match.blue_score}}{% if match.blue_climb_rp %}*{% endif %}{% if match.blue_wheel_rp %}*{% endif %}</td>
+                                    {% elif match.red_score < match.blue_score %}
+                                        <td style="background-color:#ffaaaa;">{{match.red_score}}{% if match.red_climb_rp %}*{% endif %}{% if match.red_wheel_rp %}*{% endif %}</td>
+                                        <td style="background-color:#aaaaff"><b>{{match.blue_score}}{% if match.blue_climb_rp %}*{% endif %}{% if match.blue_wheel_rp %}*{% endif %}</b></td>
+                                    {% else %}
+                                        <td style="background-color:#ffaaaa;">{{match.red_score}}{% if match.red_climb_rp %}*{% endif %}{% if match.red_wheel_rp %}*{% endif %}</td>
+                                        <td style="background-color:#aaaaff">{{match.blue_score}}{% if match.blue_climb_rp %}*{% endif %}{% if match.blue_wheel_rp %}*{% endif %}</td>
+                                    {% endif %}
+
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                        {% if finals|length > 0 %}
+                            <tr>
+                                <th colspan="33" style="text-align:center">Finals</th>
+                            </tr>
+                                {% for match in finals %}
+                                <tr style="text-align:center">
+                                    <td>{{match.match_name}}</td>
+                                    <td style="background-color:#ffaaaa;">{{match.red1}}</td>
+                                    <td style="background-color:#ffaaaa;">{{match.red2}}</td>
+                                    <td style="background-color:#ffaaaa;">{{match.red3}}</td>
+                                    <td style="background-color:#aaaaff">{{match.blue1}}</td>
+                                    <td style="background-color:#aaaaff">{{match.blue2}}</td>
+                                    <td style="background-color:#aaaaff">{{match.blue3}}</td>
+                                    {% if match.red_score > match.blue_score %}
+                                        <td style="background-color:#ffaaaa;"><b>{{match.red_score}}{% if match.red_climb_rp %}*{% endif %}{% if match.red_wheel_rp %}*{% endif %}</b></td>
+                                        <td style="background-color:#aaaaff">{{match.blue_score}}{% if match.blue_climb_rp %}*{% endif %}{% if match.blue_wheel_rp %}*{% endif %}</td>
+                                    {% elif match.red_score < match.blue_score %}
+                                        <td style="background-color:#ffaaaa;">{{match.red_score}}{% if match.red_climb_rp %}*{% endif %}{% if match.red_wheel_rp %}*{% endif %}</td>
+                                        <td style="background-color:#aaaaff"><b>{{match.blue_score}}{% if match.blue_climb_rp %}*{% endif %}{% if match.blue_wheel_rp %}*{% endif %}</b></td>
+                                    {% else %}
+                                        <td style="background-color:#ffaaaa;">{{match.red_score}}{% if match.red_climb_rp %}*{% endif %}{% if match.red_wheel_rp %}*{% endif %}</td>
+                                        <td style="background-color:#aaaaff">{{match.blue_score}}{% if match.blue_climb_rp %}*{% endif %}{% if match.blue_wheel_rp %}*{% endif %}</td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                </table>
+            {% else %}
+                <h3>Seems like eliminations haven't started yet, tune in later!</h3>
+            {% endif %}
+            <a name="test"></a>
+        </div>
+    </div>
+    <!-- Tabs content -->
+
+    <script>
+        // switch based on url content
+        var tab = '{{ tab }}';
+        switch(tab) {
+            case 'players':
+                switchTab('players-tab-button', 'players-tab', 'players');
+                break;
+            case 'quals':
+                switchTab('quals-tab-button', 'quals-tab', 'quals');
+                break;
+            case 'rankings':
+                switchTab('rankings-tab-button', 'rankings-tab', 'rankings');
+                break;
+            case 'elims':
+                switchTab('elims-tab-button', 'elims-tab', 'elims');
+                break;
+            default:
+                switchTab('players-tab-button', 'players-tab', 'players');
+                break;
+        }
+
+        function switchTab(tabId, tabContent, tabName) {
+            // first of all we get all tab content blocks (I think the best way to get them by class names)
+            var x = document.getElementsByClassName("tab-pane");
+            var i;
+            for (i = 0; i < x.length; i++) {
+                x[i].className = 'tab-pane fade'; // hide all tab content
+            }
+            document.getElementById(tabContent).className = 'tab-pane fade show active'; // display the content of the tab we need
+            console.log(document.getElementById(tabContent));
+        
+            // now we get all tab menu items by class names (use the next code only if you need to highlight current tab)
+            var x = document.getElementsByClassName("tab-button");
+            var i;
+            for (i = 0; i < x.length; i++) {
+                x[i].className = 'nav-link tab-button'; 
+            }
+            document.getElementById(tabId).className = 'nav-link active tab-button';
+
+            window.history.pushState("object or string", "Title", "/events/{{ event_name }}/" + tabName);
+        }
+    </script>
+    
+        
+    </div>
+    
 {% endblock %}
