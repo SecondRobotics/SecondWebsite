@@ -2,10 +2,16 @@
 
 {% block content %}
 {{profile.profile_picture}}
+<style>
+.responsive {
+  width: 100%;
+  height: auto;
+}
+</style>
 <div class="row">
     <div class="col-2">
             {% for p in profile %}
-                <img width="222" src="{{p.profile_picture}}" class="shadowy m-md-3">
+                <img src="{{p.profile_picture}}" class="shadowy m-md-3 responsive">
             {% endfor %}
     </div>
     <div class="col-10">
