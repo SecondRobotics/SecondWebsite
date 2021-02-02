@@ -10,6 +10,7 @@
     <table class="table table-dark table-striped table-hover table-sm shadowy">
         <thead>
         <tr>
+            <th style="text-align:center">Rank</th>
             <th style="text-align:center">Player Name</th>
             <th style="text-align:center">Event 1</th>
             <th style="text-align:center">Event 2</th>
@@ -19,6 +20,7 @@
         <tbody>
     {% for player in points %}
         <tr style="text-align:center">
+            <td>{{player.rank}}</td>
             <td><a href="/user/{{player.player_name}}" style="color:#fff;">{{player.player_name}}</a></td>
             <td>{{player.event_1}}</td>
             <td>{{player.event_2}}</td>

@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from django.db.models import F
+from django.db.models import F, Window
+from django.db.models.functions import Rank, PercentRank
 
 from .models import ElimsAlliance, Event, Player, Match, Ranking, ChampionshipPoints
 
@@ -38,5 +39,11 @@ def robot_event_tabless(response, event_name):
     return robot_event(response, event_name, '')
 
 def championship_points(request):
-    points = ChampionshipPoints.objects.annotate(sum=F("event_1")+F("event_2")).order_by("-sum")
+    points = ChampionshipPoints.objects.annotate(
+        sum=F("event_1")+F("event_2"),
+        rank=Window(
+            expression=Rank(),
+            order_by=F("sum").desc(),
+        )
+        ).order_by("-sum")
     return render(request, "events/championship_points.html", {"points": points})

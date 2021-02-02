@@ -135,7 +135,7 @@
                                     src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRI7M4Z0v1HP2Z9tZmfQaZFCuspezuoxter_A&usqp=CAU">
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                {% if user.is_superuser %}
+                                {% if user.is_staff %}
                                     <li><a class="dropdown-item" href="/admin">ADMIN</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                 {% endif %}
