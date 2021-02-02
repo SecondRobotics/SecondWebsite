@@ -132,7 +132,7 @@
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{request.user}}</span>
                                 <img width="30" height="30" class="img-profile rounded-circle"
-                                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRI7M4Z0v1HP2Z9tZmfQaZFCuspezuoxter_A&usqp=CAU">
+                                    src="{{request.user.profile.profile_picture}}">
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                 {% if user.is_staff %}
@@ -140,6 +140,7 @@
                                     <li><hr class="dropdown-divider"></li>
                                 {% endif %}
                                 <li><a class="dropdown-item" href="/user/{{request.user}}">Profile</a></li>
+                                <li><a class="dropdown-item" href="/user/settings">Settings</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="/logout">Logout</a></li>
                                 
