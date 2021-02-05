@@ -19,4 +19,5 @@ urlpatterns = [
     path("discord/", views.discord, name="discord"),
     path("6mans/", views.sixmans, name="6mans"),
     path("hall-of-fame/", views.hall_of_fame, name="hall of fame"),
+    path("merch/", views.merch, name="merch"),
 ]
