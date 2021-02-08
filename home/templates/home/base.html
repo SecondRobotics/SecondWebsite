@@ -14,7 +14,16 @@
     {% comment %} <!-- Custom styles for this template-->
     <link href={% static "css/sb-admin-2.min.css" %} rel="stylesheet"> {% endcomment %}
 
-    <!-- Clarity tracking code for https://secondrobotics.org/ -->
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0T1T94RZ4B"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-0T1T94RZ4B');
+    </script>
+
+    <!-- Microsoft Clarity -->
     <script>
         (function(c,l,a,r,i,t,y){
             c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
