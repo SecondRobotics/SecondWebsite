@@ -28,6 +28,9 @@ def rules(response):
 def staff(response):
     return render(response, "home/staff.html", {})
 
+def privacy(response):
+    return render(response, "home/privacy.html", {})
+
 def src_rules(response):
     return redirect('https://bit.ly/SRCrules')
 
