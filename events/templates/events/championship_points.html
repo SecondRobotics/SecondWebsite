@@ -1,0 +1,31 @@
+{% extends 'home/base.html' %}
+
+{% block content %}
+    <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-warning">
+        <div class="p-lg-4 mx-auto">
+            <h2 style="color:black" class="display-4 fw-normal">Championship Points</h2>
+        </div>
+    </div>
+
+    <table class="table table-dark table-striped table-hover table-sm shadowy">
+        <thead>
+        <tr>
+            <th style="text-align:center">Rank</th>
+            <th style="text-align:center">Player Name</th>
+            <th style="text-align:center">Event 1</th>
+            <th style="text-align:center">Event 2</th>
+            <th style="text-align:center">Total Points</th>
+        </tr>
+        </thead>
+        <tbody>
+    {% for player in points %}
+        <tr style="text-align:center">
+            <td>{{player.rank}}</td>
+            <td><a href="/user/{{player.player_name}}" style="color:#fff;">{{player.player_name}}</a></td>
+            <td>{{player.event_1}}</td>
+            <td>{{player.event_2}}</td>
+            <td>{{player.sum}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+{% endblock %}

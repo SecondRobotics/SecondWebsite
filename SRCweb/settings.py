@@ -24,6 +24,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('BASE_KEY')
 
+# SECURITY WARNING: keep the AES key used in production secret!
+CLEAN_AES_KEY = os.environ.get('CLEAN_AES_KEY')
+
+# SECURITY WARNING: keep the AES key used in production secret!
+NEW_AES_KEY = os.environ.get('NEW_AES_KEY')
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
@@ -152,9 +158,11 @@ STATIC_URL = '/static/'
 plt = platform.system()
 if plt == "Windows":
     DEBUG = True
-    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-    # STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+    print(BASE_DIR)
+    MEDIA_ROOT = os.path.join(BASE_DIR, "/static/media")
+    STATIC_ROOT = ""
+    print(STATIC_ROOT)
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
     
 else:
     STATIC_ROOT = "/home/bottxleg/secondrobotics.org/static"

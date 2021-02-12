@@ -1,18 +1,19 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, request
 from django.contrib.auth.forms import UserCreationForm
-from .forms import CreateUserForm
+from .forms import CreateUserForm, ProfileForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.http.response import HttpResponseRedirect
 from django.db.models import Q
+from .models import Profile
+from django.contrib.auth.decorators import login_required
 
 
 from highscores.models import Leaderboard, Score
 
 def index(response):
-    print(response.user)
     return render(response, "home/home.html", {})
 
 def about(response):
@@ -27,6 +28,9 @@ def rules(response):
 def staff(response):
     return render(response, "home/staff.html", {})
 
+def privacy(response):
+    return render(response, "home/privacy.html", {})
+
 def src_rules(response):
     return redirect('https://bit.ly/SRCrules')
 
@@ -39,6 +43,15 @@ def mrc_rules(response):
 def discord(response):
     return redirect('https://www.discord.gg/Zq3HXRc')
 
+def sixmans(response):
+    return redirect('https://bit.ly/EloRanks')
+
+def merch(response):
+    return redirect('https://streamlabs.com/secondrobotics/merch')
+
+def hall_of_fame(response):
+    return render(response, "home/hall_of_fame.html", {})
+
 def register_page(request):
     if request.user.is_authenticated:
         return redirect('/')
@@ -47,9 +60,12 @@ def register_page(request):
         if request.method == 'POST':
             form = CreateUserForm(request.POST)
             if form.is_valid():
-                form.save()
-                user = form.cleaned_data.get('username')
-                messages.success(request, f"Account was created for {user}")
+                user = form.save()
+                username = form.cleaned_data.get('username')
+                Profile.objects.create(
+                    user=user
+                )
+                messages.success(request, f"Account was created for {username}")
                 return redirect('/login')
 
         context = {"form": form}
@@ -80,6 +96,7 @@ def logout_user(request):
 def user_profile(request, username):
     if not User.objects.filter(username=username).exists():
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+    profile = Profile.objects.filter(user__username=username)
     scoresdata = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), player_name=username, approved=True)
     scores = {"overall": 0}
     sources = {}
@@ -87,5 +104,20 @@ def user_profile(request, username):
         sources.update({score.leaderboard.name: score.source})
         scores.update({score.leaderboard.name: score.score})
         scores.update({"overall": score.score + scores['overall']})
-    context={"scores": scores, "username": username, "sources": sources}
+    context={"scores": scores, "username": username, "sources": sources, "profile": profile}
     return render(request, "home/user_profile.html", context)
+
+@login_required(login_url='/login')
+def user_settings(request):
+    try:
+        profile = request.user.profile
+    except:
+        profile = Profile.objects.create(user=request.user)
+    form = ProfileForm(instance=profile)
+
+    if request.method == "POST":
+        form = ProfileForm(request.POST, instance=profile)
+        if form.is_valid:
+            form.save()
+    
+    return render(request, "home/user_settings.html", {"form": form, "profile": profile})
