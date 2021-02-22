@@ -52,6 +52,9 @@ def merch(response):
 def hall_of_fame(response):
     return render(response, "home/hall_of_fame.html", {})
 
+def logos(response):
+    return render(response, "home/logos.html", {})
+
 def register_page(request):
     if request.user.is_authenticated:
         return redirect('/')
