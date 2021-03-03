@@ -47,7 +47,7 @@ def sixmans(response):
     return redirect('https://bit.ly/EloRanks')
 
 def merch(response):
-    return redirect('https://streamlabs.com/secondrobotics/merch')
+    return redirect('https://second-robotics.creator-spring.com/')
 
 def hall_of_fame(response):
     return render(response, "home/hall_of_fame.html", {})
