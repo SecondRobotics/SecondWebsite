@@ -1,4 +1,8 @@
 from django.db import models
+from django.urls import reverse
+
+from rest_framework.reverse import reverse as api_reverse
+
 from math import floor
 
 # Create your models here.
@@ -10,6 +14,10 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+    def get_api_url(self, request=None):
+        return api_reverse("api-events:event-rud", kwargs={'pk': self.pk}, request=request)
 
 class Player(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
