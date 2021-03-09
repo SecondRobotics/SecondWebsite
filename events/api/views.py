@@ -3,11 +3,13 @@ from events.models import Event
 from .serializers import EventSerializer
 from django.db.models import Q
 from .permissions import IsOwnerOrReadOnly
+from rest_framework.permissions import IsAdminUser
 
 class EventsAPIView(mixins.CreateModelMixin, generics.ListAPIView):
     lookup_field = 'pk'
     serializer_class = EventSerializer
     queryset = Event.objects.all()
+    permission_classes = (IsAdminUser, )
 
     def get_queryset(self):
         qs = Event.objects.all()
@@ -26,6 +28,7 @@ class EventsRudView(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = 'pk'
     serializer_class = EventSerializer
     queryset = Event.objects.all()
+    permission_classes = (IsAdminUser, )
 
     def get_queryset(self):
         return Event.objects.all()
