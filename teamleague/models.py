@@ -38,7 +38,7 @@ class Matchup(models.Model):
     red_alliance = models.ForeignKey(Alliance, on_delete=models.PROTECT, related_name='red_alliances')
     blue_alliance = models.ForeignKey(Alliance, on_delete=models.PROTECT, related_name='blue_alliances')
 
-    # published = models.BooleanField(default=False)
+    published = models.BooleanField(default=False)
 
     def get_red_wins(self):
         red_wins = 0
@@ -161,7 +161,7 @@ class Matchup(models.Model):
 
 def calculate_rankings():
     teams = Alliance.objects.all()
-    matchups = Matchup.objects.all()
+    matchups = Matchup.objects.filter(published=True)
 
     for team in teams:
         red_matchups = matchups.filter(red_alliance=team)
@@ -195,7 +195,7 @@ def calculate_rankings():
         team.total_points = total_points
         team.save()
     
-    teams = Alliance.objects.all()
+    teams = Alliance.objects.filter()
 
 
     duplicates = teams.values('wins').annotate(count=Count('wins')).filter(count__gt=1)
@@ -205,7 +205,7 @@ def calculate_rankings():
             continue
         tied_teams = teams.filter(wins=wins)
 
-        matchups = Matchup.objects.filter(red_alliance__in=tied_teams, blue_alliance__in=tied_teams)
+        matchups = Matchup.objects.filter(published=True, red_alliance__in=tied_teams, blue_alliance__in=tied_teams)
 
         for team in tied_teams:
             red_matchups = matchups.filter(red_alliance=team)
