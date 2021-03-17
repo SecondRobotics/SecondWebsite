@@ -1,0 +1,172 @@
+<table class="table table-hover table-sm shadowy">
+    <thead>
+        {% if matchup.winner == 'r' %}
+            <tr>
+                {% if show_week %}
+                    <th class="col-md-1" style="text-align:center"><a href="../teamleague#week{{matchup.week}}">Week {{matchup.week}}</a></th>
+                {% else %}
+                    <th class="col-md-1"></th>
+                {% endif %}
+                <th class="col-md-1" style="text-align:center">Winner</th>
+                <th class="col-md-4" colspan="2" style="text-align:center">
+                    <a href="../teamleague/{{matchup.red_alliance.key}}"><b>{{ matchup.red_alliance.name }}</b></a> vs 
+                    <a href="../teamleague/{{matchup.blue_alliance.key}}">{{ matchup.blue_alliance.name }}</a>
+                </th>
+                <th class="col-md-2"></th>
+            </tr>
+        {% elif matchup.winner == 'b' %}
+            <tr style="background-color:#{{matchup.blue_alliance.primary_color}}">
+                {% if show_week %}
+                    <th class="col-md-1" style="text-align:center"><a href="../teamleague#week{{matchup.week}}">Week {{matchup.week}}</a></th>
+                {% else %}
+                    <th class="col-md-1"></th>
+                {% endif %}
+                <th class="col-md-1"></th>
+                <th class="col-md-4" colspan="2" style="text-align:center">
+                    <a href="../teamleague/{{matchup.red_alliance.key}}">{{ matchup.red_alliance.name }}</a> vs 
+                    <a href="../teamleague/{{matchup.blue_alliance.key}}"><b>{{ matchup.blue_alliance.name }}</b></a>
+                </th>
+                <th class="col-md-2" style="text-align:center">Winner</th>
+            </tr>
+        {% else %}
+            <tr>
+                {% if show_week %}
+                    <th class="col-md-1" style="text-align:center"><a href="../teamleague#week{{matchup.week}}">Week {{matchup.week}}</a></th>
+                {% else %}
+                    <th class="col-md-1"></th>
+                {% endif %}
+                <th class="col-md-1"></th>
+                <th class="col-md-4" colspan="2" style="text-align:center">
+                    <a href="../teamleague/{{matchup.red_alliance.key}}">{{ matchup.red_alliance.name }}</a> vs 
+                    <a href="../teamleague/{{matchup.blue_alliance.key}}">{{ matchup.blue_alliance.name }}</a>
+                </th>
+                <th class="col-md-2"></th>
+            </tr>
+        {% endif %}
+    </thead>
+    <tr>
+        <td style="text-align:center">1</td>
+        {% if matchup.match_1_red > matchup.match_1_blue %}
+            <td style="background-color:#ffaaaa;text-align:center"><b>{{matchup.red_alliance.name}}</b></td>
+            <td style="background-color:#ffaaaa;text-align:center"><b>{{matchup.match_1_red}}</b></td>
+        {% else %}
+            <td style="background-color:#ffaaaa;text-align:center">{{matchup.red_alliance.name}}</td>
+            <td style="background-color:#ffaaaa;text-align:center">{{matchup.match_1_red}}</td>
+        {% endif %}
+        {% if matchup.match_1_red < matchup.match_1_blue %}
+            <td style="background-color:#aaaaff;text-align:center"><b>{{matchup.match_1_blue}}</b></td>
+            <td style="background-color:#aaaaff;text-align:center"><b>{{matchup.blue_alliance.name}}</b></td>
+        {% else %}
+            <td style="background-color:#aaaaff;text-align:center">{{matchup.match_1_blue}}</td>
+            <td style="background-color:#aaaaff;text-align:center">{{matchup.blue_alliance.name}}</td>
+        {% endif %}
+    </tr>
+    <tr>
+        <td style="text-align:center">2</td>
+        {% if matchup.match_2_red > matchup.match_2_blue %}
+            <td style="background-color:#ffaaaa;text-align:center"><b>{{matchup.red_alliance.name}}</b></td>
+            <td style="background-color:#ffaaaa;text-align:center"><b>{{matchup.match_2_red}}</b></td>
+        {% else %}
+            <td style="background-color:#ffaaaa;text-align:center">{{matchup.red_alliance.name}}</td>
+            <td style="background-color:#ffaaaa;text-align:center">{{matchup.match_2_red}}</td>
+        {% endif %}
+        {% if matchup.match_2_red < matchup.match_2_blue %}
+            <td style="background-color:#aaaaff;text-align:center"><b>{{matchup.match_2_blue}}</b></td>
+            <td style="background-color:#aaaaff;text-align:center"><b>{{matchup.blue_alliance.name}}</b></td>
+        {% else %}
+            <td style="background-color:#aaaaff;text-align:center">{{matchup.match_2_blue}}</td>
+            <td style="background-color:#aaaaff;text-align:center">{{matchup.blue_alliance.name}}</td>
+        {% endif %}
+    </tr>
+    <tr>
+        <td style="text-align:center">3</td>
+        {% if matchup.match_3_red > matchup.match_3_blue %}
+            <td style="background-color:#ffaaaa;text-align:center"><b>{{matchup.red_alliance.name}}</b></td>
+            <td style="background-color:#ffaaaa;text-align:center"><b>{{matchup.match_3_red}}</b></td>
+        {% else %}
+            <td style="background-color:#ffaaaa;text-align:center">{{matchup.red_alliance.name}}</td>
+            <td style="background-color:#ffaaaa;text-align:center">{{matchup.match_3_red}}</td>
+        {% endif %}
+        {% if matchup.match_3_red < matchup.match_3_blue %}
+            <td style="background-color:#aaaaff;text-align:center"><b>{{matchup.match_3_blue}}</b></td>
+            <td style="background-color:#aaaaff;text-align:center"><b>{{matchup.blue_alliance.name}}</b></td>
+        {% else %}
+            <td style="background-color:#aaaaff;text-align:center">{{matchup.match_3_blue}}</td>
+            <td style="background-color:#aaaaff;text-align:center">{{matchup.blue_alliance.name}}</td>
+        {% endif %}
+    </tr>
+    <tr>
+        <td style="text-align:center">4</td>
+        {% if matchup.match_4_red > matchup.match_4_blue %}
+            <td style="background-color:#ffaaaa;text-align:center"><b>{{matchup.red_alliance.name}}</b></td>
+            <td style="background-color:#ffaaaa;text-align:center"><b>{{matchup.match_4_red}}</b></td>
+        {% else %}
+            <td style="background-color:#ffaaaa;text-align:center">{{matchup.red_alliance.name}}</td>
+            <td style="background-color:#ffaaaa;text-align:center">{{matchup.match_4_red}}</td>
+        {% endif %}
+        {% if matchup.match_4_red < matchup.match_4_blue %}
+            <td style="background-color:#aaaaff;text-align:center"><b>{{matchup.match_4_blue}}</b></td>
+            <td style="background-color:#aaaaff;text-align:center"><b>{{matchup.blue_alliance.name}}</b></td>
+        {% else %}
+            <td style="background-color:#aaaaff;text-align:center">{{matchup.match_4_blue}}</td>
+            <td style="background-color:#aaaaff;text-align:center">{{matchup.blue_alliance.name}}</td>
+        {% endif %}
+    </tr>
+    {% if matchup.show_match_5 %}
+        <tr>
+            <td style="text-align:center">5</td>
+            {% if matchup.match_5_red > matchup.match_5_blue %}
+                <td style="background-color:#ffaaaa;text-align:center"><b>{{matchup.red_alliance.name}}</b></td>
+                <td style="background-color:#ffaaaa;text-align:center"><b>{{matchup.match_5_red}}</b></td>
+            {% else %}
+                <td style="background-color:#ffaaaa;text-align:center">{{matchup.red_alliance.name}}</td>
+                <td style="background-color:#ffaaaa;text-align:center">{{matchup.match_5_red}}</td>
+            {% endif %}
+            {% if matchup.match_5_red < matchup.match_5_blue %}
+                <td style="background-color:#aaaaff;text-align:center"><b>{{matchup.match_5_blue}}</b></td>
+                <td style="background-color:#aaaaff;text-align:center"><b>{{matchup.blue_alliance.name}}</b></td>
+            {% else %}
+                <td style="background-color:#aaaaff;text-align:center">{{matchup.match_5_blue}}</td>
+                <td style="background-color:#aaaaff;text-align:center">{{matchup.blue_alliance.name}}</td>
+            {% endif %}
+        </tr>
+    {% endif %}
+    {% if matchup.show_match_6 %}
+        <tr>
+            <td style="text-align:center">6</td>
+            {% if matchup.match_6_red > matchup.match_6_blue %}
+                <td style="background-color:#ffaaaa;text-align:center"><b>{{matchup.red_alliance.name}}</b></td>
+                <td style="background-color:#ffaaaa;text-align:center"><b>{{matchup.match_6_red}}</b></td>
+            {% else %}
+                <td style="background-color:#ffaaaa;text-align:center">{{matchup.red_alliance.name}}</td>
+                <td style="background-color:#ffaaaa;text-align:center">{{matchup.match_6_red}}</td>
+            {% endif %}
+            {% if matchup.match_6_red < matchup.match_6_blue %}
+                <td style="background-color:#aaaaff;text-align:center"><b>{{matchup.match_6_blue}}</b></td>
+                <td style="background-color:#aaaaff;text-align:center"><b>{{matchup.blue_alliance.name}}</b></td>
+            {% else %}
+                <td style="background-color:#aaaaff;text-align:center">{{matchup.match_6_blue}}</td>
+                <td style="background-color:#aaaaff;text-align:center">{{matchup.blue_alliance.name}}</td>
+            {% endif %}
+        </tr>
+    {% endif %}
+    {% if matchup.show_match_7 %}
+        <tr>
+            <td style="text-align:center">7</td>
+            {% if matchup.match_7_red > matchup.match_7_blue %}
+                <td style="background-color:#ffaaaa;text-align:center"><b>{{matchup.red_alliance.name}}</b></td>
+                <td style="background-color:#ffaaaa;text-align:center"><b>{{matchup.match_7_red}}</b></td>
+            {% else %}
+                <td style="background-color:#ffaaaa;text-align:center">{{matchup.red_alliance.name}}</td>
+                <td style="background-color:#ffaaaa;text-align:center">{{matchup.match_7_red}}</td>
+            {% endif %}
+            {% if matchup.match_7_red < matchup.match_7_blue %}
+                <td style="background-color:#aaaaff;text-align:center"><b>{{matchup.match_7_blue}}</b></td>
+                <td style="background-color:#aaaaff;text-align:center"><b>{{matchup.blue_alliance.name}}</b></td>
+            {% else %}
+                <td style="background-color:#aaaaff;text-align:center">{{matchup.match_7_blue}}</td>
+                <td style="background-color:#aaaaff;text-align:center">{{matchup.blue_alliance.name}}</td>
+            {% endif %}
+        </tr>
+    {% endif %}
+</table>

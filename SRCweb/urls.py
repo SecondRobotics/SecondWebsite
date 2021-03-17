@@ -24,4 +24,5 @@ urlpatterns = [
     path('events/', include('events.urls')),
     path('api-token-auth/', obtain_jwt_token, name='api'),
     path('api/events/', include('events.api.urls', namespace="api-events")),
+    path('teamleague/', include('teamleague.urls')),
 ]
