@@ -13,7 +13,23 @@
     <br/>
 
     <div class="position-relative overflow-hidden text-center bg-primary">
-        <h3 style="color:white">{{team.player1}} {{team.player2}} {{team.player3}}<h3>
+        <h3 style="color:white">
+        {% if team.player1_user %}
+            <a href="../user/{{ team.player1_user.username }}" style="color:white">{{ team.player1 }}</a>
+        {% else %}
+            {{ team.player1 }}
+        {% endif %}
+        {% if team.player2_user %}
+            <a href="../user/{{ team.player2_user.username }}" style="color:white">{{ team.player2 }}</a>
+        {% else %}
+            {{ team.player2 }}
+        {% endif %}
+        {% if team.player3_user %}
+            <a href="../user/{{ team.player3_user.username }}" style="color:white">{{ team.player3 }}</a>
+        {% else %}
+            {{ team.player3 }}
+        {% endif %}
+        <h3>
     </div>
     <br/>
 
