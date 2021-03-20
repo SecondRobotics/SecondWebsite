@@ -1,0 +1,40 @@
+{% extends 'home/base.html' %}
+
+{% block content %}
+
+    <div class="position-relative overflow-hidden text-center" style="background-color:#{{team.secondary_color}}">
+        <div class="p-lg-4 mx-auto" style="display:inline; white-space:nowrap">
+            <h1 style="color:#{{team.primary_color}}; display:inline; white-space:nowrap; vertical-align:center" class="display-4 fw-normal">
+                {{team.name}}
+                <img class="rounded" style="display:inline; max-width:100%; max-height: 128px; text-align: right" src="{{team.logo}}"/>
+            </h1>
+        </div>
+    </div>
+    <br/>
+
+    <div class="position-relative overflow-hidden text-center bg-primary">
+        <h3 style="color:white">
+        {% if team.player1_user %}
+            <a href="../user/{{ team.player1_user.username }}" style="color:white">{{ team.player1 }}</a>
+        {% else %}
+            {{ team.player1 }}
+        {% endif %}
+        {% if team.player2_user %}
+            <a href="../user/{{ team.player2_user.username }}" style="color:white">{{ team.player2 }}</a>
+        {% else %}
+            {{ team.player2 }}
+        {% endif %}
+        {% if team.player3_user %}
+            <a href="../user/{{ team.player3_user.username }}" style="color:white">{{ team.player3 }}</a>
+        {% else %}
+            {{ team.player3 }}
+        {% endif %}
+        <h3>
+    </div>
+    <br/>
+
+    {% for matchup in matchups %}
+        {% include "teamleague/matchup_block.html" with matchup=matchup show_week=True %}
+    {% endfor %}
+
+{% endblock %}

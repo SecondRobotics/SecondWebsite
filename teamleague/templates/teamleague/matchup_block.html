@@ -1,0 +1,60 @@
+<table class="table table-hover table-sm shadowy">
+    <thead>
+        {% if matchup.winner == 'r' %}
+            <tr>
+                {% if show_week %}
+                    <th class="col-md-1" style="text-align:center"><a href="../teamleague#week{{matchup.week}}">Week {{matchup.week}}</a></th>
+                {% else %}
+                    <th class="col-md-1"></th>
+                {% endif %}
+                <th class="col-md-1" style="text-align:center">Winner</th>
+                <th class="col-md-4" colspan="2" style="text-align:center">
+                    <a href="../teamleague/{{matchup.red_alliance.key}}"><b>{{ matchup.red_alliance.name }}</b></a> vs 
+                    <a href="../teamleague/{{matchup.blue_alliance.key}}">{{ matchup.blue_alliance.name }}</a>
+                </th>
+                <th class="col-md-2"></th>
+            </tr>
+        {% elif matchup.winner == 'b' %}
+            <tr style="background-color:#{{matchup.blue_alliance.primary_color}}">
+                {% if show_week %}
+                    <th class="col-md-1" style="text-align:center"><a href="../teamleague#week{{matchup.week}}">Week {{matchup.week}}</a></th>
+                {% else %}
+                    <th class="col-md-1"></th>
+                {% endif %}
+                <th class="col-md-1"></th>
+                <th class="col-md-4" colspan="2" style="text-align:center">
+                    <a href="../teamleague/{{matchup.red_alliance.key}}">{{ matchup.red_alliance.name }}</a> vs 
+                    <a href="../teamleague/{{matchup.blue_alliance.key}}"><b>{{ matchup.blue_alliance.name }}</b></a>
+                </th>
+                <th class="col-md-2" style="text-align:center">Winner</th>
+            </tr>
+        {% else %}
+            <tr>
+                {% if show_week %}
+                    <th class="col-md-1" style="text-align:center"><a href="../teamleague#week{{matchup.week}}">Week {{matchup.week}}</a></th>
+                {% else %}
+                    <th class="col-md-1"></th>
+                {% endif %}
+                <th class="col-md-1"></th>
+                <th class="col-md-4" colspan="2" style="text-align:center">
+                    <a href="../teamleague/{{matchup.red_alliance.key}}">{{ matchup.red_alliance.name }}</a> vs 
+                    <a href="../teamleague/{{matchup.blue_alliance.key}}">{{ matchup.blue_alliance.name }}</a>
+                </th>
+                <th class="col-md-2"></th>
+            </tr>
+        {% endif %}
+    </thead>
+    {% include "teamleague/match_row.html" with red=matchup.match_1_red blue=matchup.match_1_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
+    {% include "teamleague/match_row.html" with red=matchup.match_2_red blue=matchup.match_2_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
+    {% include "teamleague/match_row.html" with red=matchup.match_3_red blue=matchup.match_3_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
+    {% include "teamleague/match_row.html" with red=matchup.match_4_red blue=matchup.match_4_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
+    {% if matchup.show_match_5 and matchup.published %}
+        {% include "teamleague/match_row.html" with red=matchup.match_5_red blue=matchup.match_5_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
+    {% endif %}
+    {% if matchup.show_match_6 and matchup.published %}
+        {% include "teamleague/match_row.html" with red=matchup.match_6_red blue=matchup.match_6_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
+    {% endif %}
+    {% if matchup.show_match_7 and matchup.published %}
+        {% include "teamleague/match_row.html" with red=matchup.match_7_red blue=matchup.match_7_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
+    {% endif %}
+</table>
