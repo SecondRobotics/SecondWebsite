@@ -19,7 +19,7 @@ class Score(models.Model):
     
     decrypted_code = models.CharField(max_length=600, null=True, blank=True)
     client_version = models.CharField(max_length=20, null=True, blank=True)
-    time_of_score = models.CharField(max_length=20, null=True, blank=True)
+    time_of_score = models.CharField(max_length=30, null=True, blank=True)
     robot_position = models.CharField(max_length=20, null=True, blank=True)
 
     def __str__(self):
