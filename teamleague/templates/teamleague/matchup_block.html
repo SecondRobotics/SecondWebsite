@@ -44,17 +44,17 @@
             </tr>
         {% endif %}
     </thead>
-    {% include "teamleague/match_row.html" with red=matchup.match_1_red blue=matchup.match_1_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
-    {% include "teamleague/match_row.html" with red=matchup.match_2_red blue=matchup.match_2_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
-    {% include "teamleague/match_row.html" with red=matchup.match_3_red blue=matchup.match_3_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
-    {% include "teamleague/match_row.html" with red=matchup.match_4_red blue=matchup.match_4_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
+    {% include "teamleague/match_row.html" with match_number=1 red=matchup.match_1_red blue=matchup.match_1_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
+    {% include "teamleague/match_row.html" with match_number=2 red=matchup.match_2_red blue=matchup.match_2_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
+    {% include "teamleague/match_row.html" with match_number=3 red=matchup.match_3_red blue=matchup.match_3_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
+    {% include "teamleague/match_row.html" with match_number=4 red=matchup.match_4_red blue=matchup.match_4_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
     {% if matchup.show_match_5 and matchup.published %}
-        {% include "teamleague/match_row.html" with red=matchup.match_5_red blue=matchup.match_5_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
+        {% include "teamleague/match_row.html" with match_number=5 red=matchup.match_5_red blue=matchup.match_5_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
     {% endif %}
     {% if matchup.show_match_6 and matchup.published %}
-        {% include "teamleague/match_row.html" with red=matchup.match_6_red blue=matchup.match_6_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
+        {% include "teamleague/match_row.html" with match_number=6 red=matchup.match_6_red blue=matchup.match_6_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
     {% endif %}
     {% if matchup.show_match_7 and matchup.published %}
-        {% include "teamleague/match_row.html" with red=matchup.match_7_red blue=matchup.match_7_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
+        {% include "teamleague/match_row.html" with match_number=7 red=matchup.match_7_red blue=matchup.match_7_blue red_name=matchup.red_alliance.name blue_name=matchup.blue_alliance.name published=matchup.published%}
     {% endif %}
 </table>
