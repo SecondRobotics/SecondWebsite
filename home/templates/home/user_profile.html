@@ -27,8 +27,12 @@
             <h2 style="color:white" class="display-6 fw-normal">
                 {{scores.Roboteers}}
             </h2>
-            {% if  scores.Roboteers > 0 %}
-                <img src={{sources.Roboteers}} class="img-fluid rounded" alt="...">
+            {% if scores.Roboteers > 0 %}
+                {% if "youtube" in sources.Roboteers or "streamable" in sources.Roboteers %}
+                    <iframe class="img-fluid rounded" src="{{sources.Roboteers}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                {% else %}
+                    <img src="{{sources.Roboteers}}" class="img-fluid rounded" alt="Roboteers score screnshot">
+                {% endif %}
             {% endif %}
         </div>
     </div>
@@ -39,7 +43,11 @@
                {{scores.Inertia}}
             </h2>
             {% if  scores.Inertia > 0 %}
-                <img src={{sources.Inertia}} class="img-fluid rounded" alt="...">
+                {% if "youtube" in sources.Inertia or "streamable" in sources.Inertia %}
+                    <iframe class="img-fluid rounded" src="{{sources.Inertia}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                {% else %}
+                    <img src={{sources.Inertia}} class="img-fluid rounded" alt="Inertia score screnshot">
+                {% endif %}
             {% endif %}
         </div>
     </div>
@@ -50,7 +58,11 @@
                 {{scores.OG}}
             </h2>
             {% if scores.OG > 0 %}
-                <img  src={{sources.OG}} class="img-fluid rounded" alt="...">
+                {% if "youtube" in sources.OG or "streamable" in sources.OG %}
+                    <iframe class="img-fluid rounded" src="{{sources.OG}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                {% else %}
+                    <img src={{sources.OG}} class="img-fluid rounded" alt="OG score screnshot">
+                {% endif %}
             {% endif %}
         </div>
     </div>

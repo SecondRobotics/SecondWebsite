@@ -133,3 +133,5 @@ dmypy.json
 # Database
 *.sqlite3
 migrations/
+
+.vscode/

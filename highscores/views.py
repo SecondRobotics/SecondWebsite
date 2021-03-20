@@ -3,21 +3,15 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from .models import Leaderboard, Score, CleanCodeSubmission
 from datetime import datetime
-from django.core.files.storage import FileSystemStorage
-from django.core.mail import send_mail, BadHeaderError
+from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Max, Q
 
-from django.conf import settings
-from django.contrib import messages
-
 from .forms import ScoreForm
-
 from SRCweb.settings import CLEAN_AES_KEY, NEW_AES_KEY
 
 from Crypto.Cipher import AES
-
-# file._size > settings.MAX_UPLOAD_SIZE
+from urllib.request import urlopen, Request
 
 # Create your views here.
 
@@ -51,12 +45,8 @@ def combined(request):
 @login_required(login_url='/login')
 def submit(request):
     if request.method == "POST":
-        # uploaded_file = request.FILES.get('score-screenshot', False)
-        
         form = ScoreForm(request.POST)
         if form.is_valid():
-            # fs = FileSystemStorage()
-            # fs.save(uploaded_file.name, uploaded_file)
             obj = Score()
             obj.leaderboard = form.cleaned_data['leaderboard']
             obj.player_name = request.user
@@ -72,6 +62,38 @@ def submit(request):
             for submission in prev_submissions:
                 if submission.score >= obj.score:
                     return HttpResponse('You already have a submission with an equal or higher score than this!')
+
+            # Check to ensure image / video is proper
+            try:
+                if "youtube" in obj.source or "youtu.be" in obj.source:
+                    # YouTube video...
+                    # Extract the video id
+                    obj.source = obj.source[obj.source.rfind('/')+1:]
+                    if (obj.source.rfind('v=') != -1):
+                        obj.source = obj.source[obj.source.rfind('v=')+2:]
+                    if (obj.source.rfind('?') != -1):
+                        obj.source = obj.source[:obj.source.rfind('?')]
+                    if (obj.source.rfind('&') != -1):
+                        obj.source = obj.source[:obj.source.rfind('&')]
+                    # Check if the video exists
+                    urlopen("http://img.youtube.com/vi/{}/mqdefault.jpg".format(obj.source))
+                    # Convert to embed
+                    obj.source = "https://www.youtube-nocookie.com/embed/" + obj.source
+                elif "streamable" in obj.source:
+                    # Streamable video...
+                    # Check if the video exists
+                    urlopen("https://api.streamable.com/oembed.json?url=" + obj.source)
+                    # Convert to embed
+                    obj.source = obj.source.replace("streamable.com/", "streamable.com/e/")
+                else:
+                    # Image...
+                    # Check to ensure proper file
+                    req = Request(obj.source, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'})
+                    res = urlopen(req).info()
+                    if res["content-type"] not in ("image/png", "image/jpeg", "image/jpg"):  # check if the content-type is a image
+                        return HttpResponse('There is something wrong with the URL you provided for your screenshot/video. Please ensure you provide a link to a PNG, JPEG, YouTube video, or Streamable video.')
+            except Exception as ex: # malformed url provided
+                return HttpResponse('There is something wrong with the URL you provided for your screenshot/video. Please ensure you provide a link to a PNG, JPEG, YouTube video, or Streamable video.')
 
             # If a clean code was entered...
             if obj.clean_code is not None:
@@ -176,11 +198,6 @@ def submit(request):
 
             obj.save()
 
-            message = f"{obj.player_name} [{obj.score}] - {obj.leaderboard}\n\n {obj.source}\n\nhttps://secondrobotics.org/admin/highscores/score/"
-            try:
-                send_mail(f"New score from {obj.player_name}", message, "noreply@secondrobotics.org", ['brennan@secondrobotics.org'], fail_silently=False)
-            except Exception as ex:
-                print(ex)
             return render(request, "highscores/submit_success.html", {})
     else:
         form = ScoreForm
