@@ -18,6 +18,6 @@ This project is licensed under GNU AGPLv3.  [Read about it here.](https://choose
 
 Feel free to contribute to the project!  Fork this repository, commit your changes, then submit a pull request for your contributions to be reviewed.  Alternatively, you may submit and issue to report a bug or suggestion.  [See our current to-do list here.](https://github.com/SecondRobotics/SecondWebsite/projects/1)
 
-SecondWebsite is primarily developed by Brennan Bibic and Nicholas Bottone.  You can read about all Second staff on the website.
+SecondWebsite is primarily developed by [BrennanB](https://github.com/BrennanB), [roboteer5291](https://github.com/roboteer5291), and [NicholasBottone](https://github.com/NicholasBottone).  You can read about the entire Second Robotics staff team [here](https://secondrobotics.org/staff/).
 
 ###### Simulator Excitement Coronavirus Oof New Decade
