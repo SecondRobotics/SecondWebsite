@@ -43,7 +43,7 @@ def mrc_rules(response):
 def discord(response):
     return redirect('https://www.discord.gg/Zq3HXRc')
 
-def sixmans(response):
+def ranked(response):
     return redirect('https://bit.ly/EloRanks')
 
 def merch(response):
