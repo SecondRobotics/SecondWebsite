@@ -1,17 +1,13 @@
-from django.shortcuts import render, redirect
-from django.http import HttpResponse, request
-from django.contrib.auth.forms import UserCreationForm
-from .forms import CreateUserForm, ProfileForm
-from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
 from django.http.response import HttpResponseRedirect
+from discordoauth2.models import User
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, logout
+from django.contrib import messages
 from django.db.models import Q
-from .models import Profile
+from .forms import ProfileForm
 from django.contrib.auth.decorators import login_required
 
-
-from highscores.models import Leaderboard, Score
+from highscores.models import CleanCodeSubmission, Score
 
 def index(response):
     return render(response, "home/home.html", {})
@@ -55,72 +51,68 @@ def hall_of_fame(response):
 def logos(response):
     return render(response, "home/logos.html", {})
 
-def register_page(request):
-    if request.user.is_authenticated:
-        return redirect('/')
-    else:
-        form = CreateUserForm()
-        if request.method == 'POST':
-            form = CreateUserForm(request.POST)
-            if form.is_valid():
-                user = form.save()
-                username = form.cleaned_data.get('username')
-                Profile.objects.create(
-                    user=user
-                )
-                messages.success(request, f"Account was created for {username}")
-                return redirect('/login')
-
-        context = {"form": form}
-        return render(request, "home/register.html", context)
-
 def login_page(request):
     if request.user.is_authenticated:
         return redirect('/')
     else:
-        if request.method == "POST":
-            username = request.POST.get('username')
-            password = request.POST.get('password')
-
-            user = authenticate(request, username=username, password=password)
-
-            if user is not None:
-                login(request, user)
-                return redirect('/')
-            else:
-                messages.info(request, "Username or Password is Incorrect")
-        context = {}
-        return render(request, "home/login.html", context)
+        return redirect('/oauth2/login')
 
 def logout_user(request):
     logout(request)
-    return redirect('/login')
+    return redirect('/')
 
-def user_profile(request, username):
-    if not User.objects.filter(username=username).exists():
+def user_profile(request, user_id):
+    user_search = User.objects.filter(id=user_id)
+    if not user_search.exists():
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
-    profile = Profile.objects.filter(user__username=username)
-    scoresdata = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), player_name=username, approved=True)
+    user = user_search[0]
+
+    scoresdata = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), player=user, approved=True)
     scores = {"overall": 0}
     sources = {}
     for score in scoresdata:
         sources.update({score.leaderboard.name: score.source})
         scores.update({score.leaderboard.name: score.score})
         scores.update({"overall": score.score + scores['overall']})
-    context={"scores": scores, "username": username, "sources": sources, "profile": profile}
+    context={"scores": scores, "user": user, "sources": sources}
     return render(request, "home/user_profile.html", context)
 
 @login_required(login_url='/login')
-def user_settings(request):
-    try:
-        profile = request.user.profile
-    except:
-        profile = Profile.objects.create(user=request.user)
-    form = ProfileForm(instance=profile)
-
+def merge_legacy_account(request):
     if request.method == "POST":
-        form = ProfileForm(request.POST, instance=profile)
-        if form.is_valid:
-            form.save()
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        user = User.objects.filter(username=username)
+        if user.exists() and password and len(password) > 3 and user[0].check_password(password) and user[0].is_active:
+            # Merge accounts
+            for score in Score.objects.filter(player=user[0]):
+                score.player = request.user
+                score.save()
+            for score in CleanCodeSubmission.objects.filter(player=user[0]):
+                score.player = request.user
+                score.save()
+            
+            user[0].active = False
+            user[0].save()
+
+            return redirect('/user/%s' % request.user.id)
+        else:
+            messages.info(request, "Username or Password is Incorrect")
     
-    return render(request, "home/user_settings.html", {"form": form, "profile": profile})
+    context = {}
+    return render(request, "home/legacy_login.html", context)
+
+@login_required(login_url='/login')
+def user_settings(request):
+    user = request.user
+    form = ProfileForm(instance=user)
+    
+    if request.method == "POST":
+        form = ProfileForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+        else:
+            return redirect('/user/settings')
+    
+    return render(request, "home/user_settings.html", {"form": form, "user": user})

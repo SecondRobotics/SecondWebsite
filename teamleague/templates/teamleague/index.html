@@ -91,17 +91,17 @@
                         <td>{{ alliance.rank }}</td>
                         <td><a href="teamleague/{{alliance.key}}">{{ alliance.name }}</a></td>
                         {% if alliance.player1_user %}
-                            <td><a href="/user/{{ alliance.player1_user.username }}" style="color:#d1cdc7">{{ alliance.player1 }}</a></td>
+                            <td><a href="/user/{{ alliance.player1_user.id }}" style="color:#d1cdc7">{{ alliance.player1 }}</a></td>
                         {% else %}
                             <td>{{ alliance.player1 }}</td>
                         {% endif %}
                         {% if alliance.player2_user %}
-                            <td><a href="/user/{{ alliance.player2_user.username }}" style="color:#d1cdc7">{{ alliance.player2 }}</a></td>
+                            <td><a href="/user/{{ alliance.player2_user.id }}" style="color:#d1cdc7">{{ alliance.player2 }}</a></td>
                         {% else %}
                             <td>{{ alliance.player2 }}</td>
                         {% endif %}
                         {% if alliance.player3_user %}
-                            <td><a href="/user/{{ alliance.player3_user.username }}" style="color:#d1cdc7">{{ alliance.player3 }}</a></td>
+                            <td><a href="/user/{{ alliance.player3_user.id }}" style="color:#d1cdc7">{{ alliance.player3 }}</a></td>
                         {% else %}
                             <td>{{ alliance.player3 }}</td>
                         {% endif %}

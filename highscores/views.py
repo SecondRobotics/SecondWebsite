@@ -1,3 +1,4 @@
+from discordoauth2.models import User
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -8,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Max, Q
 
 from .forms import ScoreForm
-from SRCweb.settings import CLEAN_AES_KEY, NEW_AES_KEY
+from SRCweb.settings import CLEAN_AES_KEY, NEW_AES_KEY, DEBUG
 
 from Crypto.Cipher import AES
 from urllib.request import urlopen, Request
@@ -30,12 +31,13 @@ def index(response, name):
     return render(response, "highscores/leaderboard_ranks.html", {"ls": context, "robot_name":name})
 
 def combined(request):
-    scores = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), approved=True).values('player_name').annotate(time_set=Max('time_set')).annotate(score=Sum('score'))
+    scores = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), approved=True).values('player').annotate(time_set=Max('time_set')).annotate(score=Sum('score'))
     sorted = scores.order_by('-score', 'time_set')
     i = 1
     context = []
     # Create ranking numbers and append them to sorted values
     for item in sorted:
+        item['player'] = User.objects.filter(id=item['player'])[0]
         context.append([i, item])
         i+=1
 
@@ -49,7 +51,7 @@ def submit(request):
         if form.is_valid():
             obj = Score()
             obj.leaderboard = form.cleaned_data['leaderboard']
-            obj.player_name = request.user
+            obj.player = request.user
             obj.score = form.cleaned_data['score']
             obj.time_set = datetime.now()
             obj.approved = False
@@ -57,7 +59,7 @@ def submit(request):
             obj.clean_code = form.cleaned_data['clean_code']
 
             # Check for older submissions from this user in this category
-            prev_submissions = Score.objects.filter(leaderboard__name=obj.leaderboard, player_name=obj.player_name)
+            prev_submissions = Score.objects.filter(leaderboard__name=obj.leaderboard, player=obj.player)
 
             for submission in prev_submissions:
                 if submission.score >= obj.score:
@@ -172,9 +174,10 @@ def submit(request):
                         # Uh oh, this user submitted a clean code that has already been used.
                         # Report this via email.
                         
-                        message = f"{obj.player_name} attempted (and failed) to submit a score: [{obj.score}] - {obj.leaderboard}\n\n This score was already submitted by {clean_code_search[0].player_name}\n\n {obj.source}\n\nhttps://secondrobotics.org/admin/highscores/score/"
+                        message = f"{obj.player} attempted (and failed) to submit a score: [{obj.score}] - {obj.leaderboard}\n\n This score was already submitted by {clean_code_search[0].player}\n\n {obj.source}\n\nhttps://secondrobotics.org/admin/highscores/score/"
                         try:
-                            send_mail(f"Possible cheating attempt from {obj.player_name}", message, "noreply@secondrobotics.org", ['brennan@secondrobotics.org'], fail_silently=False)
+                            if (not DEBUG):
+                                send_mail(f"Possible cheating attempt from {obj.player}", message, "noreply@secondrobotics.org", ['brennan@secondrobotics.org'], fail_silently=False)
                         except Exception as ex:
                             print(ex)
 
@@ -186,7 +189,7 @@ def submit(request):
 
                     code_obj = CleanCodeSubmission()
                     code_obj.clean_code = obj.clean_code
-                    code_obj.player_name = obj.player_name
+                    code_obj.player = obj.player
                     code_obj.save()
 
                     return render(request, "highscores/submit_accepted.html", {})

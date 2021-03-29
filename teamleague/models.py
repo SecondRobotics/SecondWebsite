@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models import Window, F, Count
 from django.db.models.functions import Rank
-from django.contrib.auth.models import User
+from SRCweb import settings
 
 # Create your models here.
 
@@ -11,13 +11,13 @@ class Alliance(models.Model):
     name = models.CharField(max_length=25)
 
     player1 = models.CharField(max_length=25)
-    player1_user = models.OneToOneField(User, null=True, blank=True, on_delete=models.PROTECT, related_name='player1_users')
+    player1_user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name='player1_users')
     
     player2 = models.CharField(max_length=25)
-    player2_user = models.OneToOneField(User, null=True, blank=True, on_delete=models.PROTECT, related_name='player2_users')
+    player2_user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name='player2_users')
     
     player3 = models.CharField(max_length=25)
-    player3_user = models.OneToOneField(User, null=True, blank=True, on_delete=models.PROTECT, related_name='player3_users')
+    player3_user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name='player3_users')
 
     wins = models.IntegerField(null=True, blank=True)
     tiebreaker = models.IntegerField(null=True, blank=True)
