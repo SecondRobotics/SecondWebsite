@@ -1,3 +1,4 @@
+from django.core.validators import MinLengthValidator
 from django.db import models
 from .managers import DiscordUserOAuth2Manager
 from django.utils.translation import gettext_lazy as _
@@ -10,8 +11,9 @@ from django.contrib.auth.validators import ASCIIUsernameValidator
 class User(AbstractUser):
     objects = DiscordUserOAuth2Manager()
     display_name_validator = ASCIIUsernameValidator()
+    min_length_validator = MinLengthValidator(4)
 
-    display_name = models.CharField(_('display name'), max_length=25, null=True, validators=[display_name_validator])
+    display_name = models.CharField(_('display name'), max_length=25, null=True, validators=[display_name_validator, min_length_validator])
 
     id = models.BigIntegerField(_('user id'), primary_key=True)
     username = models.CharField(_('username'), max_length=100)
@@ -41,6 +43,7 @@ class User(AbstractUser):
             'Unselect this instead of deleting accounts.'
         ),
     )
+    
 
     EMAIL_FIELD = 'email'
     USERNAME_FIELD = 'id'
