@@ -11,7 +11,19 @@ DISCORD_API_ENDPOINT = 'https://discord.com/api/v8'
 
 @login_required(login_url="/oauth2/login")
 def get_authenticated_user(request: HttpRequest) -> JsonResponse:
-    return JsonResponse({ "user": request.user })
+    return JsonResponse({ "id": request.user.id,
+            "display_name": request.user.display_name,
+            "username": request.user.username,
+            "discriminator": request.user.discriminator,
+            "avatar": request.user.avatar,
+            "public_flags": request.user.public_flags,
+            "flags": request.user.flags,
+            "locale": request.user.locale,
+            "mfa_enabled": request.user.mfa_enabled,
+            "email": request.user.email,
+            "verified": request.user.verified,
+            "date_joined": request.user.date_joined,
+            "last_login": request.user.last_login })
 
 def discord_login(request: HttpRequest):
     return redirect(DISCORD_AUTH_URL)
