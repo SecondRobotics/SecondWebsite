@@ -1,7 +1,8 @@
+from teamleague.models import Alliance
 from django.http.response import HttpResponseRedirect
 from discordoauth2.models import User
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, logout
+from django.contrib.auth import logout
 from django.contrib import messages
 from django.db.models import Q
 from .forms import ProfileForm
@@ -100,12 +101,21 @@ def merge_legacy_account(request):
                 for score in CleanCodeSubmission.objects.filter(player=user):
                     score.player = request.user
                     score.save()
-                
+                for team in Alliance.objects.all():
+                    if team.player1_user is user:
+                        team.player1_user = request.user
+                        team.save()
+                        break
+                    if team.player2_user is user:
+                        team.player2_user = request.user
+                        team.save()
+                        break
+                    if team.player3_user is user:
+                        team.player3_user = request.user
+                        team.save()
+                        break
+
                 request.user.date_joined = user.date_joined
-                request.user.user_permissions = user.user_permissions
-                request.user.groups = user.groups
-                request.user.is_staff = user.is_staff
-                request.user.is_superuser = user.is_superuser
                 request.user.save()
 
                 # Deactivate old user

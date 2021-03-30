@@ -10,13 +10,10 @@ class Alliance(models.Model):
 
     name = models.CharField(max_length=25)
 
-    player1 = models.CharField(max_length=25)
     player1_user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name='player1_users')
     
-    player2 = models.CharField(max_length=25)
     player2_user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name='player2_users')
     
-    player3 = models.CharField(max_length=25)
     player3_user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name='player3_users')
 
     wins = models.IntegerField(null=True, blank=True)
@@ -24,12 +21,24 @@ class Alliance(models.Model):
     differential = models.IntegerField(null=True, blank=True)
     total_points = models.IntegerField(null=True, blank=True)
 
-    logo = models.URLField(default="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRI7M4Z0v1HP2Z9tZmfQaZFCuspezuoxter_A&usqp=CAU")
+    logo = models.URLField(default="https://i.imgur.com/ou7jJLm.png")
     primary_color = models.CharField(max_length=6, default='999999')
     secondary_color = models.CharField(max_length=6, default='222222')
 
     def __str__(self):
         return self.name
+
+    @property
+    def player1(self) -> str:
+        return self.player1_user
+
+    @property
+    def player2(self) -> str:
+        return self.player2_user
+
+    @property
+    def player3(self) -> str:
+        return self.player3_user
 
 
 class Matchup(models.Model):
