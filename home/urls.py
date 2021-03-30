@@ -13,6 +13,7 @@ urlpatterns = [
     path("MRCrules/", views.mrc_rules, name="MRC rules"),
     path("login/", views.login_page, name="login"),
     path("logout/", views.logout_user, name="logout"),
+    path("reauth/", views.reauth_user, name="reauthenticate user"),
     path("user/settings/", views.user_settings, name="user settings"),
     path("legacy-merge/", views.merge_legacy_account, name="merge legacy account"),
     path("user/<int:user_id>/", views.user_profile, name="user profile"),

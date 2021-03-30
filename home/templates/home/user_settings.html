@@ -3,15 +3,26 @@
 {% block content %}
 <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 shadowy text-center bg-primary">
     <h1>{{request.user.get_full_name}}</h1>
-    <p>Current Display Name: <b>{{request.user.display_name}}</b>
-    <br/>If you recently changed your Discord username or avatar, you may need to logout and login to see the changes reflected here.</p>
-    <br/><br/>
+    <img class="img-profile rounded-circle" src="{{request.user.avatar}}">
+    <p>Display Name: <b>{{request.user.display_name}}</b>
+    <br/>Email address: <b>{{request.user.email}}</b>
+    <br/>Member since: <b>{{request.user.date_joined}}</b>
+    <br/>Last login: <b>{{request.user.last_login}}</b>
+    <br/>User ID: <b>{{request.user.id}}</b>
+    <br/><br/>Your username, user ID, email address, and profile picture are synced with your Discord profile.
+    <br/>If you recently changed your Discord profile, you need to reauthenticate with Discord by <a href="/reauth">clicking here</a>.</p>
+    <br/>
     <form method="POST" action="">
         {% load widget_tweaks %}
         {% csrf_token %}
-        Set Display Name:
-        {% render_field form.display_name class+="form-control" %}
+        Set Website Display Name:
+        <div class="input-group mb-3">
+            <input type="text" name="display_name" placeholder="Display name..." class="form-control">
+        </div>
     <input class="btn btn-dark" type="submit" name="Update Information">
+    {% for message in messages %}
+        <p id="messages">{{message}}</p>
+    {% endfor %}
     <br/><br/>
     <p>To merge your legacy account with your new Discord-linked account, <a href="/legacy-merge">click here</a>.</p>
 </div>

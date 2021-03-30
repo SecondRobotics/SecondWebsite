@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.db.models import Q
 from .forms import ProfileForm
 from django.contrib.auth.decorators import login_required
+from django.utils.translation import gettext_lazy as _
 
 from highscores.models import CleanCodeSubmission, Score
 
@@ -61,6 +62,10 @@ def logout_user(request):
     logout(request)
     return redirect('/')
 
+def reauth_user(request):
+    logout(request)
+    return redirect('/oauth2/login')
+
 def user_profile(request, user_id):
     user_search = User.objects.filter(id=user_id)
     if not user_search.exists():
@@ -93,26 +98,29 @@ def merge_legacy_account(request):
                 score.player = request.user
                 score.save()
             
-            user[0].active = False
+            request.user.date_joined = user[0].date_joined
+
+            user[0].is_active = False
             user[0].save()
 
             return redirect('/user/%s' % request.user.id)
         else:
-            messages.info(request, "Username or Password is Incorrect")
+            messages.error(request, _("Username or password is incorrect!"))
     
-    context = {}
-    return render(request, "home/legacy_login.html", context)
+    return render(request, "home/legacy_login.html", context={})
 
 @login_required(login_url='/login')
 def user_settings(request):
     user = request.user
-    form = ProfileForm(instance=user)
     
     if request.method == "POST":
         form = ProfileForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
+            messages.success(request, _("Display name saved successfully."))
         else:
+            messages.error(request, _("Enter a valid display name! This value may contain only English letters, "
+            "numbers, and @/./+/-/_ characters. Must be between 4-25 characters."))
             return redirect('/user/settings')
     
-    return render(request, "home/user_settings.html", {"form": form, "user": user})
+    return render(request, "home/user_settings.html", context={})
