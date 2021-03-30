@@ -89,23 +89,34 @@ def merge_legacy_account(request):
         password = request.POST.get('password')
         
         user = User.objects.filter(username=username)
-        if user.exists() and password and len(password) > 3 and user[0].check_password(password) and user[0].is_active:
-            # Merge accounts
-            for score in Score.objects.filter(player=user[0]):
-                score.player = request.user
-                score.save()
-            for score in CleanCodeSubmission.objects.filter(player=user[0]):
-                score.player = request.user
-                score.save()
-            
-            request.user.date_joined = user[0].date_joined
+        if user.exists():
+            user = user[0]
 
-            user[0].is_active = False
-            user[0].save()
+            if password and len(password) > 3 and user.check_password(password) and user.is_active:
+                # Copy attributes from old user to new user
+                for score in Score.objects.filter(player=user):
+                    score.player = request.user
+                    score.save()
+                for score in CleanCodeSubmission.objects.filter(player=user):
+                    score.player = request.user
+                    score.save()
+                
+                request.user.date_joined = user.date_joined
+                request.user.user_permissions = user.user_permissions
+                request.user.groups = user.groups
+                request.user.is_staff = user.is_staff
+                request.user.is_superuser = user.is_superuser
+                request.user.save()
 
-            return redirect('/user/%s' % request.user.id)
-        else:
-            messages.error(request, _("Username or password is incorrect!"))
+                # Deactivate old user
+                user.is_superuser = False
+                user.is_staff = False
+                user.is_active = False
+                user.save()
+
+                return redirect('/user/%s' % request.user.id)
+
+        messages.error(request, _("Username or password is incorrect!"))
     
     return render(request, "home/legacy_login.html", context={})
 
