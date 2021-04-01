@@ -1,7 +1,6 @@
 {% extends 'home/base.html' %}
 
 {% block content %}
-{{profile.profile_picture}}
 <style>
 .responsive {
   width: 100%;
@@ -10,13 +9,12 @@
 </style>
 <div class="row">
     <div class="col-2">
-            {% for p in profile %}
-                <img src="{{p.profile_picture}}" class="shadowy m-md-3 responsive">
-            {% endfor %}
+        <img src="{{user.avatar}}" class="shadowy m-md-3 responsive img-profile rounded-circle">
     </div>
     <div class="col-10">
         <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 shadowy text-center bg-primary">
-            <h1 style="color:white" class="display-4 fw-normal">{{username}}</h1>
+            <h1 style="color:white" class="display-4 fw-normal">{{user}}</h1>
+            <h4 class="display-10 fw-normal">{{user.username}}#{{user.discriminator}}</h4>
         </div>
     </div>
 </div>

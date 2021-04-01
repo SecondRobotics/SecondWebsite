@@ -5,6 +5,10 @@
 # SecondWebsite
 The official website of Second Robotics. The home of SRC, STC, SVC, MRC, and xRC Simulator high scores.
 
+This project is built on [Python+Django](https://www.djangoproject.com/). Django is [open source](https://github.com/django/django), too!
+
+NOTE: The `main` branch of this repository is automatically published to the production website at https://secondrobotics.org/ - beware of pushing directly to the `main` branch!
+
 ## What is xRC Simulator?
 xRC Simulator (https://xrcsimulator.org/) is a free-to-play physics-based robotics simulator for [FIRST Robotics](https://www.firstinspires.org/) games.  Developed by FTC 11115 Gluten Free, xRC Simulator is a great tool for strategizing, training, and competing with simulated robotics.  Second is the official competitive organization of xRC.
 

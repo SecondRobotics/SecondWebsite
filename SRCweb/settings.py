@@ -14,13 +14,10 @@ from pathlib import Path
 import os
 import platform
 
-import rest_framework
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -32,10 +29,26 @@ CLEAN_AES_KEY = os.environ.get('CLEAN_AES_KEY')
 # SECURITY WARNING: keep the AES key used in production secret!
 NEW_AES_KEY = os.environ.get('NEW_AES_KEY')
 
+# Discord Client ID
+DISCORD_CLIENT_ID = "825618483957071873"
+
+# SECURITY WARNING: keep the Discord Client Secret used in production secret!
+DISCORD_CLIENT_SECRET = os.environ.get('DISCORD_CLIENT_SECRET')
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["secondrobotics.org", "www.secondrobotics.org", "localhost"]
+# Sends an email to admins when debug = false and a 500 server error occurs
+ADMINS = [('Nick', 'nick@secondrobotics.org'), ('Brennan', 'brennan@secondrobotics.org')]
+
+ALLOWED_HOSTS = ["secondrobotics.org", "www.secondrobotics.org"]
+
+AUTHENTICATION_BACKENDS = [
+    # 'django.contrib.auth.backends.ModelBackend', # default backend
+    'discordoauth2.auth.DiscordAuthenticationBackend' # discord oauth2 backend
+]
+
+AUTH_USER_MODEL = 'discordoauth2.User'
 
 
 # Application definition
@@ -48,8 +61,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    
-
     # External packages
 
     'widget_tweaks',
@@ -61,7 +72,8 @@ INSTALLED_APPS = [
     'home',
     'highscores',
     'events',
-    'teamleague'
+    'teamleague',
+    'discordoauth2'
 ]
 
 # config/settings.py
@@ -155,22 +167,24 @@ STATIC_URL = '/static/'
 
 MEDIA_URL = '/images/'
 
-STATIC_URL = '/static/'
-
-
 
 plt = platform.system()
 if plt == "Windows":
     DEBUG = True
-    print(BASE_DIR)
+    ALLOWED_HOSTS = ["localhost"]
     MEDIA_ROOT = os.path.join(BASE_DIR, "/static/media")
     STATIC_ROOT = ""
-    print(STATIC_ROOT)
     STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+    DISCORD_REDIRECT_URI = "http://localhost:8000/oauth2/login/redirect"
+    DISCORD_AUTH_URL = "https://discord.com/api/oauth2/authorize?client_id=825618483957071873&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Foauth2%2Flogin%2Fredirect&response_type=code&scope=identify%20email"
     
 else:
     STATIC_ROOT = "/home/bottxleg/secondrobotics.org/static"
     MEDIA_ROOT = "/home/bottxleg/secondrobotics.org/media"
+    DISCORD_REDIRECT_URI = "https://secondrobotics.org/oauth2/login/redirect"
+    DISCORD_AUTH_URL = "https://discord.com/api/oauth2/authorize?client_id=825618483957071873&redirect_uri=https%3A%2F%2Fsecondrobotics.org%2Foauth2%2Flogin%2Fredirect&response_type=code&scope=identify%20email"
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
 
 
 MAX_UPLOAD_SIZE = "5242880"

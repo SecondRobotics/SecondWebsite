@@ -151,14 +151,14 @@
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{request.user}}</span>
                                 <img width="30" height="30" class="img-profile rounded-circle"
-                                    src="{{request.user.profile.profile_picture}}">
+                                    src="{{request.user.avatar}}">
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                 {% if user.is_staff %}
                                     <li><a class="dropdown-item" href="/admin">ADMIN</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                 {% endif %}
-                                <li><a class="dropdown-item" href="/user/{{request.user}}">Profile</a></li>
+                                <li><a class="dropdown-item" href="/user/{{request.user.id}}">Profile</a></li>
                                 <li><a class="dropdown-item" href="/user/settings">Settings</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="/logout">Logout</a></li>
