@@ -102,15 +102,15 @@ def merge_legacy_account(request):
                     score.player = request.user
                     score.save()
                 for team in Alliance.objects.all():
-                    if team.player1_user is user:
+                    if team.player1_user == user:
                         team.player1_user = request.user
                         team.save()
                         break
-                    if team.player2_user is user:
+                    if team.player2_user == user:
                         team.player2_user = request.user
                         team.save()
                         break
-                    if team.player3_user is user:
+                    if team.player3_user == user:
                         team.player3_user = request.user
                         team.save()
                         break
