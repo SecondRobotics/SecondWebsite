@@ -154,7 +154,7 @@
                                     src="{{request.user.avatar}}">
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                {% if user.is_staff %}
+                                {% if request.user.is_staff %}
                                     <li><a class="dropdown-item" href="/admin">ADMIN</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                 {% endif %}
