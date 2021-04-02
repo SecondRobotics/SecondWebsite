@@ -10,7 +10,7 @@
     <br/>Last login: <b>{{request.user.last_login}}</b>
     <br/>User ID: <b>{{request.user.id}}</b>
     <br/><br/>Your username, user ID, email address, and profile picture are synced with your Discord profile.
-    <br/>If you recently changed your Discord profile, you need to reauthenticate with Discord by <a href="/reauth">clicking here</a>.</p>
+    <br/>If you recently changed your Discord profile, you need to reauthenticate with Discord by <a style="color:#fff; ;" href="/reauth">clicking here</a>.</p>
     <br/>
     <form method="POST" action="">
         {% load widget_tweaks %}
@@ -24,6 +24,6 @@
         <p id="messages">{{message}}</p>
     {% endfor %}
     <br/><br/>
-    <p>To merge your legacy account with your new Discord-linked account, <a href="/legacy-merge">click here</a>.</p>
+    <p>To merge your legacy account with your new Discord-linked account, <a style="color:#fff; ;" href="/legacy-merge">click here</a>.</p>
 </div>
 {% endblock %}
