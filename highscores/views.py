@@ -129,6 +129,8 @@ def submit(request):
                     # Check game settings
                     if float(obj.client_version[1:4]) < 5.8:
                         return HttpResponse('Game version too old! Update to v5.8+')
+                    if "pre" in obj.client_version:
+                        return HttpResponse('Pre-release is not allowed for high score submission!')
                     if (restart_option != '2'):
                         return HttpResponse('You must use restart option 2 for high score submissions.')
                     if (game_options[25] != '2021'):
