@@ -73,13 +73,14 @@ def user_profile(request, user_id):
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
     user = user_search[0]
 
-    scoresdata = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), player=user, approved=True)
+    scoresdata = Score.objects.filter(player=user, approved=True)
     scores = {"overall": 0}
     sources = {}
     for score in scoresdata:
         sources.update({score.leaderboard.name: score.source})
         scores.update({score.leaderboard.name: score.score})
-        scores.update({"overall": score.score + scores['overall']})
+        if score.leaderboard.name != "Pushbot2":
+            scores.update({"overall": score.score + scores['overall']})
     context={"scores": scores, "user": user, "sources": sources}
     return render(request, "home/user_profile.html", context)
 

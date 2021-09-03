@@ -155,7 +155,7 @@ def submit(request):
                     elif (str(obj.leaderboard) == 'Pushbot2'):
                         if (robot_model != 'PushBot2'):
                             return HttpResponse('Double-check the robot type that you selected!')
-                    elif (str(obj.leaderboard) == 'Triangle Shooter'):
+                    elif (str(obj.leaderboard) == 'Triangle'):
                         if (robot_model != 'T Shooter'):
                             return HttpResponse('Double-check the robot type that you selected!')
                     elif (str(obj.leaderboard) == 'Waffles'):
