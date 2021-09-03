@@ -127,8 +127,8 @@ def submit(request):
                     game_options = dataset[7].strip().split(':')
 
                     # Check game settings
-                    if float(obj.client_version[1:4]) < 5.8:
-                        return HttpResponse('Game version too old! Update to v5.8+')
+                    if float(obj.client_version[1:4]) < 5.9:
+                        return HttpResponse('Game version too old! Update to v5.9+')
                     if "pre" in obj.client_version:
                         return HttpResponse('Pre-release is not allowed for high score submission!')
                     if (restart_option != '2'):
@@ -154,6 +154,12 @@ def submit(request):
                             return HttpResponse('Double-check the robot type that you selected!')
                     elif (str(obj.leaderboard) == 'Pushbot2'):
                         if (robot_model != 'PushBot2'):
+                            return HttpResponse('Double-check the robot type that you selected!')
+                    elif (str(obj.leaderboard) == 'Triangle Shooter'):
+                        if (robot_model != 'T Shooter'):
+                            return HttpResponse('Double-check the robot type that you selected!')
+                    elif (str(obj.leaderboard) == 'Waffles'):
+                        if (robot_model != 'Waffles'):
                             return HttpResponse('Double-check the robot type that you selected!')
                     else:
                         return HttpResponse('Double-check the robot type that you selected!')
