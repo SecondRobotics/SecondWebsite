@@ -16,21 +16,25 @@ from urllib.request import urlopen, Request
 
 # Create your views here.
 
+
 def index(response, name):
     if not Leaderboard.objects.filter(name=name).exists():
         return HttpResponseRedirect(response.META.get('HTTP_REFERER', '/'))
-    sorted_board = Score.objects.filter(leaderboard__name=name, approved=True).order_by('-score', 'time_set')
+    sorted_board = Score.objects.filter(
+        leaderboard__name=name, approved=True).order_by('-score', 'time_set')
     i = 1
     context = []
     # Create ranking numbers and append them to sorted values
     for item in sorted_board:
         context.append([i, item])
-        i+=1
+        i += 1
 
-    return render(response, "highscores/leaderboard_ranks.html", {"ls": context, "robot_name":name})
+    return render(response, "highscores/leaderboard_ranks.html", {"ls": context, "robot_name": name})
+
 
 def combined(request):
-    scores = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), approved=True).values('player').annotate(time_set=Max('time_set')).annotate(score=Sum('score'))
+    scores = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), approved=True).values(
+        'player').annotate(time_set=Max('time_set')).annotate(score=Sum('score'))
     sorted_board = scores.order_by('-score', 'time_set')
     i = 1
     context = []
@@ -38,9 +42,10 @@ def combined(request):
     for item in sorted_board:
         item['player'] = User.objects.filter(id=item['player'])[0]
         context.append([i, item])
-        i+=1
+        i += 1
 
     return render(request, "highscores/combined_leaderboard.html", {"ls": context})
+
 
 @login_required(login_url='/login')
 def submit(request):
@@ -61,7 +66,8 @@ def submit(request):
     score_obj.clean_code = form.cleaned_data['clean_code']
 
     # Check for older submissions from this user in this category
-    prev_submissions = Score.objects.filter(leaderboard__name=score_obj.leaderboard, player=score_obj.player)
+    prev_submissions = Score.objects.filter(
+        leaderboard__name=score_obj.leaderboard, player=score_obj.player)
 
     for submission in prev_submissions:
         if submission.score >= score_obj.score:
@@ -88,6 +94,7 @@ def submit(request):
 
     return render(request, "highscores/submit_accepted.html", {})
 
+
 def submission_screenshot_check(score_obj: Score):
     """ Checks if the submission has a screenshot and if it is valid.
     :param score_obj: Score object to check
@@ -99,32 +106,41 @@ def submission_screenshot_check(score_obj: Score):
             # Extract the video id
             score_obj.source = score_obj.source[score_obj.source.rfind('/')+1:]
             if (score_obj.source.rfind('v=') != -1):
-                score_obj.source = score_obj.source[score_obj.source.rfind('v=')+2:]
+                score_obj.source = score_obj.source[score_obj.source.rfind(
+                    'v=')+2:]
             if (score_obj.source.rfind('?') != -1):
-                score_obj.source = score_obj.source[:score_obj.source.rfind('?')]
+                score_obj.source = score_obj.source[:score_obj.source.rfind(
+                    '?')]
             if (score_obj.source.rfind('&') != -1):
-                score_obj.source = score_obj.source[:score_obj.source.rfind('&')]
+                score_obj.source = score_obj.source[:score_obj.source.rfind(
+                    '&')]
             # Check if the video exists
-            urlopen("http://img.youtube.com/vi/{}/mqdefault.jpg".format(score_obj.source))
+            urlopen(
+                "http://img.youtube.com/vi/{}/mqdefault.jpg".format(score_obj.source))
             # Convert to embed
             score_obj.source = "https://www.youtube-nocookie.com/embed/" + score_obj.source
         elif "streamable" in score_obj.source:
             # Streamable video...
             # Check if the video exists
-            urlopen("https://api.streamable.com/oembed.json?url=" + score_obj.source)
+            urlopen("https://api.streamable.com/oembed.json?url=" +
+                    score_obj.source)
             # Convert to embed
-            score_obj.source = score_obj.source.replace("streamable.com/", "streamable.com/e/")
+            score_obj.source = score_obj.source.replace(
+                "streamable.com/", "streamable.com/e/")
         else:
             # Image...
             # Check to ensure proper file
-            req = Request(score_obj.source, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'})
+            req = Request(score_obj.source, headers={
+                          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'})
             res = urlopen(req).info()
-            if res["content-type"] not in ("image/png", "image/jpeg", "image/jpg"):  # check if the content-type is a image
+            # check if the content-type is a image
+            if res["content-type"] not in ("image/png", "image/jpeg", "image/jpg"):
                 return HttpResponse('There is something wrong with the URL you provided for your screenshot/video. Please ensure you provide a link to a PNG, JPEG, YouTube video, or Streamable video.')
-    except Exception: # malformed url provided
+    except Exception:  # malformed url provided
         return HttpResponse('There is something wrong with the URL you provided for your screenshot/video. Please ensure you provide a link to a PNG, JPEG, YouTube video, or Streamable video.')
-    
-    return None # no error, proper url provided
+
+    return None  # no error, proper url provided
+
 
 def infinite_recharge_clean_code_check(score_obj: Score, prev_submissions):
     """ Checks if the clean code is valid.
@@ -137,13 +153,15 @@ def infinite_recharge_clean_code_check(score_obj: Score, prev_submissions):
         clean_code_decryption(score_obj)
 
         # Clean code extraction
-        restart_option, game_options, robot_model, blue_score, red_score = extract_clean_code_info(score_obj)
+        restart_option, game_options, robot_model, blue_score, red_score = extract_clean_code_info(
+            score_obj)
 
         # Check game settings
         res = check_generic_game_settings(score_obj)
         if (res is not None):
             return res
-        res = check_infinite_recharge_game_settings(game_options, restart_option)
+        res = check_infinite_recharge_game_settings(
+            game_options, restart_option)
         if (res is not None):
             return res
 
@@ -165,12 +183,13 @@ def infinite_recharge_clean_code_check(score_obj: Score, prev_submissions):
         if (res is not None):
             return res
 
-    except IndexError: # code is for wrong game
+    except IndexError:  # code is for wrong game
         return HttpResponse('There is something wrong with your clean code! Are you submitting for the right game?')
-    except Exception: # code is corrupted during decryption
+    except Exception:  # code is corrupted during decryption
         return HttpResponse('There is something wrong with your clean code! Make sure you copied it properly.')
 
-    return None # no error, proper clean code provided
+    return None  # no error, proper clean code provided
+
 
 def extract_clean_code_info(score_obj):
     dataset = score_obj.decrypted_code.split(',')
@@ -185,14 +204,17 @@ def extract_clean_code_info(score_obj):
     game_options = dataset[7].strip().split(':')
     return restart_option, game_options, robot_model, blue_score, red_score
 
+
 def clean_code_decryption(score_obj):
     indata = score_obj.clean_code.replace(' ', '')
     ivseed = indata[-4:] * 4
     data = bytes.fromhex(indata[:-4])
 
     # Decrypt
-    cipher = AES.new(NEW_AES_KEY.encode("utf-8"), AES.MODE_CBC, ivseed.encode("utf-8"))
+    cipher = AES.new(NEW_AES_KEY.encode("utf-8"),
+                     AES.MODE_CBC, ivseed.encode("utf-8"))
     score_obj.decrypted_code = cipher.decrypt(data).decode("utf-8")
+
 
 def check_generic_game_settings(score_obj: Score):
     """ Checks if the universal game settings are valid.
@@ -202,8 +224,9 @@ def check_generic_game_settings(score_obj: Score):
         return HttpResponse('Game version too old! Update to v6.0+')
     if "pre" in score_obj.client_version:
         return HttpResponse('Pre-release is not allowed for high score submission!')
-    
-    return None # No error
+
+    return None  # No error
+
 
 def check_infinite_recharge_game_settings(game_options: list, restart_option: str):
     """ Checks if the Infinite Recharge game settings are valid.
@@ -220,7 +243,8 @@ def check_infinite_recharge_game_settings(game_options: list, restart_option: st
     if (game_options[24] != '0'):
         return HttpResponse('Overflow balls must be set to spawn in center for high score submissions.')
 
-    return None # No error
+    return None  # No error
+
 
 def check_infinite_recharge_robot_type(score_obj: Score, robot_model: str):
     """ Checks if the robot type is valid for Infinite Recharge.
@@ -239,11 +263,12 @@ def check_infinite_recharge_robot_type(score_obj: Score, robot_model: str):
 
     if robot_model not in switch:
         return HttpResponse(wrong_robot_message)
-    
+
     if switch[str(score_obj.leaderboard)] != robot_model:
         return HttpResponse(wrong_robot_message)
 
-    return None # No error
+    return None  # No error
+
 
 def check_score(score_obj: Score, blue_score: str, red_score: str):
     """ Checks if the true score matches the reported score.
@@ -256,25 +281,28 @@ def check_score(score_obj: Score, blue_score: str, red_score: str):
         if (red_score != str(score_obj.score)):
             return HttpResponse('Double-check the score that you entered!')
 
-    return None # No error
+    return None  # No error
+
 
 def search_for_reused_code(score_obj: Score):
     """ Checks if the code has been previously submitted.
     :return: None if the code has not been previously submitted, or a response with an error message if it has.
     """
-    clean_code_search = CleanCodeSubmission.objects.filter(clean_code=score_obj.clean_code)
+    clean_code_search = CleanCodeSubmission.objects.filter(
+        clean_code=score_obj.clean_code)
 
     if clean_code_search.exists():
         # Uh oh, this user submitted a clean code that has already been used.
         # Report this via email.
-        
+
         message = f"{score_obj.player} attempted (and failed) to submit a score: [{score_obj.score}] - {score_obj.leaderboard}\n\n This score was already submitted by {clean_code_search[0].player}\n\n {score_obj.source}\n\nhttps://secondrobotics.org/admin/highscores/score/"
         try:
             if (not DEBUG):
-                send_mail(f"Possible cheating attempt from {score_obj.player}", message, "noreply@secondrobotics.org", ['brennan@secondrobotics.org'], fail_silently=False)
+                send_mail(f"Possible cheating attempt from {score_obj.player}", message, "noreply@secondrobotics.org", [
+                          'brennan@secondrobotics.org'], fail_silently=False)
         except Exception as ex:
             print(ex)
 
         return HttpResponse('That clean code has already been submitted by another player.')
 
-    return None # No error
+    return None  # No error
