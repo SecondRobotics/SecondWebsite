@@ -1,206 +1,429 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en" xml:lang="en">
-<head>
-    <meta http-eqiv="Content-Language" content="en">
-    <title>Second Robotics</title>
-    {% load static %}
-    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
-    <meta name="google" content="notranslate" />
+    <head>
+        <meta http-eqiv="Content-Language" content="en" />
+        <title>Second Robotics</title>
+        {% load static %}
+        <link
+            rel="shortcut icon"
+            type="image/png"
+            href="{% static 'favicon.ico' %}"
+        />
+        <meta name="google" content="notranslate" />
 
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- Required meta tags -->
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0T1T94RZ4B"></script>
-    <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-0T1T94RZ4B');
-    </script>
+        <!-- Google Analytics -->
+        <script
+            async
+            src="https://www.googletagmanager.com/gtag/js?id=G-0T1T94RZ4B"
+        ></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+            gtag("js", new Date());
+            gtag("config", "G-0T1T94RZ4B");
+        </script>
 
-    <!-- Microsoft Clarity -->
-    <script>
-        (function(c,l,a,r,i,t,y){
-            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-        })(window, document, "clarity", "script", "5a4dmp76yq");
-    </script>
+        <!-- Microsoft Clarity -->
+        <script>
+            (function (c, l, a, r, i, t, y) {
+                c[a] =
+                    c[a] ||
+                    function () {
+                        (c[a].q = c[a].q || []).push(arguments);
+                    };
+                t = l.createElement(r);
+                t.async = 1;
+                t.src = "https://www.clarity.ms/tag/" + i;
+                y = l.getElementsByTagName(r)[0];
+                y.parentNode.insertBefore(t, y);
+            })(window, document, "clarity", "script", "5a4dmp76yq");
+        </script>
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" 
-    integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+        <!-- Bootstrap CSS -->
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/bootswatch@5.1.2/dist/darkly/bootstrap.min.css"
+            integrity="sha256-1gHc8ULI2i4bHSN0u/f/k91UYsb5hqBQcVa9WJ/BFvE="
+            crossorigin="anonymous"
+        />
+    </head>
 
-    <!-- Dark Reader styling -->
-    <link href={% static "css/DarkReader.css" %} rel="stylesheet">
+    <body>
+        <style>
+            html {
+                position: relative;
+                min-height: 100%;
+            }
+            body {
+                margin: 0 0 100px;
+                /* padding: 25px; */
+            }
+            footer {
+                position: absolute;
+                width: 100%;
+                bottom: 0;
+            }
+            .hello-msg {
+                font-size: 16px;
+                color: #fff;
+                margin-right: 20px;
+            }
+            .shadowy {
+                box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.5),
+                    0 6px 20px 0 rgba(0, 0, 0, 0.5);
+                -webkit-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.3),
+                    0 6px 20px 0 rgba(0, 0, 0, 0.3);
+                -moz-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.3),
+                    0 6px 20px 0 rgba(0, 0, 0, 0.5);
+            }
+            p.center {
+                text-align: center;
+            }
+        </style>
 
-</head>
+        <nav class="navbar navbar-expand-lg navbar-dark sticky-top bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">
+                    {% load static %}
+                    <img
+                        src="{% static '/images/logo.png' %}"
+                        alt=""
+                        width="50"
+                        height="50"
+                    />
+                    Second Robotics
+                </a>
+                <button
+                    class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
+                >
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div
+                    class="collapse navbar-collapse"
+                    id="navbarSupportedContent"
+                >
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <!-- Nav Item - Home stuff -->
+                        <li class="nav-item">
+                            <a class="nav-link" aria-current="page" href="/"
+                                >Home</a
+                            >
+                        </li>
 
-<body>
-    <style>
-        html {
-            position: relative;
-            min-height: 100%;
-        }
-        body {
-            margin: 0 0 100px;
-            /* padding: 25px; */
-        }
-        footer {
-            position: absolute;
-            width: 100%;
-            bottom: 0;
-        }
-        .hello-msg{
-            font-size: 16px;
-            color: #fff;
-            margin-right: 20px;
-        }
-        .shadowy {
-        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.5), 0 6px 20px 0 rgba(0, 0, 0, 0.5);
-                -webkit-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.3), 0 6px 20px 0 rgba(0, 0, 0, 0.3);
-                -moz-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .3), 0 6px 20px 0 rgba(0, 0, 0, 0.5);
-        }
-        p.center {
-            text-align: center;
-        }
-    </style>
-
-
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">
-                {% load static %}
-                <img src="{% static '/images/logo.png' %}" alt="" width="50" height="50">
-                Second Robotics
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <!-- Nav Item - Home stuff -->
-                    <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="/">Home</a>
-                    </li>
-
-                    <!-- Nav Item - About Section -->
-                    <li class="nav-item dropdown"> 
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            About
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="/about">About Us</a></li>
-                            <li><a class="dropdown-item" href="/staff">Staff</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/mrc">Minecraft</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/logopack">Logos</a></li>
-                        </ul>
-                    </li>
-
-                    <!-- Nav Item - Event stuff -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Events
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="/teamleague">Team League</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/events/championship-points">Championship Points</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/hall-of-fame">Hall of Fame</a></li>
-                        </ul>
-                    </li>
-
-                    <!-- Nav Item - Rules -->
-                    <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="/rules">Rules</a>
-                    </li>
-
-                    <!-- Nav Item - Scores stuff -->
-                    <li class="nav-item dropdown"> 
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Highscores
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="/highscores/combined/">Combined Leaderboard</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/highscores/OG/">OG</a></li>
-                            <li><a class="dropdown-item" href="/highscores/Inertia/">Inertia</a></li>
-                            <li><a class="dropdown-item" href="/highscores/Roboteers/">Roboteers</a></li>
-                            <li><a class="dropdown-item" href="/highscores/Waffles/">Waffles</a></li>
-                            <li><a class="dropdown-item" href="/highscores/Triangle/">Triangle</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/highscores/Pushbot2/">Pushbot2</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/highscores/submit/">Submit a score</a></li>
-                        </ul>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="/ranked">Ranked</a>
-                    </li>
-
-                </ul>
-                <!-- Nav Item - User Information -->
-                <ul class="nav navbar-nav navbar-right" style="margin-right:2%;">
-                    {% if request.user.is_authenticated %}
-                        <li class="nav-item dropdown"> 
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{request.user}}</span>
-                                <img width="30" height="30" class="img-profile rounded-circle"
-                                    src="{{request.user.avatar}}">
+                        <!-- Nav Item - About Section -->
+                        <li class="nav-item dropdown">
+                            <a
+                                class="nav-link dropdown-toggle"
+                                href="#"
+                                id="navbarDropdown"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                About
                             </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                {% if request.user.is_staff %}
-                                    <li><a class="dropdown-item" href="/admin">ADMIN</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                {% endif %}
-                                <li><a class="dropdown-item" href="/user/{{request.user.id}}">Profile</a></li>
-                                <li><a class="dropdown-item" href="/user/settings">Settings</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="/logout">Logout</a></li>
-                                
+                            <ul
+                                class="dropdown-menu"
+                                aria-labelledby="navbarDropdown"
+                            >
+                                <li>
+                                    <a class="dropdown-item" href="/about"
+                                        >About Us</a
+                                    >
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/staff"
+                                        >Staff</a
+                                    >
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a class="dropdown-item" href="/mrc"
+                                        >Minecraft</a
+                                    >
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a class="dropdown-item" href="/logopack"
+                                        >Logos</a
+                                    >
+                                </li>
                             </ul>
                         </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" aria-current="page" href="/login">Login</a>
+
+                        <!-- Nav Item - Event stuff -->
+                        <li class="nav-item dropdown">
+                            <a
+                                class="nav-link dropdown-toggle"
+                                href="#"
+                                id="navbarDropdown"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                Events
+                            </a>
+                            <ul
+                                class="dropdown-menu"
+                                aria-labelledby="navbarDropdown"
+                            >
+                                <li>
+                                    <a class="dropdown-item" href="/teamleague"
+                                        >Team League</a
+                                    >
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="/events/championship-points"
+                                        >Championship Points</a
+                                    >
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="/hall-of-fame"
+                                        >Hall of Fame</a
+                                    >
+                                </li>
+                            </ul>
                         </li>
-                    {% endif %}
-                </ul>
+
+                        <!-- Nav Item - Rules -->
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                aria-current="page"
+                                href="/rules"
+                                >Rules</a
+                            >
+                        </li>
+
+                        <!-- Nav Item - Scores stuff -->
+                        <li class="nav-item dropdown">
+                            <a
+                                class="nav-link dropdown-toggle"
+                                href="#"
+                                id="navbarDropdown"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                Highscores
+                            </a>
+                            <ul
+                                class="dropdown-menu"
+                                aria-labelledby="navbarDropdown"
+                            >
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="/highscores/combined/"
+                                        >Combined Leaderboard</a
+                                    >
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="/highscores/OG/"
+                                        >OG</a
+                                    >
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="/highscores/Inertia/"
+                                        >Inertia</a
+                                    >
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="/highscores/Roboteers/"
+                                        >Roboteers</a
+                                    >
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="/highscores/Waffles/"
+                                        >Waffles</a
+                                    >
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="/highscores/Triangle/"
+                                        >Triangle</a
+                                    >
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="/highscores/Pushbot2/"
+                                        >Pushbot2</a
+                                    >
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="/highscores/submit/"
+                                        >Submit a score</a
+                                    >
+                                </li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                aria-current="page"
+                                href="/ranked"
+                                >Ranked</a
+                            >
+                        </li>
+                    </ul>
+                    <!-- Nav Item - User Information -->
+                    <ul
+                        class="nav navbar-nav navbar-right"
+                        style="margin-right: 2%"
+                    >
+                        {% if request.user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a
+                                class="nav-link dropdown-toggle"
+                                href="#"
+                                id="navbarDropdown"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                <span
+                                    class="
+                                        mr-2
+                                        d-none d-lg-inline
+                                        text-gray-600
+                                        small
+                                    "
+                                    >{{request.user}}</span
+                                >
+                                <img
+                                    width="30"
+                                    height="30"
+                                    class="img-profile rounded-circle"
+                                    src="{{request.user.avatar}}"
+                                    alt="User profile picture"
+                                />
+                            </a>
+                            <ul
+                                class="dropdown-menu"
+                                aria-labelledby="navbarDropdown"
+                            >
+                                {% if request.user.is_staff %}
+                                <li>
+                                    <a class="dropdown-item" href="/admin"
+                                        >ADMIN</a
+                                    >
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                {% endif %}
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="/user/{{request.user.id}}"
+                                        >Profile</a
+                                    >
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="/user/settings"
+                                        >Settings</a
+                                    >
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a class="dropdown-item" href="/logout"
+                                        >Logout</a
+                                    >
+                                </li>
+                            </ul>
+                        </li>
+                        {% else %}
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                aria-current="page"
+                                href="/login"
+                                >Login</a
+                            >
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div id="content" , name="content" class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-9">{% block content %} {% endblock %}</div>
             </div>
         </div>
-       
-        
-    </nav>
 
-    <div id="content", name="content" class= "container-fluid">
-        <div class="row justify-content-center">
-            <div class="col-9">
-                {% block content %}
-                {% endblock %}
-            </div>
+        <!-- Bootstrap Script Bundle with Popper -->
+        <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-kQtW33rZJAHjgefvhyyzcGF3C5TFyBQBA13V1RKPf4uH+bwyzQxZ6CmMZHmNBEfJ"
+            crossorigin="anonymous"
+        ></script>
+    </body>
+
+    <footer class="bg-primary text-white text-center text-lg-start">
+        <div
+            class="text-center p-3"
+            style="background-color: rgba(0, 0, 0, 0.2)"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-envelope-fill"
+                viewBox="0 0 16 16"
+            >
+                <path
+                    d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555zM0 4.697v7.104l5.803-3.558L0 4.697zM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.027L8 9.586l-1.239-.757zm3.436-.586L16 11.801V4.697l-5.803 3.546z"
+                />
+            </svg>
+            Contact Us:
+            <a style="color: #fff" href="mailto:contact@secondrobotics.org"
+                >contact@secondrobotics.org</a
+            >
+            | <a style="color: #fff" href="/privacy">Privacy &amp; Terms</a
+            ><br />
+            © 2021 Second Robotics. We are
+            <a
+                style="color: #fff"
+                href="https://github.com/SecondRobotics/SecondWebsite"
+                >open source</a
+            >!
         </div>
-    </div>
-
-    <!-- Bootstrap Script Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" 
-    integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
-    
-</body>
-
-<footer class="bg-primary text-white text-center text-lg-start">
-    <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2)">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope-fill" viewBox="0 0 16 16">
-            <path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555zM0 4.697v7.104l5.803-3.558L0 4.697zM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.027L8 9.586l-1.239-.757zm3.436-.586L16 11.801V4.697l-5.803 3.546z"/>
-        </svg>
-        Contact Us: <a style="color:#fff; ;" href="mailto:contact@secondrobotics.org">contact@secondrobotics.org</a> | <a style="color:#fff; ;" href="/privacy">Privacy &amp; Terms</a><br/>
-        © 2021 Second Robotics. We are <a style="color:#fff; ;" href="https://github.com/SecondRobotics/SecondWebsite">open source</a>!
-    </div>
-</footer>
-
+    </footer>
 </html>

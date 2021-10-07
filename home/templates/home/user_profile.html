@@ -1,125 +1,303 @@
-{% extends 'home/base.html' %}
-
-{% block content %}
+{% extends 'home/base.html' %} {% block content %}
 <style>
-.responsive {
-  width: 100%;
-  height: auto;
-}
+    .responsive {
+        width: 100%;
+        height: auto;
+    }
 </style>
 <div class="row">
     <div class="col-2">
-        <img src="{{user.avatar}}" class="shadowy m-md-3 responsive img-profile rounded-circle">
+        <img
+            src="{{user.avatar}}"
+            class="shadowy m-md-3 responsive img-profile rounded-circle"
+            alt="User profile picture"
+        />
     </div>
     <div class="col-10">
-        <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 shadowy text-center bg-primary">
-            <h1 style="color:white" class="display-4 fw-normal">{{user}}</h1>
-            <h4 class="display-10 fw-normal">{{user.username}}#{{user.discriminator}}</h4>
+        <div
+            class="
+                position-relative
+                overflow-hidden
+                p-3 p-md-5
+                m-md-3
+                shadowy
+                text-center
+                bg-primary
+            "
+        >
+            <h1 style="color: white" class="display-4 fw-normal">{{user}}</h1>
+            <h4 class="display-10 fw-normal">
+                {{user.username}}#{{user.discriminator}}
+            </h4>
         </div>
     </div>
 </div>
 <div class="row">
     <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark">
-            <h1 style="color:white" class="display-4 fw-normal"><a href="/highscores/Roboteers/" style="color:#fff; text-decoration:none;">Roboteers</a></h1>
-            <h2 style="color:white" class="display-6 fw-normal">
+        <div
+            class="
+                position-relative
+                overflow-hidden
+                p-3 p-md-5
+                shadowy
+                m-md-3
+                text-center
+                bg-dark
+            "
+        >
+            <h1 style="color: white" class="display-4 fw-normal">
+                <a
+                    href="/highscores/Roboteers/"
+                    style="color: #fff; text-decoration: none"
+                    >Roboteers</a
+                >
+            </h1>
+            <h2 style="color: white" class="display-6 fw-normal">
                 {{scores.Roboteers}}
             </h2>
-            {% if scores.Roboteers > 0 %}
-                {% if "youtube" in sources.Roboteers or "streamable" in sources.Roboteers %}
-                    <iframe class="img-fluid rounded" src="{{sources.Roboteers}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                {% else %}
-                    <img src="{{sources.Roboteers}}" class="img-fluid rounded" alt="Roboteers score screnshot">
-                {% endif %}
-            {% endif %}
+            {% if scores.Roboteers > 0 %} {% if "youtube" in sources.Roboteers
+            or "streamable" in sources.Roboteers %}
+            <iframe
+                class="img-fluid rounded"
+                src="{{sources.Roboteers}}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            {% else %}
+            <img
+                src="{{sources.Roboteers}}"
+                class="img-fluid rounded"
+                alt="Roboteers score screnshot"
+            />
+            {% endif %} {% endif %}
         </div>
     </div>
     <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark">
-            <h1 style="color:white" class="display-4 fw-normal"><a href="/highscores/Inertia/" style="color:#fff; text-decoration:none;">Inertia</a></h1>
-            <h2 style="color:white" class="display-6 fw-normal">
-               {{scores.Inertia}}
+        <div
+            class="
+                position-relative
+                overflow-hidden
+                p-3 p-md-5
+                shadowy
+                m-md-3
+                text-center
+                bg-dark
+            "
+        >
+            <h1 style="color: white" class="display-4 fw-normal">
+                <a
+                    href="/highscores/Inertia/"
+                    style="color: #fff; text-decoration: none"
+                    >Inertia</a
+                >
+            </h1>
+            <h2 style="color: white" class="display-6 fw-normal">
+                {{scores.Inertia}}
             </h2>
-            {% if  scores.Inertia > 0 %}
-                {% if "youtube" in sources.Inertia or "streamable" in sources.Inertia %}
-                    <iframe class="img-fluid rounded" src="{{sources.Inertia}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                {% else %}
-                    <img src={{sources.Inertia}} class="img-fluid rounded" alt="Inertia score screnshot">
-                {% endif %}
-            {% endif %}
+            {% if scores.Inertia > 0 %} {% if "youtube" in sources.Inertia or
+            "streamable" in sources.Inertia %}
+            <iframe
+                class="img-fluid rounded"
+                src="{{sources.Inertia}}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            {% else %}
+            <img
+                src="{{sources.Inertia}}"
+                class="img-fluid rounded"
+                alt="Inertia score screnshot"
+            />
+            {% endif %} {% endif %}
         </div>
     </div>
     <div class="col">
-        <div class="position-relative overflow-hidden p-3 shadowy p-md-5 m-md-3 text-center bg-dark">
-            <h1 style="color:white" class="display-4 fw-normal"><a href="/highscores/OG/" style="color:#fff; text-decoration:none;">OG</a></h1>
-            <h2 style="color:white" class="display-6 fw-normal">
+        <div
+            class="
+                position-relative
+                overflow-hidden
+                p-3
+                shadowy
+                p-md-5
+                m-md-3
+                text-center
+                bg-dark
+            "
+        >
+            <h1 style="color: white" class="display-4 fw-normal">
+                <a
+                    href="/highscores/OG/"
+                    style="color: #fff; text-decoration: none"
+                    >OG</a
+                >
+            </h1>
+            <h2 style="color: white" class="display-6 fw-normal">
                 {{scores.OG}}
             </h2>
-            {% if scores.OG > 0 %}
-                {% if "youtube" in sources.OG or "streamable" in sources.OG %}
-                    <iframe class="img-fluid rounded" src="{{sources.OG}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                {% else %}
-                    <img src={{sources.OG}} class="img-fluid rounded" alt="OG score screnshot">
-                {% endif %}
-            {% endif %}
+            {% if scores.OG > 0 %} {% if "youtube" in sources.OG or "streamable"
+            in sources.OG %}
+            <iframe
+                class="img-fluid rounded"
+                src="{{sources.OG}}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            {% else %}
+            <img
+                src="{{sources.OG}}"
+                class="img-fluid rounded"
+                alt="OG score screnshot"
+            />
+            {% endif %} {% endif %}
         </div>
     </div>
 </div>
 
 <div class="row">
     <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark">
-            <h1 style="color:white" class="display-4 fw-normal"><a href="/highscores/Waffles/" style="color:#fff; text-decoration:none;">Waffles</a></h1>
-            <h2 style="color:white" class="display-6 fw-normal">
+        <div
+            class="
+                position-relative
+                overflow-hidden
+                p-3 p-md-5
+                shadowy
+                m-md-3
+                text-center
+                bg-dark
+            "
+        >
+            <h1 style="color: white" class="display-4 fw-normal">
+                <a
+                    href="/highscores/Waffles/"
+                    style="color: #fff; text-decoration: none"
+                    >Waffles</a
+                >
+            </h1>
+            <h2 style="color: white" class="display-6 fw-normal">
                 {{scores.Waffles}}
             </h2>
-            {% if scores.Waffles > 0 %}
-                {% if "youtube" in sources.Waffles or "streamable" in sources.Waffles %}
-                    <iframe class="img-fluid rounded" src="{{sources.Waffles}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                {% else %}
-                    <img src="{{sources.Waffles}}" class="img-fluid rounded" alt="Waffles score screnshot">
-                {% endif %}
-            {% endif %}
+            {% if scores.Waffles > 0 %} {% if "youtube" in sources.Waffles or
+            "streamable" in sources.Waffles %}
+            <iframe
+                class="img-fluid rounded"
+                src="{{sources.Waffles}}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            {% else %}
+            <img
+                src="{{sources.Waffles}}"
+                class="img-fluid rounded"
+                alt="Waffles score screnshot"
+            />
+            {% endif %} {% endif %}
         </div>
     </div>
     <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark">
-            <h1 style="color:white" class="display-4 fw-normal"><a href="/highscores/Triangle/" style="color:#fff; text-decoration:none;">Triangle</a></h1>
-            <h2 style="color:white" class="display-6 fw-normal">
-               {{scores.Triangle}}
+        <div
+            class="
+                position-relative
+                overflow-hidden
+                p-3 p-md-5
+                shadowy
+                m-md-3
+                text-center
+                bg-dark
+            "
+        >
+            <h1 style="color: white" class="display-4 fw-normal">
+                <a
+                    href="/highscores/Triangle/"
+                    style="color: #fff; text-decoration: none"
+                    >Triangle</a
+                >
+            </h1>
+            <h2 style="color: white" class="display-6 fw-normal">
+                {{scores.Triangle}}
             </h2>
-            {% if  scores.Triangle > 0 %}
-                {% if "youtube" in sources.Triangle or "streamable" in sources.Triangle %}
-                    <iframe class="img-fluid rounded" src="{{sources.Triangle}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                {% else %}
-                    <img src={{sources.Triangle}} class="img-fluid rounded" alt="Triangle score screnshot">
-                {% endif %}
-            {% endif %}
+            {% if scores.Triangle > 0 %} {% if "youtube" in sources.Triangle or
+            "streamable" in sources.Triangle %}
+            <iframe
+                class="img-fluid rounded"
+                src="{{sources.Triangle}}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            {% else %}
+            <img
+                src="{{sources.Triangle}}"
+                class="img-fluid rounded"
+                alt="Triangle score screnshot"
+            />
+            {% endif %} {% endif %}
         </div>
     </div>
     <div class="col">
-        <div class="position-relative overflow-hidden p-3 shadowy p-md-5 m-md-3 text-center bg-dark">
-            <h1 style="color:white" class="display-4 fw-normal"><a href="/highscores/Pushbot2/" style="color:#fff; text-decoration:none;">Pushbot2</a></h1>
+        <div
+            class="
+                position-relative
+                overflow-hidden
+                p-3
+                shadowy
+                p-md-5
+                m-md-3
+                text-center
+                bg-dark
+            "
+        >
+            <h1 style="color: white" class="display-4 fw-normal">
+                <a
+                    href="/highscores/Pushbot2/"
+                    style="color: #fff; text-decoration: none"
+                    >Pushbot2</a
+                >
+            </h1>
             <span>(Excluded from overall)</span>
-            <h2 style="color:white" class="display-6 fw-normal">
+            <h2 style="color: white" class="display-6 fw-normal">
                 {{scores.Pushbot2}}
             </h2>
-            {% if scores.Pushbot2 > 0 %}
-                {% if "youtube" in sources.Pushbot2 or "streamable" in sources.Pushbot2 %}
-                    <iframe class="img-fluid rounded" src="{{sources.Pushbot2}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                {% else %}
-                    <img src={{sources.Pushbot2}} class="img-fluid rounded" alt="Pushbot2 score screnshot">
-                {% endif %}
-            {% endif %}
+            {% if scores.Pushbot2 > 0 %} {% if "youtube" in sources.Pushbot2 or
+            "streamable" in sources.Pushbot2 %}
+            <iframe
+                class="img-fluid rounded"
+                src="{{sources.Pushbot2}}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            {% else %}
+            <img
+                src="{{sources.Pushbot2}}"
+                class="img-fluid rounded"
+                alt="Pushbot2 score screnshot"
+            />
+            {% endif %} {% endif %}
         </div>
     </div>
 </div>
 
 <div class="row">
-    <div class="position-relative overflow-hidden p-3 shadowy p-md-5 m-md-3 text-center bg-dark">
-        <h1 style="color:white" class="display-4 fw-normal"><a href="/highscores/combined/" style="color:#fff; text-decoration:none;">Total Score</a></h1>
-        <h2 style="color:white" class="display-6 fw-normal">{{scores.overall}}</h2>
+    <div
+        class="
+            position-relative
+            overflow-hidden
+            p-3
+            shadowy
+            p-md-5
+            m-md-3
+            text-center
+            bg-dark
+        "
+    >
+        <h1 style="color: white" class="display-4 fw-normal">
+            <a
+                href="/highscores/combined/"
+                style="color: #fff; text-decoration: none"
+                >Total Score</a
+            >
+        </h1>
+        <h2 style="color: white" class="display-6 fw-normal">
+            {{scores.overall}}
+        </h2>
     </div>
-    
 </div>
 {% endblock %}
