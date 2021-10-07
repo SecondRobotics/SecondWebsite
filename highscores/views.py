@@ -19,12 +19,11 @@ from urllib.request import urlopen, Request
 def index(response, name):
     if not Leaderboard.objects.filter(name=name).exists():
         return HttpResponseRedirect(response.META.get('HTTP_REFERER', '/'))
-    # ls = Leaderboard.objects.get(name=name)
-    sorted = Score.objects.filter(leaderboard__name=name, approved=True).order_by('-score', 'time_set')
+    sorted_board = Score.objects.filter(leaderboard__name=name, approved=True).order_by('-score', 'time_set')
     i = 1
     context = []
     # Create ranking numbers and append them to sorted values
-    for item in sorted:
+    for item in sorted_board:
         context.append([i, item])
         i+=1
 
@@ -32,184 +31,250 @@ def index(response, name):
 
 def combined(request):
     scores = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), approved=True).values('player').annotate(time_set=Max('time_set')).annotate(score=Sum('score'))
-    sorted = scores.order_by('-score', 'time_set')
+    sorted_board = scores.order_by('-score', 'time_set')
     i = 1
     context = []
     # Create ranking numbers and append them to sorted values
-    for item in sorted:
+    for item in sorted_board:
         item['player'] = User.objects.filter(id=item['player'])[0]
         context.append([i, item])
         i+=1
 
     return render(request, "highscores/combined_leaderboard.html", {"ls": context})
 
-
 @login_required(login_url='/login')
 def submit(request):
-    if request.method == "POST":
-        form = ScoreForm(request.POST)
-        if form.is_valid():
-            obj = Score()
-            obj.leaderboard = form.cleaned_data['leaderboard']
-            obj.player = request.user
-            obj.score = form.cleaned_data['score']
-            obj.time_set = datetime.now()
-            obj.approved = False
-            obj.source = form.cleaned_data['source']
-            obj.clean_code = form.cleaned_data['clean_code']
+    if request.method != 'POST':
+        return render(request, "highscores/submit.html", {"form": ScoreForm})
 
-            # Check for older submissions from this user in this category
-            prev_submissions = Score.objects.filter(leaderboard__name=obj.leaderboard, player=obj.player)
+    form = ScoreForm(request.POST)
+    if not form.is_valid():
+        return render(request, "highscores/submit.html", {"form": form})
 
-            for submission in prev_submissions:
-                if submission.score >= obj.score:
-                    return HttpResponse('You already have a submission with an equal or higher score than this!')
+    score_obj = Score()
+    score_obj.leaderboard = form.cleaned_data['leaderboard']
+    score_obj.player = request.user
+    score_obj.score = form.cleaned_data['score']
+    score_obj.time_set = datetime.now()
+    score_obj.approved = False
+    score_obj.source = form.cleaned_data['source']
+    score_obj.clean_code = form.cleaned_data['clean_code']
 
-            # Check to ensure image / video is proper
-            try:
-                if "youtube" in obj.source or "youtu.be" in obj.source:
-                    # YouTube video...
-                    # Extract the video id
-                    obj.source = obj.source[obj.source.rfind('/')+1:]
-                    if (obj.source.rfind('v=') != -1):
-                        obj.source = obj.source[obj.source.rfind('v=')+2:]
-                    if (obj.source.rfind('?') != -1):
-                        obj.source = obj.source[:obj.source.rfind('?')]
-                    if (obj.source.rfind('&') != -1):
-                        obj.source = obj.source[:obj.source.rfind('&')]
-                    # Check if the video exists
-                    urlopen("http://img.youtube.com/vi/{}/mqdefault.jpg".format(obj.source))
-                    # Convert to embed
-                    obj.source = "https://www.youtube-nocookie.com/embed/" + obj.source
-                elif "streamable" in obj.source:
-                    # Streamable video...
-                    # Check if the video exists
-                    urlopen("https://api.streamable.com/oembed.json?url=" + obj.source)
-                    # Convert to embed
-                    obj.source = obj.source.replace("streamable.com/", "streamable.com/e/")
-                else:
-                    # Image...
-                    # Check to ensure proper file
-                    req = Request(obj.source, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'})
-                    res = urlopen(req).info()
-                    if res["content-type"] not in ("image/png", "image/jpeg", "image/jpg"):  # check if the content-type is a image
-                        return HttpResponse('There is something wrong with the URL you provided for your screenshot/video. Please ensure you provide a link to a PNG, JPEG, YouTube video, or Streamable video.')
-            except Exception as ex: # malformed url provided
+    # Check for older submissions from this user in this category
+    prev_submissions = Score.objects.filter(leaderboard__name=score_obj.leaderboard, player=score_obj.player)
+
+    for submission in prev_submissions:
+        if submission.score >= score_obj.score:
+            return HttpResponse('You already have a submission with an equal or higher score than this!')
+
+    # Check to ensure image / video is proper
+    res = submission_screenshot_check(score_obj)
+    if (res is not None):
+        return res
+
+    # Check the clean code
+    res = infinite_recharge_clean_code_check(score_obj, prev_submissions)
+    if (res is not None):
+        return res
+
+    # Code is valid! Instantly approve!
+    score_obj.approved = True
+    score_obj.save()
+
+    code_obj = CleanCodeSubmission()
+    code_obj.clean_code = score_obj.clean_code
+    code_obj.player = score_obj.player
+    code_obj.save()
+
+    return render(request, "highscores/submit_accepted.html", {})
+
+def submission_screenshot_check(score_obj: Score):
+    """ Checks if the submission has a screenshot and if it is valid.
+    :param score_obj: Score object to check
+    :return: None if valid, HTTPResponse with error message if not
+    """
+    try:
+        if "youtube" in score_obj.source or "youtu.be" in score_obj.source:
+            # YouTube video...
+            # Extract the video id
+            score_obj.source = score_obj.source[score_obj.source.rfind('/')+1:]
+            if (score_obj.source.rfind('v=') != -1):
+                score_obj.source = score_obj.source[score_obj.source.rfind('v=')+2:]
+            if (score_obj.source.rfind('?') != -1):
+                score_obj.source = score_obj.source[:score_obj.source.rfind('?')]
+            if (score_obj.source.rfind('&') != -1):
+                score_obj.source = score_obj.source[:score_obj.source.rfind('&')]
+            # Check if the video exists
+            urlopen("http://img.youtube.com/vi/{}/mqdefault.jpg".format(score_obj.source))
+            # Convert to embed
+            score_obj.source = "https://www.youtube-nocookie.com/embed/" + score_obj.source
+        elif "streamable" in score_obj.source:
+            # Streamable video...
+            # Check if the video exists
+            urlopen("https://api.streamable.com/oembed.json?url=" + score_obj.source)
+            # Convert to embed
+            score_obj.source = score_obj.source.replace("streamable.com/", "streamable.com/e/")
+        else:
+            # Image...
+            # Check to ensure proper file
+            req = Request(score_obj.source, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'})
+            res = urlopen(req).info()
+            if res["content-type"] not in ("image/png", "image/jpeg", "image/jpg"):  # check if the content-type is a image
                 return HttpResponse('There is something wrong with the URL you provided for your screenshot/video. Please ensure you provide a link to a PNG, JPEG, YouTube video, or Streamable video.')
+    except Exception: # malformed url provided
+        return HttpResponse('There is something wrong with the URL you provided for your screenshot/video. Please ensure you provide a link to a PNG, JPEG, YouTube video, or Streamable video.')
+    
+    return None # no error, proper url provided
 
-            # If a clean code was entered...
-            if obj.clean_code is not None:
-                try:
-                    # Clean code decryption
-                    indata = obj.clean_code.replace(' ', '')
-                    ivseed = indata[-4:] * 4
-                    data = bytes.fromhex(indata[:-4])
+def infinite_recharge_clean_code_check(score_obj: Score, prev_submissions):
+    """ Checks if the clean code is valid.
+    :param score_obj: Score object to check
+    :param prev_submissions: List of previous submissions from this user in this category
+    :return: None if valid, HTTPResponse with error message if not
+    """
+    try:
+        # Clean code decryption
+        clean_code_decryption(score_obj)
 
-                    try:
-                        # v5.8c
-                        cipher = AES.new(CLEAN_AES_KEY.encode("utf-8"), AES.MODE_CBC, ivseed.encode("utf-8"))
-                        obj.decrypted_code = cipher.decrypt(data).decode("utf-8")
-                    except Exception:
-                        # v5.8d+
-                        cipher = AES.new(NEW_AES_KEY.encode("utf-8"), AES.MODE_CBC, ivseed.encode("utf-8"))
-                        obj.decrypted_code = cipher.decrypt(data).decode("utf-8")
+        # Clean code extraction
+        restart_option, game_options, robot_model, blue_score, red_score = extract_clean_code_info(score_obj)
 
-                    # Clean code verification
-                    dataset = obj.decrypted_code.split(',')
+        # Check game settings
+        res = check_generic_game_settings(score_obj)
+        if (res is not None):
+            return res
+        res = check_infinite_recharge_game_settings(game_options, restart_option)
+        if (res is not None):
+            return res
 
-                    obj.client_version = dataset[0].strip()
-                    obj.time_of_score = dataset[1].strip()
-                    red_score = dataset[2].strip()
-                    blue_score = dataset[3].strip()
-                    obj.robot_position = dataset[4].strip()
-                    robot_model = dataset[5].strip()
-                    restart_option = dataset[6].strip()
-                    game_options = dataset[7].strip().split(':')
+        # Check robot type
+        res = check_infinite_recharge_robot_type(score_obj, robot_model)
+        if (res is not None):
+            return res
 
-                    # Check game settings
-                    if float(obj.client_version[1:4]) < 5.9:
-                        return HttpResponse('Game version too old! Update to v5.9+')
-                    if "pre" in obj.client_version:
-                        return HttpResponse('Pre-release is not allowed for high score submission!')
-                    if (restart_option != '2'):
-                        return HttpResponse('You must use restart option 2 for high score submissions.')
-                    if (game_options[25] != '2021'):
-                        return HttpResponse('You must use Game Version 2021 for high score submissions.')
-                    if (game_options[7] != '0'):
-                        return HttpResponse('You may not use power-ups for high score submissions.')
-                    if (game_options[26][0] != '0'):
-                        return HttpResponse('You must use shield power-cell offset of 0 for high score submissions.')
-                    if (game_options[24] != '0'):
-                        return HttpResponse('Overflow balls must be set to spawn in center for high score submissions.')
+        # Check score
+        res = check_score(score_obj, blue_score, red_score)
+        if (res is not None):
+            return res
 
-                    # Check robot type
-                    if (str(obj.leaderboard) == 'OG'):
-                        if (robot_model != 'FRC shooter'):
-                            return HttpResponse('Double-check the robot type that you selected!')
-                    elif (str(obj.leaderboard) == 'Inertia'):
-                        if (robot_model != 'NUTRONs 125'):
-                            return HttpResponse('Double-check the robot type that you selected!')
-                    elif (str(obj.leaderboard) == 'Roboteers'):
-                        if (robot_model != 'Roboteers 2481'):
-                            return HttpResponse('Double-check the robot type that you selected!')
-                    elif (str(obj.leaderboard) == 'Pushbot2'):
-                        if (robot_model != 'PushBot2'):
-                            return HttpResponse('Double-check the robot type that you selected!')
-                    elif (str(obj.leaderboard) == 'Triangle'):
-                        if (robot_model != 'T Shooter'):
-                            return HttpResponse('Double-check the robot type that you selected!')
-                    elif (str(obj.leaderboard) == 'Waffles'):
-                        if (robot_model != 'Waffles'):
-                            return HttpResponse('Double-check the robot type that you selected!')
-                    else:
-                        return HttpResponse('Double-check the robot type that you selected!')
+        # Delete previous submissions for this category
+        prev_submissions.delete()
 
-                    # Check score
-                    if obj.robot_position.startswith('Blue'):
-                        if (blue_score != str(obj.score)):
-                            return HttpResponse('Double-check the score that you entered!')
-                    else:
-                        if (red_score != str(obj.score)):
-                            return HttpResponse('Double-check the score that you entered!')
+        # Search for code in database to ensure it is unique
+        res = search_for_reused_code(score_obj)
+        if (res is not None):
+            return res
 
-                    # Delete previous submissions for this category
-                    prev_submissions.delete()
+    except IndexError: # code is for wrong game
+        return HttpResponse('There is something wrong with your clean code! Are you submitting for the right game?')
+    except Exception: # code is corrupted during decryption
+        return HttpResponse('There is something wrong with your clean code! Make sure you copied it properly.')
 
-                    # Search for code in database
-                    clean_code_search = CleanCodeSubmission.objects.filter(clean_code=obj.clean_code)
+    return None # no error, proper clean code provided
 
-                    if clean_code_search.exists():
-                        # Uh oh, this user submitted a clean code that has already been used.
-                        # Report this via email.
-                        
-                        message = f"{obj.player} attempted (and failed) to submit a score: [{obj.score}] - {obj.leaderboard}\n\n This score was already submitted by {clean_code_search[0].player}\n\n {obj.source}\n\nhttps://secondrobotics.org/admin/highscores/score/"
-                        try:
-                            if (not DEBUG):
-                                send_mail(f"Possible cheating attempt from {obj.player}", message, "noreply@secondrobotics.org", ['brennan@secondrobotics.org'], fail_silently=False)
-                        except Exception as ex:
-                            print(ex)
+def extract_clean_code_info(score_obj):
+    dataset = score_obj.decrypted_code.split(',')
 
-                        return HttpResponse('That clean code has already been submitted by another player.')
+    score_obj.client_version = dataset[0].strip()
+    score_obj.time_of_score = dataset[1].strip()
+    red_score = dataset[2].strip()
+    blue_score = dataset[3].strip()
+    score_obj.robot_position = dataset[4].strip()
+    robot_model = dataset[5].strip()
+    restart_option = dataset[6].strip()
+    game_options = dataset[7].strip().split(':')
+    return restart_option, game_options, robot_model, blue_score, red_score
 
-                    # Code is valid! Instantly approve!
-                    obj.approved = True
-                    obj.save()
+def clean_code_decryption(score_obj):
+    indata = score_obj.clean_code.replace(' ', '')
+    ivseed = indata[-4:] * 4
+    data = bytes.fromhex(indata[:-4])
 
-                    code_obj = CleanCodeSubmission()
-                    code_obj.clean_code = obj.clean_code
-                    code_obj.player = obj.player
-                    code_obj.save()
+    # Decrypt
+    cipher = AES.new(NEW_AES_KEY.encode("utf-8"), AES.MODE_CBC, ivseed.encode("utf-8"))
+    score_obj.decrypted_code = cipher.decrypt(data).decode("utf-8")
 
-                    return render(request, "highscores/submit_accepted.html", {})
+def check_generic_game_settings(score_obj: Score):
+    """ Checks if the universal game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if float(score_obj.client_version[1:4]) < 6.0:
+        return HttpResponse('Game version too old! Update to v6.0+')
+    if "pre" in score_obj.client_version:
+        return HttpResponse('Pre-release is not allowed for high score submission!')
+    
+    return None # No error
 
-                except IndexError: # code is for wrong game
-                    return HttpResponse('There is something wrong with your clean code! Are you submitting for the right game?')
-                except Exception: # code is corrupted during decryption
-                    return HttpResponse('There is something wrong with your clean code! Make sure you copied it properly.')
+def check_infinite_recharge_game_settings(game_options: list, restart_option: str):
+    """ Checks if the Infinite Recharge game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if (restart_option != '2'):
+        return HttpResponse('You must use restart option 2 for high score submissions.')
+    if (game_options[25] != '2021'):
+        return HttpResponse('You must use Game Version 2021 for high score submissions.')
+    if (game_options[7] != '0'):
+        return HttpResponse('You may not use power-ups for high score submissions.')
+    if (game_options[26][0] != '0'):
+        return HttpResponse('You must use shield power-cell offset of 0 for high score submissions.')
+    if (game_options[24] != '0'):
+        return HttpResponse('Overflow balls must be set to spawn in center for high score submissions.')
 
-            obj.save()
+    return None # No error
 
-            return render(request, "highscores/submit_success.html", {})
+def check_infinite_recharge_robot_type(score_obj: Score, robot_model: str):
+    """ Checks if the robot type is valid for Infinite Recharge.
+    :return: None if the robot type is valid, or a response with an error message if it is not.
+    """
+    wrong_robot_message = 'Double-check the robot type that you selected!'
+
+    switch = {
+        'OG': 'FRC shooter',
+        'Inertia': 'NUTRONs 125',
+        'Roboteers': 'Roboteers 2481',
+        'Pushbot2': 'PushBot2',
+        'Triange': 'T Shooter',
+        'Waffles': 'Waffles'
+    }
+
+    if robot_model not in switch:
+        return HttpResponse(wrong_robot_message)
+    
+    if switch[str(score_obj.leaderboard)] != robot_model:
+        return HttpResponse(wrong_robot_message)
+
+    return None # No error
+
+def check_score(score_obj: Score, blue_score: str, red_score: str):
+    """ Checks if the true score matches the reported score.
+    :return: None if the score is valid, or a response with an error message if it is not.
+    """
+    if score_obj.robot_position.startswith('Blue'):
+        if (blue_score != str(score_obj.score)):
+            return HttpResponse('Double-check the score that you entered!')
     else:
-        form = ScoreForm
-    return render(request, "highscores/submit.html", {"form": form})
+        if (red_score != str(score_obj.score)):
+            return HttpResponse('Double-check the score that you entered!')
+
+    return None # No error
+
+def search_for_reused_code(score_obj: Score):
+    """ Checks if the code has been previously submitted.
+    :return: None if the code has not been previously submitted, or a response with an error message if it has.
+    """
+    clean_code_search = CleanCodeSubmission.objects.filter(clean_code=score_obj.clean_code)
+
+    if clean_code_search.exists():
+        # Uh oh, this user submitted a clean code that has already been used.
+        # Report this via email.
+        
+        message = f"{score_obj.player} attempted (and failed) to submit a score: [{score_obj.score}] - {score_obj.leaderboard}\n\n This score was already submitted by {clean_code_search[0].player}\n\n {score_obj.source}\n\nhttps://secondrobotics.org/admin/highscores/score/"
+        try:
+            if (not DEBUG):
+                send_mail(f"Possible cheating attempt from {score_obj.player}", message, "noreply@secondrobotics.org", ['brennan@secondrobotics.org'], fail_silently=False)
+        except Exception as ex:
+            print(ex)
+
+        return HttpResponse('That clean code has already been submitted by another player.')
+
+    return None # No error
