@@ -449,7 +449,7 @@ def check_freight_frenzy_game_settings(game_options: list, game_index: str):
 
     if (game_index != '9'):
         return HttpResponse('Wrong game! This form is for Freight Frenzy.')
-    if (game_options[3] != '0'):
+    if (game_options[3] != '1'):
         return HttpResponse('You must enable possession limit for high score submissions.')
 
     return None  # No error
