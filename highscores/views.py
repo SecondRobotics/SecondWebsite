@@ -481,9 +481,6 @@ def check_infinite_recharge_robot_type(score_obj: Score, robot_model: str):
         'Waffles': 'Waffles',
     }
 
-    if robot_model not in switch:
-        return HttpResponse(wrong_robot_message)
-
     if switch[str(score_obj.leaderboard)] != robot_model:
         return HttpResponse(wrong_robot_message)
 
@@ -502,9 +499,6 @@ def check_freight_frenzy_robot_type(score_obj: Score, robot_model: str):
         'Bailey': 'Bailey',
     }
 
-    if robot_model not in switch:
-        return HttpResponse(wrong_robot_message)
-
     if switch[str(score_obj.leaderboard)] != robot_model:
         return HttpResponse(wrong_robot_message)
 
@@ -520,9 +514,6 @@ def check_tipping_point_robot_type(score_obj: Score, robot_model: str):
     switch = {
         'AMOGO2': 'AMOGO_v2',
     }
-
-    if robot_model not in switch:
-        return HttpResponse(wrong_robot_message)
 
     if switch[str(score_obj.leaderboard)] != robot_model:
         return HttpResponse(wrong_robot_message)
