@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Max, Q
 
 from .forms import ScoreForm
-from SRCweb.settings import CLEAN_AES_KEY, NEW_AES_KEY, DEBUG
+from SRCweb.settings import NEW_AES_KEY, DEBUG
 
 from Crypto.Cipher import AES
 from urllib.request import urlopen, Request
@@ -17,9 +17,13 @@ from urllib.request import urlopen, Request
 # Create your views here.
 
 
-def index(response, name):
+def home(request):
+    return render(request, "highscores/highscore_home.html")
+
+
+def leaderboard_index(request, name):
     if not Leaderboard.objects.filter(name=name).exists():
-        return HttpResponseRedirect(response.META.get('HTTP_REFERER', '/'))
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
     sorted_board = Score.objects.filter(
         leaderboard__name=name, approved=True).order_by('-score', 'time_set')
     i = 1
@@ -29,11 +33,11 @@ def index(response, name):
         context.append([i, item])
         i += 1
 
-    return render(response, "highscores/leaderboard_ranks.html", {"ls": context, "robot_name": name})
+    return render(request, "highscores/leaderboard_ranks.html", {"ls": context, "robot_name": name})
 
 
-def combined(request):
-    scores = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), approved=True).values(
+def infinite_recharge_combined(request):
+    scores = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), leaderboard__game="Infinite Recharge", approved=True).values(
         'player').annotate(time_set=Max('time_set')).annotate(score=Sum('score'))
     sorted_board = scores.order_by('-score', 'time_set')
     i = 1
@@ -48,7 +52,7 @@ def combined(request):
 
 
 @login_required(login_url='/login')
-def submit(request):
+def infinite_recharge_submit(request):
     if request.method != 'POST':
         return render(request, "highscores/submit.html", {"form": ScoreForm})
 
@@ -56,14 +60,8 @@ def submit(request):
     if not form.is_valid():
         return render(request, "highscores/submit.html", {"form": form})
 
-    score_obj = Score()
-    score_obj.leaderboard = form.cleaned_data['leaderboard']
-    score_obj.player = request.user
-    score_obj.score = form.cleaned_data['score']
-    score_obj.time_set = datetime.now()
-    score_obj.approved = False
-    score_obj.source = form.cleaned_data['source']
-    score_obj.clean_code = form.cleaned_data['clean_code']
+    # Set up the score object
+    score_obj = extract_form_data(form, request)
 
     # Check for older submissions from this user in this category
     prev_submissions = Score.objects.filter(
@@ -79,11 +77,106 @@ def submit(request):
         return res
 
     # Check the clean code
-    res = infinite_recharge_clean_code_check(score_obj, prev_submissions)
+    res = infinite_recharge_clean_code_check(score_obj)
     if (res is not None):
         return res
 
     # Code is valid! Instantly approve!
+    approve_score(score_obj, prev_submissions)
+
+    return render(request, "highscores/submit_accepted.html", {})
+
+
+@login_required(login_url='/login')
+def freight_frenzy_submit(request):
+    if request.method != 'POST':
+        return render(request, "highscores/submit.html", {"form": ScoreForm})
+
+    form = ScoreForm(request.POST)
+    if not form.is_valid():
+        return render(request, "highscores/submit.html", {"form": form})
+
+    # Set up the score object
+    score_obj = extract_form_data(form, request)
+
+    # Check for older submissions from this user in this category
+    prev_submissions = Score.objects.filter(
+        leaderboard__name=score_obj.leaderboard, player=score_obj.player)
+
+    for submission in prev_submissions:
+        if submission.score >= score_obj.score:
+            return HttpResponse('You already have a submission with an equal or higher score than this!')
+
+    # Check to ensure image / video is proper
+    res = submission_screenshot_check(score_obj)
+    if (res is not None):
+        return res
+
+    # Check the clean code
+    res = freight_frenzy_clean_code_check(score_obj)
+    if (res is not None):
+        return res
+
+    # Code is valid! Instantly approve!
+    approve_score(score_obj, prev_submissions)
+
+    return render(request, "highscores/submit_accepted.html", {})
+
+
+@login_required(login_url='/login')
+def tipping_point_submit(request):
+    if request.method != 'POST':
+        return render(request, "highscores/submit.html", {"form": ScoreForm})
+
+    form = ScoreForm(request.POST)
+    if not form.is_valid():
+        return render(request, "highscores/submit.html", {"form": form})
+
+    # Set up the score object
+    score_obj = extract_form_data(form, request)
+
+    # Check for older submissions from this user in this category
+    prev_submissions = Score.objects.filter(
+        leaderboard__name=score_obj.leaderboard, player=score_obj.player)
+
+    for submission in prev_submissions:
+        if submission.score >= score_obj.score:
+            return HttpResponse('You already have a submission with an equal or higher score than this!')
+
+    # Check to ensure image / video is proper
+    res = submission_screenshot_check(score_obj)
+    if (res is not None):
+        return res
+
+    # Check the clean code
+    res = tipping_point_clean_code_check(score_obj)
+    if (res is not None):
+        return res
+
+    # Code is valid! Instantly approve!
+    approve_score(score_obj, prev_submissions)
+
+    return render(request, "highscores/submit_accepted.html", {})
+
+
+def extract_form_data(form: ScoreForm, request):
+    score_obj = Score()
+    score_obj.leaderboard = form.cleaned_data['leaderboard']
+    score_obj.player = request.user
+    score_obj.score = form.cleaned_data['score']
+    score_obj.time_set = datetime.now()
+    score_obj.approved = False
+    score_obj.source = form.cleaned_data['source']
+    score_obj.clean_code = form.cleaned_data['clean_code']
+
+    return score_obj
+
+
+def approve_score(score_obj: Score, prev_submissions):
+    # Delete previous submissions for this category
+    prev_submissions.delete()
+
+    # Save the new submission
     score_obj.approved = True
     score_obj.save()
 
@@ -91,8 +184,6 @@ def submit(request):
     code_obj.clean_code = score_obj.clean_code
     code_obj.player = score_obj.player
     code_obj.save()
-
-    return render(request, "highscores/submit_accepted.html", {})
 
 
 def submission_screenshot_check(score_obj: Score):
@@ -142,7 +233,7 @@ def submission_screenshot_check(score_obj: Score):
     return None  # no error, proper url provided
 
 
-def infinite_recharge_clean_code_check(score_obj: Score, prev_submissions):
+def infinite_recharge_clean_code_check(score_obj: Score):
     """ Checks if the clean code is valid.
     :param score_obj: Score object to check
     :param prev_submissions: List of previous submissions from this user in this category
@@ -175,8 +266,97 @@ def infinite_recharge_clean_code_check(score_obj: Score, prev_submissions):
         if (res is not None):
             return res
 
-        # Delete previous submissions for this category
-        prev_submissions.delete()
+        # Search for code in database to ensure it is unique
+        res = search_for_reused_code(score_obj)
+        if (res is not None):
+            return res
+
+    except IndexError:  # code is for wrong game
+        return HttpResponse('There is something wrong with your clean code! Are you submitting for the right game?')
+    except Exception:  # code is corrupted during decryption
+        return HttpResponse('There is something wrong with your clean code! Make sure you copied it properly.')
+
+    return None  # no error, proper clean code provided
+
+
+def freight_frenzy_clean_code_check(score_obj: Score):
+    """ Checks if the clean code is valid.
+    :param score_obj: Score object to check
+    :param prev_submissions: List of previous submissions from this user in this category
+    :return: None if valid, HTTPResponse with error message if not
+    """
+    try:
+        # Clean code decryption
+        clean_code_decryption(score_obj)
+
+        # Clean code extraction
+        restart_option, game_options, robot_model, blue_score, red_score = extract_clean_code_info(
+            score_obj)
+
+        # Check game settings
+        res = check_generic_game_settings(score_obj)
+        if (res is not None):
+            return res
+        res = check_freight_frenzy_game_settings(
+            game_options, restart_option)
+        if (res is not None):
+            return res
+
+        # Check robot type
+        res = check_freight_frenzy_robot_type(score_obj, robot_model)
+        if (res is not None):
+            return res
+
+        # Check score
+        res = check_score(score_obj, blue_score, red_score)
+        if (res is not None):
+            return res
+
+        # Search for code in database to ensure it is unique
+        res = search_for_reused_code(score_obj)
+        if (res is not None):
+            return res
+
+    except IndexError:  # code is for wrong game
+        return HttpResponse('There is something wrong with your clean code! Are you submitting for the right game?')
+    except Exception:  # code is corrupted during decryption
+        return HttpResponse('There is something wrong with your clean code! Make sure you copied it properly.')
+
+    return None  # no error, proper clean code provided
+
+
+def tipping_point_clean_code_check(score_obj: Score):
+    """ Checks if the clean code is valid.
+    :param score_obj: Score object to check
+    :param prev_submissions: List of previous submissions from this user in this category
+    :return: None if valid, HTTPResponse with error message if not
+    """
+    try:
+        # Clean code decryption
+        clean_code_decryption(score_obj)
+
+        # Clean code extraction
+        restart_option, game_options, robot_model, blue_score, red_score = extract_clean_code_info(
+            score_obj)
+
+        # Check game settings
+        res = check_generic_game_settings(score_obj)
+        if (res is not None):
+            return res
+        res = check_tipping_point_game_settings(
+            game_options, restart_option)
+        if (res is not None):
+            return res
+
+        # Check robot type
+        res = check_tipping_point_robot_type(score_obj, robot_model)
+        if (res is not None):
+            return res
+
+        # Check score
+        res = check_score(score_obj, blue_score, red_score)
+        if (res is not None):
+            return res
 
         # Search for code in database to ensure it is unique
         res = search_for_reused_code(score_obj)
@@ -246,12 +426,98 @@ def check_infinite_recharge_game_settings(game_options: list, restart_option: st
     return None  # No error
 
 
+def check_freight_frenzy_game_settings(game_options: list, restart_option: str):
+    """ Checks if the Freight Frenzy game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    # TODO
+    if (restart_option != '2'):
+        return HttpResponse('You must use restart option 2 for high score submissions.')
+    if (game_options[25] != '2021'):
+        return HttpResponse('You must use Game Version 2021 for high score submissions.')
+    if (game_options[7] != '0'):
+        return HttpResponse('You may not use power-ups for high score submissions.')
+    if (game_options[26][0] != '0'):
+        return HttpResponse('You must use shield power-cell offset of 0 for high score submissions.')
+    if (game_options[24] != '0'):
+        return HttpResponse('Overflow balls must be set to spawn in center for high score submissions.')
+
+    return None  # No error
+
+
+def check_tipping_point_game_settings(game_options: list, restart_option: str):
+    """ Checks if the Tipping Point game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    # TODO
+    if (restart_option != '2'):
+        return HttpResponse('You must use restart option 2 for high score submissions.')
+    if (game_options[25] != '2021'):
+        return HttpResponse('You must use Game Version 2021 for high score submissions.')
+    if (game_options[7] != '0'):
+        return HttpResponse('You may not use power-ups for high score submissions.')
+    if (game_options[26][0] != '0'):
+        return HttpResponse('You must use shield power-cell offset of 0 for high score submissions.')
+    if (game_options[24] != '0'):
+        return HttpResponse('Overflow balls must be set to spawn in center for high score submissions.')
+
+    return None  # No error
+
+
 def check_infinite_recharge_robot_type(score_obj: Score, robot_model: str):
     """ Checks if the robot type is valid for Infinite Recharge.
     :return: None if the robot type is valid, or a response with an error message if it is not.
     """
     wrong_robot_message = 'Double-check the robot type that you selected!'
 
+    switch = {
+        'OG': 'FRC shooter',
+        'Inertia': 'NUTRONs 125',
+        'Roboteers': 'Roboteers 2481',
+        'Pushbot2': 'PushBot2',
+        'Triange': 'T Shooter',
+        'Waffles': 'Waffles'
+    }
+
+    if robot_model not in switch:
+        return HttpResponse(wrong_robot_message)
+
+    if switch[str(score_obj.leaderboard)] != robot_model:
+        return HttpResponse(wrong_robot_message)
+
+    return None  # No error
+
+
+def check_freight_frenzy_robot_type(score_obj: Score, robot_model: str):
+    """ Checks if the robot type is valid for Freight Frenzy.
+    :return: None if the robot type is valid, or a response with an error message if it is not.
+    """
+    wrong_robot_message = 'Double-check the robot type that you selected!'
+    # TODO
+    switch = {
+        'OG': 'FRC shooter',
+        'Inertia': 'NUTRONs 125',
+        'Roboteers': 'Roboteers 2481',
+        'Pushbot2': 'PushBot2',
+        'Triange': 'T Shooter',
+        'Waffles': 'Waffles'
+    }
+
+    if robot_model not in switch:
+        return HttpResponse(wrong_robot_message)
+
+    if switch[str(score_obj.leaderboard)] != robot_model:
+        return HttpResponse(wrong_robot_message)
+
+    return None  # No error
+
+
+def check_tipping_point_robot_type(score_obj: Score, robot_model: str):
+    """ Checks if the robot type is valid for Tipping Point.
+    :return: None if the robot type is valid, or a response with an error message if it is not.
+    """
+    wrong_robot_message = 'Double-check the robot type that you selected!'
+    # TODO
     switch = {
         'OG': 'FRC shooter',
         'Inertia': 'NUTRONs 125',

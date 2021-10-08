@@ -5,7 +5,8 @@ from django.db import models
 
 
 class Leaderboard(models.Model):
-    name = models.CharField(max_length=25)
+    name = models.CharField(max_length=25)  # robot type
+    game = models.CharField(max_length=25)  # game
 
     def __str__(self):
         return self.name
@@ -19,7 +20,7 @@ class Score(models.Model):
     time_set = models.DateTimeField(null=True, blank=True)
     source = models.URLField(null=False, blank=False)
     approved = models.BooleanField(default=False, null=False)
-    clean_code = models.CharField(max_length=600, null=True, blank=True)
+    clean_code = models.CharField(max_length=600, null=False, blank=False)
 
     decrypted_code = models.CharField(max_length=600, null=True, blank=True)
     client_version = models.CharField(max_length=20, null=True, blank=True)

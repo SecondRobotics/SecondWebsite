@@ -9,8 +9,3 @@ class ScoreForm(ModelForm):
     class Meta:
         model = models.Score
         fields = ('leaderboard', 'score', 'source', 'clean_code')
-    # widgets = {
-    #     "leaderboard": forms.Select(attrs={'class': 'form-control'}),
-    #     "player_name": forms.TextInput(attrs={'class': 'form-control'}),
-    #     "score": forms.NumberInput(attrs={'class': 'form-control'}),
-    # }

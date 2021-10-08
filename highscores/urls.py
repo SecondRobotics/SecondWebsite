@@ -3,7 +3,10 @@ from . import views
 
 
 urlpatterns = [
-    path("submit/", views.submit, name="submit"),
-    path("combined/", views.combined, name="combined"),
-    path("<str:name>/", views.index, name="index"),
+    path('', views.home, name='home'),
+    path("ir/submit/", views.infinite_recharge_submit, name="IR submit"),
+    path("ir/combined/", views.infinite_recharge_combined, name="IR combined"),
+    path("ir/<str:name>/", views.leaderboard_index, name="IR leaderboard"),
+    path("ff/<str:name>/", views.leaderboard_index, name="FF leaderboard"),
+    path("tp/<str:name>/", views.leaderboard_index, name="TP leaderboard"),
 ]
