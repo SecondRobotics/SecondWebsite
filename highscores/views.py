@@ -8,7 +8,7 @@ from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Max, Q
 
-from .forms import ScoreForm
+from .forms import FFScoreForm, IRScoreForm, ScoreForm, TPScoreForm
 from SRCweb.settings import NEW_AES_KEY, DEBUG
 
 from Crypto.Cipher import AES
@@ -69,9 +69,9 @@ def freight_frenzy_combined(request):
 @login_required(login_url='/login')
 def infinite_recharge_submit(request):
     if request.method != 'POST':
-        return render(request, "highscores/submit.html", {"form": ScoreForm})
+        return render(request, "highscores/submit.html", {"form": IRScoreForm})
 
-    form = ScoreForm(request.POST)
+    form = IRScoreForm(request.POST)
     if not form.is_valid():
         return render(request, "highscores/submit.html", {"form": form})
 
@@ -105,9 +105,9 @@ def infinite_recharge_submit(request):
 @login_required(login_url='/login')
 def freight_frenzy_submit(request):
     if request.method != 'POST':
-        return render(request, "highscores/submit.html", {"form": ScoreForm})
+        return render(request, "highscores/submit.html", {"form": FFScoreForm})
 
-    form = ScoreForm(request.POST)
+    form = FFScoreForm(request.POST)
     if not form.is_valid():
         return render(request, "highscores/submit.html", {"form": form})
 
@@ -141,9 +141,9 @@ def freight_frenzy_submit(request):
 @login_required(login_url='/login')
 def tipping_point_submit(request):
     if request.method != 'POST':
-        return render(request, "highscores/submit.html", {"form": ScoreForm})
+        return render(request, "highscores/submit.html", {"form": TPScoreForm})
 
-    form = ScoreForm(request.POST)
+    form = TPScoreForm(request.POST)
     if not form.is_valid():
         return render(request, "highscores/submit.html", {"form": form})
 

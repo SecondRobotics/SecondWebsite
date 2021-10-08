@@ -1,10 +1,30 @@
 from django import forms
 from . import models
-from django.forms import ModelForm
-from django import forms
 
 
-class ScoreForm(ModelForm):
-    class Meta:
-        model = models.Score
-        fields = ('leaderboard', 'score', 'source', 'clean_code')
+class ScoreForm(forms.Form):
+    leaderboard = None
+    score = forms.IntegerField(required=True)
+    source = forms.CharField(required=True)
+    clean_code = forms.CharField(max_length=600, required=True)
+
+
+class IRScoreForm(ScoreForm):
+    leaderboard = forms.ModelChoiceField(required=True,
+                                         queryset=models.Leaderboard.objects.filter(
+                                             game='Infinite Recharge'),
+                                         )
+
+
+class FFScoreForm(ScoreForm):
+    leaderboard = forms.ModelChoiceField(required=True,
+                                         queryset=models.Leaderboard.objects.filter(
+                                             game='Freight Frenzy'),
+                                         )
+
+
+class TPScoreForm(ScoreForm):
+    leaderboard = forms.ModelChoiceField(required=True,
+                                         queryset=models.Leaderboard.objects.filter(
+                                             game='Tipping Point'),
+                                         )
