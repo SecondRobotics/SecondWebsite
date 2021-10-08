@@ -9,7 +9,7 @@
 </div>
 <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-dark">
     <div class = "form-group">
-        <form method="post" action="/highscores/submit/" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data">
             {% load widget_tweaks %}
             {% csrf_token %}
             {{form.errors}}
