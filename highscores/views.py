@@ -48,7 +48,22 @@ def infinite_recharge_combined(request):
         context.append([i, item])
         i += 1
 
-    return render(request, "highscores/combined_leaderboard.html", {"ls": context})
+    return render(request, "highscores/combined_leaderboard.html", {"ls": context, "game_name": "Infinite Recharge"})
+
+
+def freight_frenzy_combined(request):
+    scores = Score.objects.filter(leaderboard__game="Freight Frenzy", approved=True).values(
+        'player').annotate(time_set=Max('time_set')).annotate(score=Sum('score'))
+    sorted_board = scores.order_by('-score', 'time_set')
+    i = 1
+    context = []
+    # Create ranking numbers and append them to sorted values
+    for item in sorted_board:
+        item['player'] = User.objects.filter(id=item['player'])[0]
+        context.append([i, item])
+        i += 1
+
+    return render(request, "highscores/combined_leaderboard.html", {"ls": context, "game_name": "Freight Frenzy"})
 
 
 @login_required(login_url='/login')
@@ -297,8 +312,7 @@ def freight_frenzy_clean_code_check(score_obj: Score):
         res = check_generic_game_settings(score_obj)
         if (res is not None):
             return res
-        res = check_freight_frenzy_game_settings(
-            game_options, restart_option)
+        res = check_freight_frenzy_game_settings(game_options)
         if (res is not None):
             return res
 
@@ -341,10 +355,6 @@ def tipping_point_clean_code_check(score_obj: Score):
 
         # Check game settings
         res = check_generic_game_settings(score_obj)
-        if (res is not None):
-            return res
-        res = check_tipping_point_game_settings(
-            game_options, restart_option)
         if (res is not None):
             return res
 
@@ -426,40 +436,14 @@ def check_infinite_recharge_game_settings(game_options: list, restart_option: st
     return None  # No error
 
 
-def check_freight_frenzy_game_settings(game_options: list, restart_option: str):
+def check_freight_frenzy_game_settings(game_options: list):
     """ Checks if the Freight Frenzy game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
+
     # TODO
-    if (restart_option != '2'):
-        return HttpResponse('You must use restart option 2 for high score submissions.')
-    if (game_options[25] != '2021'):
-        return HttpResponse('You must use Game Version 2021 for high score submissions.')
-    if (game_options[7] != '0'):
-        return HttpResponse('You may not use power-ups for high score submissions.')
-    if (game_options[26][0] != '0'):
-        return HttpResponse('You must use shield power-cell offset of 0 for high score submissions.')
-    if (game_options[24] != '0'):
-        return HttpResponse('Overflow balls must be set to spawn in center for high score submissions.')
-
-    return None  # No error
-
-
-def check_tipping_point_game_settings(game_options: list, restart_option: str):
-    """ Checks if the Tipping Point game settings are valid.
-    :return: None if the settings are valid, or a response with an error message if they are not.
-    """
-    # TODO
-    if (restart_option != '2'):
-        return HttpResponse('You must use restart option 2 for high score submissions.')
-    if (game_options[25] != '2021'):
-        return HttpResponse('You must use Game Version 2021 for high score submissions.')
-    if (game_options[7] != '0'):
-        return HttpResponse('You may not use power-ups for high score submissions.')
-    if (game_options[26][0] != '0'):
-        return HttpResponse('You must use shield power-cell offset of 0 for high score submissions.')
-    if (game_options[24] != '0'):
-        return HttpResponse('Overflow balls must be set to spawn in center for high score submissions.')
+    # if (game_options[1] != '0'):
+    #     return HttpResponse('You may not use power-ups for high score submissions.')
 
     return None  # No error
 
@@ -476,7 +460,7 @@ def check_infinite_recharge_robot_type(score_obj: Score, robot_model: str):
         'Roboteers': 'Roboteers 2481',
         'Pushbot2': 'PushBot2',
         'Triange': 'T Shooter',
-        'Waffles': 'Waffles'
+        'Waffles': 'Waffles',
     }
 
     if robot_model not in switch:
@@ -493,14 +477,11 @@ def check_freight_frenzy_robot_type(score_obj: Score, robot_model: str):
     :return: None if the robot type is valid, or a response with an error message if it is not.
     """
     wrong_robot_message = 'Double-check the robot type that you selected!'
-    # TODO
+
     switch = {
-        'OG': 'FRC shooter',
-        'Inertia': 'NUTRONs 125',
-        'Roboteers': 'Roboteers 2481',
-        'Pushbot2': 'PushBot2',
-        'Triange': 'T Shooter',
-        'Waffles': 'Waffles'
+        'Bulldogs': 'Bulldogs',
+        'Kraken': 'KrakenPinion',
+        'Bailey': 'Bailey',
     }
 
     if robot_model not in switch:
@@ -517,14 +498,9 @@ def check_tipping_point_robot_type(score_obj: Score, robot_model: str):
     :return: None if the robot type is valid, or a response with an error message if it is not.
     """
     wrong_robot_message = 'Double-check the robot type that you selected!'
-    # TODO
+
     switch = {
-        'OG': 'FRC shooter',
-        'Inertia': 'NUTRONs 125',
-        'Roboteers': 'Roboteers 2481',
-        'Pushbot2': 'PushBot2',
-        'Triange': 'T Shooter',
-        'Waffles': 'Waffles'
+        'AMOGO2': 'AMOGO_v2',
     }
 
     if robot_model not in switch:
