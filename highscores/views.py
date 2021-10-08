@@ -259,7 +259,7 @@ def infinite_recharge_clean_code_check(score_obj: Score):
         clean_code_decryption(score_obj)
 
         # Clean code extraction
-        restart_option, game_options, robot_model, blue_score, red_score = extract_clean_code_info(
+        restart_option, game_options, robot_model, blue_score, red_score, game_index = extract_clean_code_info(
             score_obj)
 
         # Check game settings
@@ -267,7 +267,7 @@ def infinite_recharge_clean_code_check(score_obj: Score):
         if (res is not None):
             return res
         res = check_infinite_recharge_game_settings(
-            game_options, restart_option)
+            game_options, restart_option, game_index)
         if (res is not None):
             return res
 
@@ -305,14 +305,14 @@ def freight_frenzy_clean_code_check(score_obj: Score):
         clean_code_decryption(score_obj)
 
         # Clean code extraction
-        restart_option, game_options, robot_model, blue_score, red_score = extract_clean_code_info(
+        restart_option, game_options, robot_model, blue_score, red_score, game_index = extract_clean_code_info(
             score_obj)
 
         # Check game settings
         res = check_generic_game_settings(score_obj)
         if (res is not None):
             return res
-        res = check_freight_frenzy_game_settings(game_options)
+        res = check_freight_frenzy_game_settings(game_options, game_index)
         if (res is not None):
             return res
 
@@ -350,11 +350,14 @@ def tipping_point_clean_code_check(score_obj: Score):
         clean_code_decryption(score_obj)
 
         # Clean code extraction
-        restart_option, game_options, robot_model, blue_score, red_score = extract_clean_code_info(
+        restart_option, game_options, robot_model, blue_score, red_score, game_index = extract_clean_code_info(
             score_obj)
 
         # Check game settings
         res = check_generic_game_settings(score_obj)
+        if (res is not None):
+            return res
+        res = check_tipping_point_game_settings(game_index)
         if (res is not None):
             return res
 
@@ -381,18 +384,19 @@ def tipping_point_clean_code_check(score_obj: Score):
     return None  # no error, proper clean code provided
 
 
-def extract_clean_code_info(score_obj):
+def extract_clean_code_info(score_obj: Score):
     dataset = score_obj.decrypted_code.split(',')
 
     score_obj.client_version = dataset[0].strip()
-    score_obj.time_of_score = dataset[1].strip()
-    red_score = dataset[2].strip()
-    blue_score = dataset[3].strip()
-    score_obj.robot_position = dataset[4].strip()
-    robot_model = dataset[5].strip()
-    restart_option = dataset[6].strip()
-    game_options = dataset[7].strip().split(':')
-    return restart_option, game_options, robot_model, blue_score, red_score
+    game_index = dataset[1].strip()
+    score_obj.time_of_score = dataset[2].strip()
+    red_score = dataset[3].strip()
+    blue_score = dataset[4].strip()
+    score_obj.robot_position = dataset[5].strip()
+    robot_model = dataset[6].strip()
+    restart_option = dataset[7].strip()
+    game_options = dataset[8].strip().split(':')
+    return restart_option, game_options, robot_model, blue_score, red_score, game_index
 
 
 def clean_code_decryption(score_obj):
@@ -410,18 +414,20 @@ def check_generic_game_settings(score_obj: Score):
     """ Checks if the universal game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
-    if float(score_obj.client_version[1:4]) < 6.0:
-        return HttpResponse('Game version too old! Update to v6.0+')
+    if float(score_obj.client_version[1:4]) < 6.3 and score_obj.client_version != 'v6.2b':
+        return HttpResponse('Game version too old! Update to v6.2b+')
     if "pre" in score_obj.client_version:
         return HttpResponse('Pre-release is not allowed for high score submission!')
 
     return None  # No error
 
 
-def check_infinite_recharge_game_settings(game_options: list, restart_option: str):
+def check_infinite_recharge_game_settings(game_options: list, restart_option: str, game_index: str):
     """ Checks if the Infinite Recharge game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
+    if (game_index != '4'):
+        return HttpResponse('Wrong game! This form is for Infinite Recharge.')
     if (restart_option != '2'):
         return HttpResponse('You must use restart option 2 for high score submissions.')
     if (game_options[25] != '2021'):
@@ -436,14 +442,26 @@ def check_infinite_recharge_game_settings(game_options: list, restart_option: st
     return None  # No error
 
 
-def check_freight_frenzy_game_settings(game_options: list):
+def check_freight_frenzy_game_settings(game_options: list, game_index: str):
     """ Checks if the Freight Frenzy game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
 
-    # TODO
-    # if (game_options[1] != '0'):
-    #     return HttpResponse('You may not use power-ups for high score submissions.')
+    if (game_index != '9'):
+        return HttpResponse('Wrong game! This form is for Freight Frenzy.')
+    if (game_options[3] != '0'):
+        return HttpResponse('You must enable possession limit for high score submissions.')
+
+    return None  # No error
+
+
+def check_tipping_point_game_settings(game_index: str):
+    """ Checks if the Tipping Point game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+
+    if (game_index != '8'):
+        return HttpResponse('Wrong game! This form is for Tipping Point.')
 
     return None  # No error
 
