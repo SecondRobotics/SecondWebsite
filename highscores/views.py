@@ -477,7 +477,7 @@ def check_infinite_recharge_robot_type(score_obj: Score, robot_model: str):
         'Inertia': 'NUTRONs 125',
         'Roboteers': 'Roboteers 2481',
         'Pushbot2': 'PushBot2',
-        'Triange': 'T Shooter',
+        'Triangle': 'T Shooter',
         'Waffles': 'Waffles',
     }
 
