@@ -414,7 +414,7 @@ def check_generic_game_settings(score_obj: Score):
     """ Checks if the universal game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
-    if float(score_obj.client_version[1:4]) < 6.3 and score_obj.client_version != 'v6.2b':
+    if float(score_obj.client_version[1:4]) < 6.2 or score_obj.client_version != 'v6.2a':
         return HttpResponse('Game version too old! Update to v6.2b+')
     if "pre" in score_obj.client_version:
         return HttpResponse('Pre-release is not allowed for high score submission!')
