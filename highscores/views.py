@@ -37,7 +37,7 @@ def leaderboard_index(request, name):
 
 
 def infinite_recharge_combined(request):
-    scores = Score.objects.filter(~Q(leaderboard__name="Pushbot2"), leaderboard__game="Infinite Recharge", approved=True).values(
+    scores = Score.objects.filter(leaderboard__game="Infinite Recharge", approved=True).values(
         'player').annotate(time_set=Max('time_set')).annotate(score=Sum('score'))
     sorted_board = scores.order_by('-score', 'time_set')
     i = 1

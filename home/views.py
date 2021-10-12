@@ -74,13 +74,15 @@ def user_profile(request, user_id):
     user = user_search[0]
 
     scoresdata = Score.objects.filter(player=user, approved=True)
-    scores = {"overall": 0}
+    scores = {"overallIR": 0, "overallFF": 0}
     sources = {}
     for score in scoresdata:
         sources.update({score.leaderboard.name: score.source})
         scores.update({score.leaderboard.name: score.score})
-        if score.leaderboard.name != "Pushbot2":
-            scores.update({"overall": score.score + scores['overall']})
+        if score.leaderboard.game == "Infinite Recharge":
+            scores.update({"overallIR": score.score + scores['overallIR']})
+        elif score.leaderboard.game == "Freight Frenzy":
+            scores.update({"overallFF": score.score + scores['overallFF']})
     context={"scores": scores, "user": user, "sources": sources}
     return render(request, "home/user_profile.html", context)
 
