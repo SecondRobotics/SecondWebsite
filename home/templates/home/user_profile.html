@@ -299,6 +299,128 @@
         </h2>
     </div>
 </div>
+
+<div class="row">
+    <div class="col">
+        <div
+            class="
+                position-relative
+                overflow-hidden
+                p-3 p-md-5
+                shadowy
+                m-md-3
+                text-center
+                bg-dark
+            "
+        >
+            <h1 style="color: white" class="display-4 fw-normal">
+                <a
+                    href="/highscores/ff/Bulldogs/"
+                    style="color: #fff; text-decoration: none"
+                    >Bulldogs</a
+                >
+            </h1>
+            <h2 style="color: white" class="display-6 fw-normal">
+                {{scores.Bulldogs}}
+            </h2>
+            {% if scores.Bulldogs > 0 %}
+            {% if "youtube" in sources.Bulldogs or "streamable" in sources.Bulldogs %}
+            <iframe
+                class="img-fluid rounded"
+                src="{{sources.Bulldogs}}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            {% else %}
+            <img
+                src="{{sources.Bulldogs}}"
+                class="img-fluid rounded"
+                alt="Bulldogs score screnshot"
+            />
+            {% endif %} {% endif %}
+        </div>
+    </div>
+    <div class="col">
+        <div
+            class="
+                position-relative
+                overflow-hidden
+                p-3 p-md-5
+                shadowy
+                m-md-3
+                text-center
+                bg-dark
+            "
+        >
+            <h1 style="color: white" class="display-4 fw-normal">
+                <a
+                    href="/highscores/ff/Kraken/"
+                    style="color: #fff; text-decoration: none"
+                    >Kraken</a
+                >
+            </h1>
+            <h2 style="color: white" class="display-6 fw-normal">
+                {{scores.Kraken}}
+            </h2>
+            {% if scores.Kraken > 0 %}
+            {% if "youtube" in sources.Kraken or "streamable" in sources.Kraken %}
+            <iframe
+                class="img-fluid rounded"
+                src="{{sources.Kraken}}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            {% else %}
+            <img
+                src="{{sources.Kraken}}"
+                class="img-fluid rounded"
+                alt="Kraken score screnshot"
+            />
+            {% endif %} {% endif %}
+        </div>
+    </div>
+    <div class="col">
+        <div
+            class="
+                position-relative
+                overflow-hidden
+                p-3
+                shadowy
+                p-md-5
+                m-md-3
+                text-center
+                bg-dark
+            "
+        >
+            <h1 style="color: white" class="display-4 fw-normal">
+                <a
+                    href="/highscores/ff/Bailey/"
+                    style="color: #fff; text-decoration: none"
+                    >Bailey</a
+                >
+            </h1>
+            <h2 style="color: white" class="display-6 fw-normal">
+                {{scores.Bailey}}
+            </h2>
+            {% if scores.Bailey > 0 %}
+            {% if "youtube" in sources.Bailey or "streamable" in sources.Bailey %}
+            <iframe
+                class="img-fluid rounded"
+                src="{{sources.Bailey}}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            {% else %}
+            <img
+                src="{{sources.Bailey}}"
+                class="img-fluid rounded"
+                alt="Bailey score screnshot"
+            />
+            {% endif %} {% endif %}
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <div
         class="
