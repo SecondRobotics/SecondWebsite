@@ -16,6 +16,13 @@ class IRScoreForm(ScoreForm):
                                          )
 
 
+class RRScoreForm(ScoreForm):
+    leaderboard = forms.ModelChoiceField(required=True,
+                                         queryset=models.Leaderboard.objects.filter(
+                                             game='Rapid React'),
+                                         )
+
+
 class FFScoreForm(ScoreForm):
     leaderboard = forms.ModelChoiceField(required=True,
                                          queryset=models.Leaderboard.objects.filter(

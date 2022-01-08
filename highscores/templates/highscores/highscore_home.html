@@ -1,28 +1,31 @@
 {% extends 'home/base.html' %} {% block content %}
 <div
-    class="
-        position-relative
-        overflow-hidden
-        p-3 p-md-5
-        m-md-3
-        text-center
-        bg-primary
-    "
+    class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-primary"
 >
     <h1 style="color: white" class="display-4 fw-normal">
         xRC Sim Official Highscores
     </h1>
 </div>
 <div
-    class="
-        position-relative
-        overflow-hidden
-        p-3 p-md-5
-        m-md-3
-        text-center
-        shadowy
-        bg-dark
-    "
+    class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-dark"
+>
+    <h2 style="color: white" class="display-10 fw-normal">SRC Rapid React</h2>
+    {% comment %}
+    <a href="/highscores/rr/combined/" class="btn btn-outline-light"
+        >Combined Leaderboard</a
+    >
+    <br /><br />
+    {% endcomment %}
+    <a href="/highscores/rr/MiniDrone/" class="btn btn-outline-light"
+        >MiniDrone</a
+    >
+    <br /><br />
+    <a href="/highscores/rr/submit/" class="btn btn-outline-success"
+        >Submit your score</a
+    >
+</div>
+<div
+    class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-dark"
 >
     <h2 style="color: white" class="display-10 fw-normal">
         SRC Infinite Recharge
@@ -49,15 +52,7 @@
     >
 </div>
 <div
-    class="
-        position-relative
-        overflow-hidden
-        p-3 p-md-5
-        m-md-3
-        text-center
-        shadowy
-        bg-dark
-    "
+    class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-dark"
 >
     <h2 style="color: white" class="display-10 fw-normal">
         STC Freight Frenzy
@@ -78,15 +73,7 @@
     >
 </div>
 <div
-    class="
-        position-relative
-        overflow-hidden
-        p-3 p-md-5
-        m-md-3
-        text-center
-        shadowy
-        bg-dark
-    "
+    class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-dark"
 >
     <h2 style="color: white" class="display-10 fw-normal">SVC Tipping Point</h2>
     <a href="/highscores/tp/AMOGO2/" class="btn btn-outline-light">AMOGO2</a>

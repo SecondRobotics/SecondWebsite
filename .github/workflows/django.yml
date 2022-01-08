@@ -31,7 +31,6 @@ jobs:
                   BASE_KEY: ${{ secrets.BASE_KEY }}
                   SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
                   SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-                  CLEAN_AES_KEY: ${{ secrets.CLEAN_AES_KEY }}
                   NEW_AES_KEY: ${{ secrets.NEW_AES_KEY }}
                   DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
 
