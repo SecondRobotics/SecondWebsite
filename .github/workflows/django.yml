@@ -28,7 +28,7 @@ jobs:
               run: |
                   python manage.py test
               env:
-                  BASE_KEY: ${{ secrets.BASE_KEY }}
+                  SECRET_KEY: ${{ secrets.BASE_KEY }}
                   SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
                   SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
                   NEW_AES_KEY: ${{ secrets.NEW_AES_KEY }}
