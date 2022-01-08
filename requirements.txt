@@ -3,7 +3,7 @@ asgiref==3.3.1
 certifi==2020.12.5
 chardet==4.0.0
 distlib==0.3.1
-Django==3.1.13
+Django==3.1.14
 django-widget-tweaks==1.4.8
 djangorestframework==3.12.2
 djangorestframework-jwt==1.11.0
