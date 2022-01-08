@@ -10,10 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+from dotenv import load_dotenv
 from pathlib import Path
 import os
 import platform
 
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,19 +23,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('BASE_KEY')
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: keep the AES key used in production secret!
-CLEAN_AES_KEY = os.environ.get('CLEAN_AES_KEY')
+NEW_AES_KEY = os.getenv("NEW_AES_KEY")
 
-# SECURITY WARNING: keep the AES key used in production secret!
-NEW_AES_KEY = os.environ.get('NEW_AES_KEY')
-
-# Discord Client ID
+# Discord Client ID (client safe)
 DISCORD_CLIENT_ID = "825618483957071873"
 
 # SECURITY WARNING: keep the Discord Client Secret used in production secret!
-DISCORD_CLIENT_SECRET = os.environ.get('DISCORD_CLIENT_SECRET')
+DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False

@@ -11,6 +11,7 @@ filelock==3.0.12
 idna==2.10
 PyJWT==1.7.1
 pycryptodome==3.9.9
+python-dotenv==0.19.2
 pytz==2020.5
 requests==2.25.1
 six==1.15.0
