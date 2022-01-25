@@ -144,7 +144,7 @@
     >
         <h1 style="color: white" class="display-4 fw-normal">
             <a
-                href="/highscores/ir/combined/"
+                href="/highscores/rr/combined/"
                 style="color: #fff; text-decoration: none"
                 >Rapid React Combined Score</a
             >
@@ -580,6 +580,86 @@
                 src="{{sources.Cody}}"
                 class="img-fluid rounded"
                 alt="Cody score screnshot"
+                width="300"
+            />
+            {% endif %} {% endif %}
+        </div>
+    </div>
+    <div class="col">
+        <div
+            class="
+                position-relative
+                overflow-hidden
+                p-3 p-md-5
+                shadowy
+                m-md-3
+                text-center
+                bg-dark
+            "
+        >
+            <h1 style="color: white" class="display-4 fw-normal">
+                <a
+                    href="/highscores/ff/goBILDA/"
+                    style="color: #fff; text-decoration: none"
+                    >goBILDA</a
+                >
+            </h1>
+            <h2 style="color: white" class="display-6 fw-normal">
+                {{scores.goBILDA}}
+            </h2>
+            {% if scores.goBILDA > 0 %}
+            {% if "youtube" in sources.goBILDA or "streamable" in sources.goBILDA %}
+            <iframe
+                class="img-fluid rounded"
+                src="{{sources.goBILDA}}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            {% else %}
+            <img
+                src="{{sources.goBILDA}}"
+                class="img-fluid rounded"
+                alt="goBILDA score screnshot"
+                width="300"
+            />
+            {% endif %} {% endif %}
+        </div>
+    </div>
+    <div class="col">
+        <div
+            class="
+                position-relative
+                overflow-hidden
+                p-3 p-md-5
+                shadowy
+                m-md-3
+                text-center
+                bg-dark
+            "
+        >
+            <h1 style="color: white" class="display-4 fw-normal">
+                <a
+                    href="/highscores/ff/DualMeta/"
+                    style="color: #fff; text-decoration: none"
+                    >DualMeta</a
+                >
+            </h1>
+            <h2 style="color: white" class="display-6 fw-normal">
+                {{scores.DualMeta}}
+            </h2>
+            {% if scores.DualMeta > 0 %}
+            {% if "youtube" in sources.DualMeta or "streamable" in sources.DualMeta %}
+            <iframe
+                class="img-fluid rounded"
+                src="{{sources.DualMeta}}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            {% else %}
+            <img
+                src="{{sources.DualMeta}}"
+                class="img-fluid rounded"
+                alt="DualMeta score screnshot"
                 width="300"
             />
             {% endif %} {% endif %}

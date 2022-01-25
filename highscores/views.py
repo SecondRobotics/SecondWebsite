@@ -645,6 +645,8 @@ def check_freight_frenzy_robot_type(score_obj: Score, robot_model: str, request)
         'Kraken': 'KrakenPinion',
         'Bailey': 'Bailey',
         'Cody': 'Cody',
+        'goBILDA': 'goBILDA_ff',
+        'DualMeta': 'dual_meta',
     }
 
     if switch[str(score_obj.leaderboard)] != robot_model:
