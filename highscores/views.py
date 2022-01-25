@@ -1,7 +1,6 @@
 from discordoauth2.models import User
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
-from django.http import HttpResponse
 from .models import Leaderboard, Score, CleanCodeSubmission
 from datetime import datetime
 from django.core.mail import send_mail
@@ -341,7 +340,8 @@ def infinite_recharge_clean_code_check(score_obj: Score, request):
             return res
 
         # Check robot type
-        res = check_infinite_recharge_robot_type(score_obj, robot_model, request)
+        res = check_infinite_recharge_robot_type(
+            score_obj, robot_model, request)
         if (res is not None):
             return res
 
@@ -392,7 +392,8 @@ def rapid_react_clean_code_check(score_obj: Score, request):
             return res
 
         # Check score
-        res = check_score(score_obj, blue_score, red_score, request)
+        res = check_rapid_react_score(
+            score_obj, blue_score, red_score, request)
         if (res is not None):
             return res
 
@@ -427,7 +428,8 @@ def freight_frenzy_clean_code_check(score_obj: Score, request):
         res = check_generic_game_settings(score_obj, request)
         if (res is not None):
             return res
-        res = check_freight_frenzy_game_settings(game_options, game_index, request)
+        res = check_freight_frenzy_game_settings(
+            game_options, game_index, request)
         if (res is not None):
             return res
 
@@ -529,7 +531,7 @@ def check_generic_game_settings(score_obj: Score, request):
     """ Checks if the universal game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
-    if float(score_obj.client_version[1:4]) < 7.0: # or score_obj.client_version == 'v7.0a':
+    if float(score_obj.client_version[1:4]) < 7.1:  # or score_obj.client_version == 'v7.0a':
         return error_response(request, WRONG_VERSION_MESSAGE)
     if "pre" in score_obj.client_version:
         return error_response(request, PRERELEASE_MESSAGE)
@@ -565,7 +567,11 @@ def check_rapid_react_game_settings(game_options: list, restart_option: str, gam
         return error_response(request, 'Wrong game! This form is for Rapid React.')
     if (game_options[0] != '1'):
         return error_response(request, 'You must have autonomous wall setting enabled for high score submissions.')
-    if (game_options[3] != '0'):
+    if (game_options[3] != '1'):
+        return error_response(request, 'You must enable possession limit for high score submissions.')
+    if (game_options[4] != '4'):
+        return error_response(request, 'You must set possession limit penalty to 4 points for high score submissions.')
+    if (game_options[5] != '0'):
         return error_response(request, 'You may not use power-ups for high score submissions.')
 
     return None  # No error
@@ -620,6 +626,8 @@ def check_rapid_react_robot_type(score_obj: Score, robot_model: str, request):
     """
     switch = {
         'MiniDrone': 'RR_MiniDrone',
+        'RRBulldogs': 'RR_Bulldogs',
+        'RRFRCShooter': 'RR_FRC_Shooter',
     }
 
     if switch[str(score_obj.leaderboard)] != robot_model:
@@ -669,6 +677,23 @@ def check_score(score_obj: Score, blue_score: str, red_score: str, request):
     else:
         if (red_score != str(score_obj.score)):
             return error_response(request, 'Double-check the score that you entered!')
+
+    return None  # No error
+
+
+def check_rapid_react_score(score_obj: Score, blue_score: str, red_score: str, request):
+    """ Checks if the true score matches the reported score.
+    In Rapid React single player, your calculated score is your score minus the opponent's score.
+    :return: None if the score is valid, or a response with an error message if it is not.
+    """
+    if score_obj.robot_position.startswith('Blue'):
+        score = int(blue_score) - int(red_score)
+        if (score != score_obj.score):
+            return error_response(request, 'Double-check the score that you entered! For Rapid React, your calculated score is your score minus the opponent\'s score.')
+    else:
+        score = int(red_score) - int(blue_score)
+        if (score != score_obj.score):
+            return error_response(request, 'Double-check the score that you entered! For Rapid React, your calculated score is your score minus the opponent\'s score.')
 
     return None  # No error
 

@@ -32,6 +32,7 @@
         </div>
     </div>
 </div>
+
 <div class="row">
     <div class="col">
         <div
@@ -64,7 +65,96 @@
             {% endif %} {% endif %}
         </div>
     </div>
+    <div class="col">
+        <div
+            class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark"
+        >
+            <h1 style="color: white" class="display-4 fw-normal">
+                <a
+                    href="/highscores/rr/RRBulldogs/"
+                    style="color: #fff; text-decoration: none"
+                    >Bulldogs</a
+                >
+            </h1>
+            <h2 style="color: white" class="display-6 fw-normal">
+                {{scores.RRBulldogs}}
+            </h2>
+            {% if scores.RRBulldogs > 0 %} {% if "youtube" in sources.RRBulldogs or "streamable" in sources.RRBulldogs %}
+            <iframe
+                class="img-fluid rounded"
+                src="{{sources.RRBulldogs}}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            {% else %}
+            <img
+                src="{{sources.RRBulldogs}}"
+                class="img-fluid rounded"
+                alt="RRBulldogs score screnshot"
+                width="300"
+            />
+            {% endif %} {% endif %}
+        </div>
+    </div>
+    <div class="col">
+        <div
+            class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark"
+        >
+            <h1 style="color: white" class="display-4 fw-normal">
+                <a
+                    href="/highscores/rr/RRFRCShooter/"
+                    style="color: #fff; text-decoration: none"
+                    >FRCShooter</a
+                >
+            </h1>
+            <h2 style="color: white" class="display-6 fw-normal">
+                {{scores.RRFRCShooter}}
+            </h2>
+            {% if scores.RRFRCShooter > 0 %} {% if "youtube" in sources.RRFRCShooter or "streamable" in sources.RRFRCShooter %}
+            <iframe
+                class="img-fluid rounded"
+                src="{{sources.RRFRCShooter}}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            {% else %}
+            <img
+                src="{{sources.RRFRCShooter}}"
+                class="img-fluid rounded"
+                alt="RRFRCShooter score screnshot"
+                width="300"
+            />
+            {% endif %} {% endif %}
+        </div>
+    </div>
 </div>
+
+<div class="row">
+    <div
+        class="
+            position-relative
+            overflow-hidden
+            p-3
+            shadowy
+            p-md-5
+            m-md-3
+            text-center
+            bg-dark
+        "
+    >
+        <h1 style="color: white" class="display-4 fw-normal">
+            <a
+                href="/highscores/ir/combined/"
+                style="color: #fff; text-decoration: none"
+                >Rapid React Combined Score</a
+            >
+        </h1>
+        <h2 style="color: white" class="display-6 fw-normal">
+            {{scores.overallRR}}
+        </h2>
+    </div>
+</div>
+
 <div class="row">
     <div class="col">
         <div
