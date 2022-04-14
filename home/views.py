@@ -57,7 +57,7 @@ def ranked(response):
 
 
 def merch(response):
-    return redirect('https://second-robotics.creator-spring.com/')
+    return redirect('https://store.secondrobotics.org/')
 
 
 def hall_of_fame(response):
