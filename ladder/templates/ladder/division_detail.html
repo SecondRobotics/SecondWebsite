@@ -1,0 +1,63 @@
+{% extends 'home/base.html' %}
+
+{% block content %}
+    <h1>Week {{division.week}} Division {{division.level}}{% if not division.complete %} (Incomplete){% endif %}</h1>
+
+    <table class="table table-hover table-sm shadowy" style="text-align:center">
+        <thead>
+            <tr>
+                <th colspan="100">
+                    Rankings
+                </th>
+            </tr>
+            <tr>
+                <td>Rank</td>
+                <td>Player</td>
+                <td>W-L-T</td>
+                <td>Total Points</td>
+            </tr>
+        </thead>
+        {% include "ladder/rank_row.html" with rank=1 info=division.rank1_info %}
+        {% include "ladder/rank_row.html" with rank=2 info=division.rank2_info %}
+        {% include "ladder/rank_row.html" with rank=3 info=division.rank3_info %}
+        {% include "ladder/rank_row.html" with rank=4 info=division.rank4_info %}
+        {% include "ladder/rank_row.html" with rank=5 info=division.rank5_info %}
+        {% include "ladder/rank_row.html" with rank=6 info=division.rank6_info %}
+    </table>
+
+    <table class="table table-hover table-sm shadowy" style="text-align:center">
+        <thead>
+            <tr>
+                <th colspan="100">
+                    Matches
+                </th>
+            </tr>
+            <tr>
+                <th></th>
+                {% if division.num_players == 6 %}
+                <th colspan="3">
+                {% else %}
+                <th colspan="2">
+                {% endif %}
+                    Red Alliance
+                </th>
+                {% if division.num_players == 6 %}
+                <th colspan="3">
+                {% else %}
+                <th colspan="2">
+                {% endif %}
+                    Blue Alliance
+                </th>
+                <th>
+                    Red Score
+                </th>
+                <th>
+                    Blue Score
+                </th>
+            </tr>
+        </thead>
+        {% for match in schedule %}
+            {% include "ladder/match_row.html" with match_num=forloop.counter schedule=match num_players=division.num_players %}
+        {% endfor %}
+    </table>
+{% endblock %}
