@@ -1,0 +1,16 @@
+{% if info.name != None %}
+    <tr>
+        <td class="col-md-1">
+            {{ rank }}
+        </td>
+        <td class="col-md-3">
+            {{ info.name }}{% if info.absent %} (Absent){% endif %}
+        </td>
+        <td class="col-md-2">
+            {{ info.wins }}-{{info.losses }}-{{ info.ties }}
+        </td>
+        <td class="col-md-2">
+            {{ info.total_points }}
+        </td>
+    </tr>
+{% endif %}

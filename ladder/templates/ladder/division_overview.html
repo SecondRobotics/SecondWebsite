@@ -1,0 +1,19 @@
+<table class="table table-hover table-sm shadowy" style="text-align:center">
+    <thead>
+        <tr>
+            <th colspan="100"><a href="./ladder/w{{division.week}}d{{division.level}}">{% if display_week %}Week {{division.week}} {% endif %}Division {{ division.level }}{% if not division.complete %} (Incomplete){% endif %}</a></th>
+        </tr>
+        <tr>
+            <td class="-th.sm">Rank</td>
+            <td class="-th.sm">Player</td>
+            <td class="-th.sm">W-L-T</td>
+            <td class="-th.sm">Total Points</td>
+        </tr>
+    </thead>
+    {% include "ladder/rank_row.html" with rank=1 info=division.rank1_info %}
+    {% include "ladder/rank_row.html" with rank=2 info=division.rank2_info %}
+    {% include "ladder/rank_row.html" with rank=3 info=division.rank3_info %}
+    {% include "ladder/rank_row.html" with rank=4 info=division.rank4_info %}
+    {% include "ladder/rank_row.html" with rank=5 info=division.rank5_info %}
+    {% include "ladder/rank_row.html" with rank=6 info=division.rank6_info %}
+</table>

@@ -1,0 +1,157 @@
+{% extends 'home/base.html' %}
+
+{% block content %}
+
+    <div class="position-relative overflow-hidden text-center bg-primary">
+        <div class="p-lg-4 mx-auto">
+            <h1 style="color:white" class="display-4 fw-normal">Ladder 3</h1>
+        </div>
+    </div>
+
+    <!-- Tabs navs -->
+    <ul class="nav nav-tabs nav-justified mb-3" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a
+            class="nav-link tab-button"
+            id="week1-tab-button"
+            data-mdb-toggle="tab"
+            href="javascript:switchTab('week1-tab-button', 'week1-tab', 'week1');"
+            href="#week1"
+            role="tab"
+            >Week 1</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a
+            class="nav-link tab-button"
+            id="week2-tab-button"
+            data-mdb-toggle="tab"
+            href="javascript:switchTab('week2-tab-button', 'week2-tab', 'week2');"
+            role="tab"
+            >Week 2</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a
+            class="nav-link tab-button"
+            id="week3-tab-button"
+            data-mdb-toggle="tab"
+            href="javascript:switchTab('week3-tab-button', 'week3-tab', 'week3');"
+            role="tab"
+            >Week 3</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a
+            class="nav-link tab-button"
+            id="week4-tab-button"
+            data-mdb-toggle="tab"
+            href="javascript:switchTab('week4-tab-button', 'week4-tab', 'week4');"
+            role="tab"
+            >Week 4</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a
+            class="nav-link tab-button"
+            id="week5-tab-button"
+            data-mdb-toggle="tab"
+            href="javascript:switchTab('week5-tab-button', 'week5-tab', 'week5');"
+            role="tab"
+            >Week 5</a>
+        </li>
+    </ul>
+    <!-- Tabs navs -->
+
+    <div class="tab-content" id="tabs-contents">
+        <div
+            class="tab-pane fade"
+            id="week1-tab"
+            role="tabpanel"
+        >
+            {% for div in week1_divisions %}
+                {% include "ladder/division_overview.html" with division=div display_week=False %}
+            {% endfor %}
+        </div>
+
+        <div
+            class="tab-pane fade"
+            id="week2-tab"
+            role="tabpanel"
+        >
+            {% for div in week2_divisions %}
+                {% include "ladder/division_overview.html" with division=div display_week=False %}
+            {% endfor %}
+        </div>
+
+        <div
+            class="tab-pane fade"
+            id="week3-tab"
+            role="tabpanel"
+        >
+            {% for div in week3_divisions %}
+                {% include "ladder/division_overview.html" with division=div display_week=False %}
+            {% endfor %}
+        </div>
+
+        <div
+            class="tab-pane fade"
+            id="week4-tab"
+            role="tabpanel"
+        >
+            {% for div in week4_divisions %}
+                {% include "ladder/division_overview.html" with division=div display_week=False %}
+            {% endfor %}
+        </div>
+
+        <div
+            class="tab-pane fade"
+            id="week5-tab"
+            role="tabpanel"
+        >
+            {% for div in week5_divisions %}
+                {% include "ladder/division_overview.html" with division=div display_week=False %}
+            {% endfor %}
+        </div>
+    </div>
+
+    
+
+    <script>
+        var baseUrl = (window.location).href;
+        var tab = baseUrl.substring(baseUrl.lastIndexOf('#') + 1);
+
+        // switch based on url content
+        //var tab = '{{ tab }}';
+        switch(tab) {
+            case 'week1':
+            case 'week2':
+            case 'week3':
+            case 'week4':
+            case 'week5':
+                switchTab(tab + '-tab-button', tab + '-tab', tab)
+                break;
+            default:
+                switchTab('week1-tab-button', 'week1-tab', 'week1');
+                break;
+        }
+
+        function switchTab(tabId, tabContent, tabName) {
+            // first of all we get all tab content blocks (I think the best way to get them by class names)
+            var x = document.getElementsByClassName("tab-pane");
+            var i;
+            for (i = 0; i < x.length; i++) {
+                x[i].className = 'tab-pane fade'; // hide all tab content
+            }
+            document.getElementById(tabContent).className = 'tab-pane fade show active'; // display the content of the tab we need
+            console.log(document.getElementById(tabContent));
+        
+            // now we get all tab menu items by class names (use the next code only if you need to highlight current tab)
+            var x = document.getElementsByClassName("tab-button");
+            var i;
+            for (i = 0; i < x.length; i++) {
+                x[i].className = 'nav-link tab-button'; 
+            }
+            document.getElementById(tabId).className = 'nav-link active tab-button';
+
+            window.history.pushState("object or string", "Title", "/ladder#" + tabName);
+        }
+    </script>
+
+{% endblock %}
