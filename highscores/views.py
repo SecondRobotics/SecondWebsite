@@ -535,7 +535,7 @@ def check_generic_game_settings(score_obj: Score, request):
             score_obj.client_version == 'v7.1b' or score_obj.client_version == 'v7.1c' or \
             score_obj.client_version == 'v7.1d' or score_obj.client_version == 'v7.1e':
         return error_response(request, WRONG_VERSION_MESSAGE)
-    if "pre" in score_obj.client_version:
+    if "_p" in score_obj.client_version:
         return error_response(request, PRERELEASE_MESSAGE)
 
     return None  # No error
