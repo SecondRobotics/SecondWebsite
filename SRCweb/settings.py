@@ -49,6 +49,7 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_USER_MODEL = 'discordoauth2.User'
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Application definition
 
