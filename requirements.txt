@@ -7,11 +7,9 @@ distlib==0.3.4
 Django==3.2.13
 django-widget-tweaks==1.4.12
 djangorestframework==3.13.1
-djangorestframework-jwt==1.11.0
 idna==3.3
 pycodestyle==2.8.0
 pycryptodome==3.14.1
-PyJWT==2.4.0
 python-dotenv==0.20.0
 pytz==2022.1
 requests==2.27.1
