@@ -19,7 +19,6 @@ urlpatterns = [
     path("user/<int:user_id>/", views.user_profile, name="user profile"),
     path("discord/", views.discord, name="discord"),
     path("6mans/", views.ranked, name="6mans"),
-    path("ranked/", views.ranked, name="ranked"),
     path("hall-of-fame/", views.hall_of_fame, name="hall of fame"),
     path("merch/", views.merch, name="merch"),
     path("privacy/", views.privacy, name="privacy"),

@@ -75,7 +75,8 @@ INSTALLED_APPS = [
     'events',
     'teamleague',
     'ladder',
-    'discordoauth2'
+    'discordoauth2',
+    'ranked'
 ]
 
 # config/settings.py

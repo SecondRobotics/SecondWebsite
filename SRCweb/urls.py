@@ -25,4 +25,5 @@ urlpatterns = [
     path('teamleague/', include('teamleague.urls')),
     path('ladder/', include('ladder.urls')),
     path('oauth2/', include('discordoauth2.urls')),
+    path('ranked/', include('ranked.urls')),
 ]
