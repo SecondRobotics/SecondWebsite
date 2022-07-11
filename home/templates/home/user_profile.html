@@ -59,7 +59,7 @@
             <img
                 src="{{sources.MiniDrone}}"
                 class="img-fluid rounded"
-                alt="MiniDrone score screnshot"
+                alt="MiniDrone score screenshot"
                 width="300"
             />
             {% endif %} {% endif %}
@@ -90,7 +90,7 @@
             <img
                 src="{{sources.RRBulldogs}}"
                 class="img-fluid rounded"
-                alt="RRBulldogs score screnshot"
+                alt="RRBulldogs score screenshot"
                 width="300"
             />
             {% endif %} {% endif %}
@@ -121,7 +121,103 @@
             <img
                 src="{{sources.RRFRCShooter}}"
                 class="img-fluid rounded"
-                alt="RRFRCShooter score screnshot"
+                alt="RRFRCShooter score screenshot"
+                width="300"
+            />
+            {% endif %} {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col">
+        <div
+            class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark"
+        >
+            <h1 style="color: white" class="display-4 fw-normal">
+                <a
+                    href="/highscores/rr/Hot/"
+                    style="color: #fff; text-decoration: none"
+                    >Hot</a
+                >
+            </h1>
+            <h2 style="color: white" class="display-6 fw-normal">
+                {{scores.Hot}}
+            </h2>
+            {% if scores.Hot > 0 %} {% if "youtube" in sources.Hot or "streamable" in sources.Hot %}
+            <iframe
+                class="img-fluid rounded"
+                src="{{sources.Hot}}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            {% else %}
+            <img
+                src="{{sources.Hot}}"
+                class="img-fluid rounded"
+                alt="Hot score screenshot"
+                width="300"
+            />
+            {% endif %} {% endif %}
+        </div>
+    </div>
+    <div class="col">
+        <div
+            class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark"
+        >
+            <h1 style="color: white" class="display-4 fw-normal">
+                <a
+                    href="/highscores/rr/Greybots/"
+                    style="color: #fff; text-decoration: none"
+                    >Bulldogs</a
+                >
+            </h1>
+            <h2 style="color: white" class="display-6 fw-normal">
+                {{scores.Greybots}}
+            </h2>
+            {% if scores.Greybots > 0 %} {% if "youtube" in sources.Greybots or "streamable" in sources.Greybots %}
+            <iframe
+                class="img-fluid rounded"
+                src="{{sources.Greybots}}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            {% else %}
+            <img
+                src="{{sources.Greybots}}"
+                class="img-fluid rounded"
+                alt="Greybots score screenshot"
+                width="300"
+            />
+            {% endif %} {% endif %}
+        </div>
+    </div>
+    <div class="col">
+        <div
+            class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark"
+        >
+            <h1 style="color: white" class="display-4 fw-normal">
+                <a
+                    href="/highscores/rr/Thunderstamps/"
+                    style="color: #fff; text-decoration: none"
+                    >Thunderstamps</a
+                >
+            </h1>
+            <h2 style="color: white" class="display-6 fw-normal">
+                {{scores.Thunderstamps}}
+            </h2>
+            {% if scores.Thunderstamps > 0 %} {% if "youtube" in sources.Thunderstamps or "streamable" in sources.Thunderstamps %}
+            <iframe
+                class="img-fluid rounded"
+                src="{{sources.Thunderstamps}}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            {% else %}
+            <img
+                src="{{sources.Thunderstamps}}"
+                class="img-fluid rounded"
+                alt="Thunderstamps score screenshot"
                 width="300"
             />
             {% endif %} {% endif %}
@@ -190,7 +286,7 @@
             <img
                 src="{{sources.Roboteers}}"
                 class="img-fluid rounded"
-                alt="Roboteers score screnshot"
+                alt="Roboteers score screenshot"
             />
             {% endif %} {% endif %}
         </div>
@@ -229,7 +325,7 @@
             <img
                 src="{{sources.Inertia}}"
                 class="img-fluid rounded"
-                alt="Inertia score screnshot"
+                alt="Inertia score screenshot"
             />
             {% endif %} {% endif %}
         </div>
@@ -269,7 +365,7 @@
             <img
                 src="{{sources.OG}}"
                 class="img-fluid rounded"
-                alt="OG score screnshot"
+                alt="OG score screenshot"
             />
             {% endif %} {% endif %}
         </div>
@@ -311,7 +407,7 @@
             <img
                 src="{{sources.Waffles}}"
                 class="img-fluid rounded"
-                alt="Waffles score screnshot"
+                alt="Waffles score screenshot"
             />
             {% endif %} {% endif %}
         </div>
@@ -350,7 +446,7 @@
             <img
                 src="{{sources.Triangle}}"
                 class="img-fluid rounded"
-                alt="Triangle score screnshot"
+                alt="Triangle score screenshot"
             />
             {% endif %} {% endif %}
         </div>
@@ -390,7 +486,7 @@
             <img
                 src="{{sources.Pushbot2}}"
                 class="img-fluid rounded"
-                alt="Pushbot2 score screnshot"
+                alt="Pushbot2 score screenshot"
             />
             {% endif %} {% endif %}
         </div>
@@ -458,7 +554,7 @@
             <img
                 src="{{sources.Bulldogs}}"
                 class="img-fluid rounded"
-                alt="Bulldogs score screnshot"
+                alt="Bulldogs score screenshot"
             />
             {% endif %} {% endif %}
         </div>
@@ -497,7 +593,7 @@
             <img
                 src="{{sources.Kraken}}"
                 class="img-fluid rounded"
-                alt="Kraken score screnshot"
+                alt="Kraken score screenshot"
             />
             {% endif %} {% endif %}
         </div>
@@ -537,7 +633,7 @@
             <img
                 src="{{sources.Bailey}}"
                 class="img-fluid rounded"
-                alt="Bailey score screnshot"
+                alt="Bailey score screenshot"
             />
             {% endif %} {% endif %}
         </div>
@@ -579,7 +675,7 @@
             <img
                 src="{{sources.Cody}}"
                 class="img-fluid rounded"
-                alt="Cody score screnshot"
+                alt="Cody score screenshot"
                 width="300"
             />
             {% endif %} {% endif %}
@@ -619,7 +715,7 @@
             <img
                 src="{{sources.goBILDA}}"
                 class="img-fluid rounded"
-                alt="goBILDA score screnshot"
+                alt="goBILDA score screenshot"
                 width="300"
             />
             {% endif %} {% endif %}
@@ -659,7 +755,7 @@
             <img
                 src="{{sources.DualMeta}}"
                 class="img-fluid rounded"
-                alt="DualMeta score screnshot"
+                alt="DualMeta score screenshot"
                 width="300"
             />
             {% endif %} {% endif %}

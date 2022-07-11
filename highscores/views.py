@@ -23,6 +23,7 @@ ERROR_CORRUPT_CODE_MESSAGE = 'There is something wrong with your clean code! Mak
 BAD_URL_MESSAGE = 'There is something wrong with the URL you provided for your screenshot/video. Please ensure you provide a link to a PNG, JPEG, YouTube video, or Streamable video.'
 WRONG_VERSION_MESSAGE = 'Your version of the game is outdated and not supported. Please update to the latest version at https://xrcsimulator.org/downloads/.'
 PRERELEASE_MESSAGE = 'Pre-release versions are not allowed for high score submission!'
+WRONG_AUTO_OR_TELEOP_MESSAGE = 'Incorrect choice for control mode! Ensure you are submitting to the correct leaderboard for autonomous or tele-operated play.'
 
 COMBINED_LEADERBOARD_PAGE = "highscores/combined_leaderboard.html"
 SUBMIT_PAGE = "highscores/submit.html"
@@ -247,7 +248,6 @@ def extract_form_data(form: ScoreForm, request):
     score_obj.leaderboard = form.cleaned_data['leaderboard']
     score_obj.player = request.user
     score_obj.score = form.cleaned_data['score']
-    score_obj.time_set = datetime.now()
     score_obj.approved = False
     score_obj.source = form.cleaned_data['source']
     score_obj.clean_code = form.cleaned_data['clean_code']
@@ -266,6 +266,8 @@ def approve_score(score_obj: Score, prev_submissions):
     code_obj = CleanCodeSubmission()
     code_obj.clean_code = score_obj.clean_code
     code_obj.player = score_obj.player
+    code_obj.score = score_obj.score
+    code_obj.leaderboard = score_obj.leaderboard
     code_obj.save()
 
 
@@ -327,11 +329,11 @@ def infinite_recharge_clean_code_check(score_obj: Score, request):
         clean_code_decryption(score_obj)
 
         # Clean code extraction
-        restart_option, game_options, robot_model, blue_score, red_score, game_index = extract_clean_code_info(
+        restart_option, game_options, robot_model, blue_score, red_score, game_index, auto_or_teleop = extract_clean_code_info(
             score_obj)
 
         # Check game settings
-        res = check_generic_game_settings(score_obj, request)
+        res = check_generic_game_settings(score_obj, request, auto_or_teleop)
         if (res is not None):
             return res
         res = check_infinite_recharge_game_settings(
@@ -374,11 +376,11 @@ def rapid_react_clean_code_check(score_obj: Score, request):
         clean_code_decryption(score_obj)
 
         # Clean code extraction
-        restart_option, game_options, robot_model, blue_score, red_score, game_index = extract_clean_code_info(
+        restart_option, game_options, robot_model, blue_score, red_score, game_index, auto_or_teleop = extract_clean_code_info(
             score_obj)
 
         # Check game settings
-        res = check_generic_game_settings(score_obj, request)
+        res = check_generic_game_settings(score_obj, request, auto_or_teleop)
         if (res is not None):
             return res
         res = check_rapid_react_game_settings(
@@ -421,11 +423,11 @@ def freight_frenzy_clean_code_check(score_obj: Score, request):
         clean_code_decryption(score_obj)
 
         # Clean code extraction
-        restart_option, game_options, robot_model, blue_score, red_score, game_index = extract_clean_code_info(
+        restart_option, game_options, robot_model, blue_score, red_score, game_index, auto_or_teleop = extract_clean_code_info(
             score_obj)
 
         # Check game settings
-        res = check_generic_game_settings(score_obj, request)
+        res = check_generic_game_settings(score_obj, request, auto_or_teleop)
         if (res is not None):
             return res
         res = check_freight_frenzy_game_settings(
@@ -467,11 +469,11 @@ def tipping_point_clean_code_check(score_obj: Score, request):
         clean_code_decryption(score_obj)
 
         # Clean code extraction
-        restart_option, game_options, robot_model, blue_score, red_score, game_index = extract_clean_code_info(
+        restart_option, game_options, robot_model, blue_score, red_score, game_index, auto_or_teleop = extract_clean_code_info(
             score_obj)
 
         # Check game settings
-        res = check_generic_game_settings(score_obj, request)
+        res = check_generic_game_settings(score_obj, request, auto_or_teleop)
         if (res is not None):
             return res
         res = check_tipping_point_game_settings(game_index, request)
@@ -511,9 +513,10 @@ def extract_clean_code_info(score_obj: Score):
     blue_score = dataset[4].strip()
     score_obj.robot_position = dataset[5].strip()
     robot_model = dataset[6].strip()
-    restart_option = dataset[7].strip()
-    game_options = dataset[8].strip().split(':')
-    return restart_option, game_options, robot_model, blue_score, red_score, game_index
+    auto_or_teleop = dataset[7].strip()
+    restart_option = dataset[8].strip()
+    game_options = dataset[9].strip().split(':')
+    return restart_option, game_options, robot_model, blue_score, red_score, game_index, auto_or_teleop
 
 
 def clean_code_decryption(score_obj):
@@ -527,16 +530,16 @@ def clean_code_decryption(score_obj):
     score_obj.decrypted_code = cipher.decrypt(data).decode("utf-8")
 
 
-def check_generic_game_settings(score_obj: Score, request):
+def check_generic_game_settings(score_obj: Score, request, auto_or_teleop: str):
     """ Checks if the universal game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
-    if float(score_obj.client_version[1:4]) < 7.1 or score_obj.client_version == 'v7.1a' or \
-            score_obj.client_version == 'v7.1b' or score_obj.client_version == 'v7.1c' or \
-            score_obj.client_version == 'v7.1d' or score_obj.client_version == 'v7.1e':
+    if float(score_obj.client_version[1:4]) < 7.2:
         return error_response(request, WRONG_VERSION_MESSAGE)
     if "_p" in score_obj.client_version:
         return error_response(request, PRERELEASE_MESSAGE)
+    if score_obj.leaderboard.auto_or_teleop != auto_or_teleop:
+        return error_response(request, WRONG_AUTO_OR_TELEOP_MESSAGE)
 
     return None  # No error
 
@@ -630,6 +633,9 @@ def check_rapid_react_robot_type(score_obj: Score, robot_model: str, request):
         'MiniDrone': 'RR_MiniDrone',
         'RRBulldogs': 'RR_Bulldogs',
         'RRFRCShooter': 'RR_FRC_Shooter',
+        'Hot': 'HOT 67',
+        'Greybots': 'Greybots 973',
+        'Thunderstamps': 'Thunderstamps 4907',
     }
 
     if switch[str(score_obj.leaderboard)] != robot_model:

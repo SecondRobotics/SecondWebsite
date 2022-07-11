@@ -7,6 +7,8 @@ from django.db import models
 class Leaderboard(models.Model):
     name = models.CharField(max_length=25)  # robot type
     game = models.CharField(max_length=25)  # game
+    auto_or_teleop = models.CharField(
+        max_length=4, default="TELE")  # auto or teleop
 
     def __str__(self):
         return self.name
@@ -17,7 +19,7 @@ class Score(models.Model):
     player = models.ForeignKey(User, on_delete=models.CASCADE)
 
     score = models.IntegerField()
-    time_set = models.DateTimeField(null=True, blank=True)
+    time_set = models.DateTimeField(auto_now_add=True)
     source = models.URLField(null=False, blank=False)
     approved = models.BooleanField(default=False, null=False)
     clean_code = models.CharField(max_length=600, null=False, blank=False)
@@ -34,6 +36,9 @@ class Score(models.Model):
 class CleanCodeSubmission(models.Model):
     clean_code = models.CharField(max_length=600)
     player = models.ForeignKey(User, on_delete=models.CASCADE)
+    score = models.IntegerField()
+    leaderboard = models.ForeignKey(Leaderboard, on_delete=models.CASCADE)
+    time_set = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.clean_code
