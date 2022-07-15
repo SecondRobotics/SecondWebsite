@@ -8,7 +8,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 class GameMode(models.Model):
     name = models.CharField(max_length=25, unique=True)
     game = models.CharField(max_length=25)
-    players_per_alliance = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(3)])
+    players_per_alliance = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(3)])
     short_code = models.CharField(max_length=7, unique=True)
 
     def __str__(self):
@@ -49,11 +50,13 @@ class PlayerElo(models.Model):
     matches_won = models.IntegerField(default=0)
     matches_lost = models.IntegerField(default=0)
     matches_drawn = models.IntegerField(default=0)
-    last_match_played = models.DateTimeField(null=True, blank=True)
+    last_match_played_time = models.DateTimeField(null=True, blank=True)
+    last_match_played_number = models.IntegerField(null=True, blank=True)
     total_score = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.player} - {self.game_mode} - {self.elo}"
+
 
 class EloHistory(models.Model):
     player_elo = models.ForeignKey(PlayerElo, on_delete=models.CASCADE)

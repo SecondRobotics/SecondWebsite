@@ -12,7 +12,8 @@ class GameModeAdmin(admin.ModelAdmin):
 
 
 class MatchAdmin(admin.ModelAdmin):
-    list_display = ('match_number', 'time', 'game_mode', 'red_score', 'blue_score')
+    list_display = ('match_number', 'time', 'game_mode',
+                    'red_score', 'blue_score')
     list_filter = ('match_number', 'time', 'game_mode')
     search_fields = ('match_number', 'time')
 
@@ -22,6 +23,7 @@ class PlayerEloAdmin(admin.ModelAdmin):
                     'matches_played', 'matches_won', 'matches_lost', 'matches_drawn')
     list_filter = ('game_mode',)
     search_fields = ('player',)
+
 
 class EloHistoryAdmin(admin.ModelAdmin):
     list_display = ('player_elo', 'match_number', 'elo')
