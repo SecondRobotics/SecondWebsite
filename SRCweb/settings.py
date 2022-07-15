@@ -34,6 +34,9 @@ DISCORD_CLIENT_ID = "825618483957071873"
 # SECURITY WARNING: keep the Discord Client Secret used in production secret!
 DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
 
+# SECURITY WARNING: keep the API Key used in production secret!
+API_KEY = os.getenv("API_KEY")
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
@@ -66,7 +69,6 @@ INSTALLED_APPS = [
 
     'widget_tweaks',
     'rest_framework',
-    'rest_framework.authtoken',
 
     # Custom stuff
 
@@ -82,9 +84,9 @@ INSTALLED_APPS = [
 # config/settings.py
 DEFAULT_FROM_EMAIL = 'noreply@secondrobotics.org'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.environ.get("SMTP_SERVER")
+EMAIL_HOST = os.getenv("SMTP_SERVER")
 EMAIL_HOST_USER = 'noreply@secondrobotics.org'
-EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASSWORD')
+EMAIL_HOST_PASSWORD = os.getenv('SMTP_PASSWORD')
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
 
@@ -204,7 +206,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'America/Montreal'
+TIME_ZONE = 'America/New_York'
 
 USE_I18N = True
 
@@ -241,20 +243,3 @@ else:
 
 
 MAX_UPLOAD_SIZE = "5242880"
-
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ),
-    # 'DEFAULT_RENDERER_CLASSES': (
-    #     'rest_framework.renderers.JSONRenderer',
-    # ),
-    # 'DEFAULT_PARSER_CLASSES': (
-    #     'rest_framework.parsers.JSONParser',
-    # )
-}

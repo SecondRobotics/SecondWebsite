@@ -26,4 +26,5 @@ urlpatterns = [
     path('ladder/', include('ladder.urls')),
     path('oauth2/', include('discordoauth2.urls')),
     path('ranked/', include('ranked.urls')),
+    path('api/ranked/', include('ranked.api.urls', namespace="api-ranked")),
 ]
