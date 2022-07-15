@@ -1,5 +1,6 @@
 from django.db import models
 from discordoauth2.models import User
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 # Create your models here.
 
@@ -7,7 +8,7 @@ from discordoauth2.models import User
 class GameMode(models.Model):
     name = models.CharField(max_length=25)
     game = models.CharField(max_length=25)
-    players_per_alliance = models.IntegerField(min=1, max=3)
+    players_per_alliance = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(3)])
 
     def __str__(self):
         return self.name
@@ -26,9 +27,6 @@ class Match(models.Model):
 
     red_starting_elo = models.IntegerField()
     blue_starting_elo = models.IntegerField()
-
-    red_players_starting_elo = models.CommaSeparatedIntegerField()
-    blue_players_starting_elo = models.CommaSeparatedIntegerField()
 
     def get_red_players(self):
         return self.red_alliance.all()
@@ -53,7 +51,13 @@ class PlayerElo(models.Model):
     last_match_played = models.DateTimeField(null=True, blank=True)
     total_score = models.IntegerField(default=0)
 
-    elo_history = models.CommaSeparatedIntegerField(default="")
-
     def __str__(self):
         return f"{self.player} - {self.game_mode} - {self.elo}"
+
+class EloHistory(models.Model):
+    player_elo = models.ForeignKey(PlayerElo, on_delete=models.CASCADE)
+    match_number = models.IntegerField()
+    elo = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.player_elo.player} - {self.match_number}"
