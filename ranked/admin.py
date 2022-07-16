@@ -7,14 +7,14 @@ from .models import GameMode, Match, PlayerElo, EloHistory
 
 class GameModeAdmin(admin.ModelAdmin):
     list_display = ('name', 'game', 'players_per_alliance',)
-    list_filter = ('name', 'game', 'players_per_alliance',)
+    list_filter = ('game', 'players_per_alliance',)
     search_fields = ('name',)
 
 
 class MatchAdmin(admin.ModelAdmin):
     list_display = ('match_number', 'time', 'game_mode',
                     'red_score', 'blue_score')
-    list_filter = ('match_number', 'time', 'game_mode')
+    list_filter = ('time', 'game_mode')
     search_fields = ('match_number', 'time')
 
 
@@ -27,7 +27,6 @@ class PlayerEloAdmin(admin.ModelAdmin):
 
 class EloHistoryAdmin(admin.ModelAdmin):
     list_display = ('player_elo', 'match_number', 'elo')
-    list_filter = ('player_elo', 'match_number')
     search_fields = ('player_elo',)
 
 

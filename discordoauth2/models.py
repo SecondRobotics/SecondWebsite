@@ -31,7 +31,7 @@ class User(AbstractUser):
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
 
     is_staff = models.BooleanField(
-        _('staff status'),
+        _('staff'),
         default=False,
         help_text=_('Designates whether the user can log into this admin site.'),
     )

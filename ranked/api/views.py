@@ -1,4 +1,3 @@
-from datetime import timezone
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import api_view
@@ -11,13 +10,19 @@ from ranked.models import EloHistory, GameMode, Match, PlayerElo
 
 @api_view(['GET'])
 def ranked_api(request: Request) -> Response:
-    return Response({
-        'status': 'Online',
-    })
+    """
+    Gets a list of all the available game modes for ranked play.
+    """
+    game_modes = GameMode.objects.all()
+    game_mode_serializer = GameModeSerializer(game_modes, many=True)
+    return Response(game_mode_serializer.data)
 
 
 @api_view(['GET'])
 def get_game_mode(request: Request, game_mode_code: str) -> Response:
+    """
+    Gets basic statistics for ranked matches played in a particular game mode.
+    """
     try:
         game_mode = GameMode.objects.get(short_code=game_mode_code)
     except GameMode.DoesNotExist:
@@ -38,6 +43,9 @@ def get_game_mode(request: Request, game_mode_code: str) -> Response:
 
 @api_view(['GET'])
 def get_player_stats(request: Request, game_mode_code: str, player_id: str) -> Response:
+    """
+    Gets statistics for a player in a particular game mode.
+    """
     try:
         game_mode = GameMode.objects.get(short_code=game_mode_code)
     except GameMode.DoesNotExist:
@@ -52,9 +60,9 @@ def get_player_stats(request: Request, game_mode_code: str, player_id: str) -> R
             'error': f'Player {player_id} does not exist.'
         })
 
-    player_elo = PlayerElo.objects.get(player=player, game_mode=game_mode)
-
-    if not player_elo.exists():
+    try:
+        player_elo = PlayerElo.objects.get(player=player, game_mode=game_mode)
+    except PlayerElo.DoesNotExist:
         return Response(status=404, data={
             'error': f'Player {player_id} has no elo history for {game_mode_code}.'
         })
@@ -73,6 +81,9 @@ def get_player_stats(request: Request, game_mode_code: str, player_id: str) -> R
 
 @api_view(['GET'])
 def get_player_elo_history(request: Request, game_mode_code: str, player_id: str) -> Response:
+    """
+    Gets the elo history and statistics for a player in a particular game mode.
+    """
     try:
         game_mode = GameMode.objects.get(short_code=game_mode_code)
     except GameMode.DoesNotExist:
@@ -110,13 +121,14 @@ def get_player_elo_history(request: Request, game_mode_code: str, player_id: str
 
 @api_view(['POST'])
 def post_match_result(request: Request, game_mode_code: str) -> Response:
-    """Post a match result.
+    """
+    Post a match result.
     JSON body should be:
     {
-        'red_alliance': [1111111111111111, 2222222222222222, 3333333333333333],
-        'blue_alliance': [4444444444444444, 5555555555555555, 6666666666666666],
-        'red_score': 3,
-        'blue_score': 1,
+        "red_alliance": [1111111111111111, 2222222222222222, 3333333333333333],
+        "blue_alliance": [4444444444444444, 5555555555555555, 6666666666666666],
+        "red_score": 3,
+        "blue_score": 1
     }
     """
     if request.META.get('HTTP_X_API_KEY') != API_KEY:
@@ -153,13 +165,14 @@ def post_match_result(request: Request, game_mode_code: str) -> Response:
 
     match = Match(
         game_mode=game_mode,
-        red_alliance=red_players,
-        blue_alliance=blue_players,
         red_score=red_score,
         blue_score=blue_score,
         red_starting_elo=red_starting_elo,
         blue_starting_elo=blue_starting_elo,
     )
+    match.save()
+    match.red_alliance.set(red_players)
+    match.blue_alliance.set(blue_players)
     match.save()
 
     update_player_elos(match, red_starting_elo,

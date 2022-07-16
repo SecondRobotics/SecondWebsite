@@ -89,6 +89,7 @@ EMAIL_HOST_USER = 'noreply@secondrobotics.org'
 EMAIL_HOST_PASSWORD = os.getenv('SMTP_PASSWORD')
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
+SERVER_EMAIL = EMAIL_HOST_USER
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

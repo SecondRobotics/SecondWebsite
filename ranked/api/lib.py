@@ -1,4 +1,4 @@
-from datetime import timezone
+from datetime import datetime
 import math
 from rest_framework.response import Response
 from typing import List
@@ -108,7 +108,7 @@ def update_player_elos(match: Match, red_elo: int, blue_elo: int, red_player_elo
             odds_diff)) * (((B - 1) / (A ** num_played)) + 1)
 
         player.matches_played += 1
-        player.last_match_played_time = timezone.now()
+        player.last_match_played_time = datetime.now()
         player.last_match_played_number = match.match_number
         player.total_score += match.red_score
 
