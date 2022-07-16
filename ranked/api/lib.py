@@ -73,7 +73,7 @@ def get_match_player_info(red_alliance: List[User], blue_alliance: List[User], g
     return None, red_players, blue_players, red_player_elos, blue_player_elos
 
 
-def update_player_elos(match: Match, red_elo: int, blue_elo: int, red_player_elos: List[PlayerElo], blue_player_elos: List[PlayerElo]):
+def update_player_elos(match: Match, red_elo: float, blue_elo: float, red_player_elos: List[PlayerElo], blue_player_elos: List[PlayerElo]):
     red_odds = 1 / (1 + 10 ** ((blue_elo - red_elo) / N))
     blue_odds = 1 / (1 + 10 ** ((red_elo - blue_elo) / N))
 
@@ -89,9 +89,11 @@ def update_player_elos(match: Match, red_elo: int, blue_elo: int, red_player_elo
         if player in red_player_elos:
             score_diff = match.red_score - match.blue_score
             odds = red_odds
+            player.total_score += match.red_score
         else:
             score_diff = match.blue_score - match.red_score
             odds = blue_odds
+            player.total_score += match.blue_score
 
         if (score_diff > 0):
             odds_diff = 1 - odds
@@ -110,6 +112,5 @@ def update_player_elos(match: Match, red_elo: int, blue_elo: int, red_player_elo
         player.matches_played += 1
         player.last_match_played_time = datetime.now()
         player.last_match_played_number = match.match_number
-        player.total_score += match.red_score
 
         player.save()

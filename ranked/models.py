@@ -27,8 +27,8 @@ class Match(models.Model):
     red_score = models.IntegerField()
     blue_score = models.IntegerField()
 
-    red_starting_elo = models.IntegerField()
-    blue_starting_elo = models.IntegerField()
+    red_starting_elo = models.FloatField()
+    blue_starting_elo = models.FloatField()
 
     def get_red_players(self):
         return self.red_alliance.all()
@@ -44,7 +44,7 @@ class PlayerElo(models.Model):
     player = models.ForeignKey(User, on_delete=models.CASCADE)
     game_mode = models.ForeignKey(GameMode, on_delete=models.CASCADE)
 
-    elo = models.IntegerField(default=1000)
+    elo = models.FloatField(default=1000)
 
     matches_played = models.IntegerField(default=0)
     matches_won = models.IntegerField(default=0)
@@ -61,7 +61,7 @@ class PlayerElo(models.Model):
 class EloHistory(models.Model):
     player_elo = models.ForeignKey(PlayerElo, on_delete=models.CASCADE)
     match_number = models.IntegerField()
-    elo = models.IntegerField()
+    elo = models.FloatField()
 
     def __str__(self):
         return f"{self.player_elo.player} - {self.match_number}"
