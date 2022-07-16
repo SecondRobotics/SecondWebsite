@@ -12,4 +12,6 @@ urlpatterns = [
          views.get_player_elo_history, name='get_player_elo_history'),
     path('<str:game_mode_code>/match/',
          views.post_match_result, name='post_match_result'),
+    path('<str:game_mode_code>/match/edit/',
+         views.edit_match_result, name='edit_match_result'),
 ]

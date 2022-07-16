@@ -189,3 +189,48 @@ def post_match_result(request: Request, game_mode_code: str) -> Response:
         'red_player_elos': red_player_elos_serializer.data,
         'blue_player_elos': blue_player_elos_serializer.data,
     })
+
+
+@api_view(['PATCH'])
+def edit_match_result(request: Request, game_mode_code: str) -> Response:
+    """
+    Edit a match result. Can only edit the most recent match's score.
+    JSON body should be:
+    {
+        "red_score": 3,
+        "blue_score": 1
+    }
+    """
+    if request.META.get('HTTP_X_API_KEY') != API_KEY:
+        return Response(status=401, data={
+            'error': 'Invalid API key.'
+        })
+
+    try:
+        game_mode = GameMode.objects.get(short_code=game_mode_code)
+    except GameMode.DoesNotExist:
+        return Response(status=404, data={
+            'error': f'Game mode {game_mode_code} does not exist.'
+        })
+
+    match = Match.objects.filter(game_mode=game_mode).order_by('-id').first()
+    if not match:
+        return Response(status=404, data={
+            'error': f'No matches found for {game_mode_code}.'
+        })
+
+    # Get PlayerElos for the match
+    players = match.red_alliance.all() | match.blue_alliance.all()
+    player_elos = PlayerElo.objects.filter(
+        player__in=players, game_mode=game_mode)
+
+    # Get EloHistory for the match
+    elo_history = EloHistory.objects.filter(
+        match_number=match.match_number, player_elo__in=player_elos)
+
+    # Revert the elo on PlayerElo to the elo on EloHistory
+    for elo_history_entry in elo_history:
+        elo_history_entry.player_elo.elo = elo_history_entry.elo
+        elo_history_entry.player_elo.save()
+
+    # TODO
