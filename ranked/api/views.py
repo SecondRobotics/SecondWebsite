@@ -3,7 +3,7 @@ from rest_framework.request import Request
 from rest_framework.decorators import api_view
 from SRCweb.settings import API_KEY
 from discordoauth2.models import User
-from .lib import update_player_elos, validate_post_match_req_body, get_match_player_info
+from .lib import revert_player_elos, update_player_elos, validate_patch_match_req_body, validate_post_match_req_body, get_match_player_info
 from ranked.api.serializers import EloHistorySerializer, GameModeSerializer, MatchSerializer, PlayerEloSerializer
 from ranked.models import EloHistory, GameMode, Match, PlayerElo
 
@@ -175,8 +175,7 @@ def post_match_result(request: Request, game_mode_code: str) -> Response:
     match.blue_alliance.set(blue_players)
     match.save()
 
-    update_player_elos(match, red_starting_elo,
-                       blue_starting_elo, red_player_elos, blue_player_elos)
+    update_player_elos(match, red_player_elos, blue_player_elos)
 
     match_serializer = MatchSerializer(match)
     red_player_elos_serializer = PlayerEloSerializer(
@@ -206,6 +205,11 @@ def edit_match_result(request: Request, game_mode_code: str) -> Response:
             'error': 'Invalid API key.'
         })
 
+    body = request.data
+    res = validate_patch_match_req_body(body)
+    if res:
+        return res
+
     try:
         game_mode = GameMode.objects.get(short_code=game_mode_code)
     except GameMode.DoesNotExist:
@@ -213,24 +217,46 @@ def edit_match_result(request: Request, game_mode_code: str) -> Response:
             'error': f'Game mode {game_mode_code} does not exist.'
         })
 
-    match = Match.objects.filter(game_mode=game_mode).order_by('-id').first()
+    match = Match.objects.filter(
+        game_mode=game_mode).order_by('-match_number').first()
     if not match:
         return Response(status=404, data={
             'error': f'No matches found for {game_mode_code}.'
         })
 
-    # Get PlayerElos for the match
-    players = match.red_alliance.all() | match.blue_alliance.all()
-    player_elos = PlayerElo.objects.filter(
-        player__in=players, game_mode=game_mode)
+    red_players = match.red_alliance.all()
+    blue_players = match.blue_alliance.all()
+    red_player_elos = PlayerElo.objects.filter(
+        player__in=red_players, game_mode=game_mode)
+    blue_player_elos = PlayerElo.objects.filter(
+        player__in=blue_players, game_mode=game_mode)
 
-    # Get EloHistory for the match
-    elo_history = EloHistory.objects.filter(
-        match_number=match.match_number, player_elo__in=player_elos)
+    red_elo_history = EloHistory.objects.filter(
+        match_number=match.match_number, player_elo__in=red_player_elos)
+    blue_elo_history = EloHistory.objects.filter(
+        match_number=match.match_number, player_elo__in=blue_player_elos)
 
-    # Revert the elo on PlayerElo to the elo on EloHistory
-    for elo_history_entry in elo_history:
-        elo_history_entry.player_elo.elo = elo_history_entry.elo
-        elo_history_entry.player_elo.save()
+    revert_player_elos(match, red_elo_history, blue_elo_history)
 
-    # TODO
+    match.red_score = body['red_score']
+    match.blue_score = body['blue_score']
+    match.save()
+
+    red_player_elos = PlayerElo.objects.filter(
+        player__in=red_players, game_mode=game_mode)
+    blue_player_elos = PlayerElo.objects.filter(
+        player__in=blue_players, game_mode=game_mode)
+
+    update_player_elos(match, list(red_player_elos), list(blue_player_elos))
+
+    match_serializer = MatchSerializer(match)
+    red_player_elos_serializer = PlayerEloSerializer(
+        red_player_elos, many=True)
+    blue_player_elos_serializer = PlayerEloSerializer(
+        blue_player_elos, many=True)
+
+    return Response({
+        'match': match_serializer.data,
+        'red_player_elos': red_player_elos_serializer.data,
+        'blue_player_elos': blue_player_elos_serializer.data,
+    })
