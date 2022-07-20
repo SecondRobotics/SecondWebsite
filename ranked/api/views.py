@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import api_view
@@ -240,6 +241,7 @@ def edit_match_result(request: Request, game_mode_code: str) -> Response:
 
     match.red_score = body['red_score']
     match.blue_score = body['blue_score']
+    match.time = timezone.now()
     match.save()
 
     red_player_elos = PlayerElo.objects.filter(
