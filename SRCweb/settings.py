@@ -38,13 +38,14 @@ DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
 DEBUG = False
 
 # Sends an email to admins when debug = false and a 500 server error occurs
-ADMINS = [('Nick', 'nick@secondrobotics.org'), ('Brennan', 'brennan@secondrobotics.org')]
+ADMINS = [('Nick', 'nick@secondrobotics.org'),
+          ('Brennan', 'brennan@secondrobotics.org')]
 
 ALLOWED_HOSTS = ["secondrobotics.org", "www.secondrobotics.org"]
 
 AUTHENTICATION_BACKENDS = [
     # 'django.contrib.auth.backends.ModelBackend', # default backend
-    'discordoauth2.auth.DiscordAuthenticationBackend' # discord oauth2 backend
+    'discordoauth2.auth.DiscordAuthenticationBackend'  # discord oauth2 backend
 ]
 
 AUTH_USER_MODEL = 'discordoauth2.User'
@@ -68,7 +69,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
 
     # Custom stuff
-    
+
     'home',
     'highscores',
     'events',
@@ -127,6 +128,46 @@ DATABASES = {
     }
 }
 
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'django.log',
+            'formatter': 'verbose',
+        },
+        'mail_admins': {
+            'class': 'django.utils.log.AdminEmailHandler',
+            'level': 'ERROR',
+            'include_html': True,
+            'filters': ['require_debug_false'],
+        }
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '[%(levelname)s] [%(asctime)s] %(module)s: %(message)s',
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+    },
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -178,7 +219,7 @@ if plt == "Windows":
     STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
     DISCORD_REDIRECT_URI = "http://localhost:8000/oauth2/login/redirect"
     DISCORD_AUTH_URL = "https://discord.com/api/oauth2/authorize?client_id=825618483957071873&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Foauth2%2Flogin%2Fredirect&response_type=code&scope=identify%20email"
-    
+
 else:
     STATIC_ROOT = "/home/bottxleg/secondrobotics.org/static"
     MEDIA_ROOT = "/home/bottxleg/secondrobotics.org/media"
