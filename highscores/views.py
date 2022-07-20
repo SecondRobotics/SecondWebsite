@@ -2,7 +2,6 @@ from discordoauth2.models import User
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
 from .models import Leaderboard, Score, CleanCodeSubmission
-from datetime import datetime
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Max, Q
