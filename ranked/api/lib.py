@@ -99,6 +99,8 @@ def update_player_elos(match: Match, red_player_elos: List[PlayerElo], blue_play
     red_odds = 1 / (1 + 10 ** ((blue_elo - red_elo) / N))
     blue_odds = 1 / (1 + 10 ** ((red_elo - blue_elo) / N))
 
+    elo_changes = []
+
     for player in red_player_elos + blue_player_elos:
         num_played = player.matches_played
 
@@ -127,15 +129,23 @@ def update_player_elos(match: Match, red_player_elos: List[PlayerElo], blue_play
             odds_diff = 0 - odds
             player.matches_lost += 1
 
-        player.elo += ((
+        elo_change = ((
             K / (1 + 0) + 2 * math.log(math.fabs(score_diff) + 1, 8)) * (
             odds_diff)) * (((B - 1) / (A ** num_played)) + 1)
+
+        elo_changes.append(elo_change)
+        player.elo += elo_change
 
         player.matches_played += 1
         player.last_match_played_time = timezone.now()
         player.last_match_played_number = match.match_number
 
         player.save()
+
+    red_elo_changes = elo_changes[:len(red_player_elos)]
+    blue_elo_changes = elo_changes[len(red_player_elos):]
+
+    return red_elo_changes, blue_elo_changes
 
 
 def revert_player_elos(match: Match, red_elo_history: List[EloHistory], blue_elo_history: List[EloHistory]):

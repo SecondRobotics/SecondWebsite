@@ -56,7 +56,7 @@ def get_player(request: Request, player_id: str) -> Response:
 
     return Response({
         'exists': True,
-        'display_name': user.display_name,
+        'display_name': str(user),
         'username': user.username,
         'avatar': user.avatar,
     })
@@ -92,7 +92,7 @@ def get_player_stats(request: Request, game_mode_code: str, player_id: str) -> R
     player_elo_serializer = PlayerEloSerializer(player_elo)
 
     return Response({
-        'display_name': player.display_name,
+        'display_name': str(player),
         'username': player.username,
         'avatar': player.avatar,
         **game_mode_serializer.data,
@@ -132,7 +132,7 @@ def get_player_elo_history(request: Request, game_mode_code: str, player_id: str
     elo_history_serializer = EloHistorySerializer(elo_history, many=True)
 
     return Response({
-        'display_name': player.display_name,
+        'display_name': str(player),
         'username': player.username,
         'avatar': player.avatar,
         **player_elo_serializer.data,
@@ -196,15 +196,16 @@ def post_match_result(request: Request, game_mode_code: str) -> Response:
     match.blue_alliance.set(blue_players)
     match.save()
 
-    update_player_elos(match, red_player_elos, blue_player_elos)
+    red_elo_changes, blue_elo_changes = update_player_elos(
+        match, red_player_elos, blue_player_elos)
 
     match_serializer = MatchSerializer(match)
     red_player_elos_serializer = PlayerEloSerializer(
         red_player_elos, many=True)
     blue_player_elos_serializer = PlayerEloSerializer(
         blue_player_elos, many=True)
-    red_display_names = [player.display_name for player in red_players]
-    blue_display_names = [player.display_name for player in blue_players]
+    red_display_names = [str(player) for player in red_players]
+    blue_display_names = [str(player) for player in blue_players]
 
     return Response({
         'match': match_serializer.data,
@@ -212,6 +213,8 @@ def post_match_result(request: Request, game_mode_code: str) -> Response:
         'blue_player_elos': blue_player_elos_serializer.data,
         'red_display_names': red_display_names,
         'blue_display_names': blue_display_names,
+        'red_elo_changes': red_elo_changes,
+        'blue_elo_changes': blue_elo_changes,
     })
 
 
@@ -273,15 +276,16 @@ def edit_match_result(request: Request, game_mode_code: str) -> Response:
     blue_player_elos = PlayerElo.objects.filter(
         player__in=blue_players, game_mode=game_mode)
 
-    update_player_elos(match, list(red_player_elos), list(blue_player_elos))
+    red_elo_changes, blue_elo_changes = update_player_elos(
+        match, list(red_player_elos), list(blue_player_elos))
 
     match_serializer = MatchSerializer(match)
     red_player_elos_serializer = PlayerEloSerializer(
         red_player_elos, many=True)
     blue_player_elos_serializer = PlayerEloSerializer(
         blue_player_elos, many=True)
-    red_display_names = [player.display_name for player in red_players]
-    blue_display_names = [player.display_name for player in blue_players]
+    red_display_names = [str(player) for player in red_players]
+    blue_display_names = [str(player) for player in blue_players]
 
     return Response({
         'match': match_serializer.data,
@@ -289,4 +293,6 @@ def edit_match_result(request: Request, game_mode_code: str) -> Response:
         'blue_player_elos': blue_player_elos_serializer.data,
         'red_display_names': red_display_names,
         'blue_display_names': blue_display_names,
+        'red_elo_changes': red_elo_changes,
+        'blue_elo_changes': blue_elo_changes,
     })
