@@ -32,11 +32,11 @@
                 >{{player.player.display_name}}</a
             >
         </td>
-        <td>{{player.elo}}</td>
-        <td>{{player.mmr}}</td>
+        <td>{{ player.elo|floatformat:1 }}</td>
+        <td>{{ player.mmr|floatformat:1 }}</td>
         <td>{{player.mmr|get_rank}}</td>
         <td>{{player.matches_played}}</td>
-        <td>{{player.win_rate}}%</td>
+        <td>{{ player.win_rate|floatformat:2 }}%</td>
         <td>{{player.matches_won}}</td>
         <td>{{player.matches_lost}}</td>
         <td>{{player.matches_drawn}}</td>
