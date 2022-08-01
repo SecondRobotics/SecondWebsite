@@ -29,7 +29,7 @@
         <td>{{forloop.counter}}</td>
         <td>
             <a href="/ranked/{{leaderboard_code}}/{{player.player.id}}"
-                >{{player.player.display_name}}</a
+                >{{player.player}}</a
             >
         </td>
         <td>{{ player.elo|floatformat:1 }}</td>

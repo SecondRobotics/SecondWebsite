@@ -3,7 +3,7 @@
 <div class="position-relative overflow-hidden text-center bg-primary">
     <div class="p-lg-4 mx-auto">
         <h1 style="color: white" class="display-4 fw-normal">
-            {{player.player.display_name}}
+            {{player.player}}
         </h1>
         <h1 style="color: white" class="display-6 fw-normal">
             <a
@@ -24,7 +24,8 @@
                 {{ mmr|get_rank }}
             </h1>
             <h2 style="color: white" class="display-6 fw-normal">
-                {{ player.elo|floatformat:1 }} ELO<br />{{ mmr|floatformat:1 }} MMR
+                {{ player.elo|floatformat:1 }} ELO<br />{{ mmr|floatformat:1 }}
+                MMR
             </h2>
         </div>
     </div>
