@@ -45,7 +45,7 @@ class PlayerElo(models.Model):
     player = models.ForeignKey(User, on_delete=models.CASCADE)
     game_mode = models.ForeignKey(GameMode, on_delete=models.CASCADE)
 
-    elo = models.FloatField(default=1000)
+    elo = models.FloatField(default=1200)
 
     matches_played = models.IntegerField(default=0)
     matches_won = models.IntegerField(default=0)

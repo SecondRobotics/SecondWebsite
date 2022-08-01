@@ -1,13 +1,17 @@
-{% extends 'home/base.html' %} {% block content %}
-{% load rank_filter %}
+{% extends 'home/base.html' %} {% block content %} {% load rank_filter %}
 
 <div class="position-relative overflow-hidden text-center bg-primary">
     <div class="p-lg-4 mx-auto">
-        <h1 style="color:white" class="display-4 fw-normal">{{leaderboard_name}}</h1>
+        <h1 style="color: white" class="display-4 fw-normal">
+            {{leaderboard_name}}
+        </h1>
     </div>
 </div>
 
-<table class="table table-dark table-striped table-hover table-sm" style="text-align:center">
+<table
+    class="table table-dark table-striped table-hover table-sm"
+    style="text-align: center"
+>
     <thead>
         <td>#</td>
         <td>Player</td>
@@ -23,7 +27,11 @@
     {% for player in players %}
     <tr>
         <td>{{forloop.counter}}</td>
-        <td><a href="/ranked/{{leaderboard_code}}/{{player.player.username}}">{{player.player.username}}</a></td>
+        <td>
+            <a href="/ranked/{{leaderboard_code}}/{{player.player.id}}"
+                >{{player.player.display_name}}</a
+            >
+        </td>
         <td>{{player.elo}}</td>
         <td>{{player.mmr}}</td>
         <td>{{player.mmr|get_rank}}</td>
