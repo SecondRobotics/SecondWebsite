@@ -48,14 +48,17 @@ def get_player(request: Request, player_id: str) -> Response:
     Gets whether the player has created an account in the system.
     """
     try:
-        User.objects.get(id=player_id)
+        user = User.objects.get(id=player_id)
     except (User.DoesNotExist, ValueError):
         return Response(status=404, data={
             'exists': False
         })
 
     return Response({
-        'exists': True
+        'exists': True,
+        'display_name': user.display_name,
+        'username': user.username,
+        'avatar': user.avatar,
     })
 
 
@@ -200,11 +203,15 @@ def post_match_result(request: Request, game_mode_code: str) -> Response:
         red_player_elos, many=True)
     blue_player_elos_serializer = PlayerEloSerializer(
         blue_player_elos, many=True)
+    red_display_names = [player.display_name for player in red_players]
+    blue_display_names = [player.display_name for player in blue_players]
 
     return Response({
         'match': match_serializer.data,
         'red_player_elos': red_player_elos_serializer.data,
         'blue_player_elos': blue_player_elos_serializer.data,
+        'red_display_names': red_display_names,
+        'blue_display_names': blue_display_names,
     })
 
 
@@ -273,9 +280,13 @@ def edit_match_result(request: Request, game_mode_code: str) -> Response:
         red_player_elos, many=True)
     blue_player_elos_serializer = PlayerEloSerializer(
         blue_player_elos, many=True)
+    red_display_names = [player.display_name for player in red_players]
+    blue_display_names = [player.display_name for player in blue_players]
 
     return Response({
         'match': match_serializer.data,
         'red_player_elos': red_player_elos_serializer.data,
         'blue_player_elos': blue_player_elos_serializer.data,
+        'red_display_names': red_display_names,
+        'blue_display_names': blue_display_names,
     })
