@@ -43,6 +43,23 @@ def get_game_mode(request: Request, game_mode_code: str) -> Response:
 
 
 @api_view(['GET'])
+def get_player(request: Request, player_id: str) -> Response:
+    """
+    Gets whether the player has created an account in the system.
+    """
+    try:
+        User.objects.get(id=player_id)
+    except (User.DoesNotExist, ValueError):
+        return Response(status=404, data={
+            'exists': False
+        })
+
+    return Response({
+        'exists': True
+    })
+
+
+@api_view(['GET'])
 def get_player_stats(request: Request, game_mode_code: str, player_id: str) -> Response:
     """
     Gets statistics for a player in a particular game mode.
