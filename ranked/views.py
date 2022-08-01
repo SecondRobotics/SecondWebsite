@@ -1,4 +1,3 @@
-from django.http import HttpResponse
 from django.shortcuts import render
 from django.http.response import HttpResponseRedirect
 from django.db.models import Max, F
@@ -9,7 +8,17 @@ from .models import GameMode, PlayerElo, Match
 
 
 def ranked_home(request):
-    return render(request, "ranked/ranked_home.html")
+    gamemodes = GameMode.objects.all()
+
+    # Create a dictionary mapping game name to array of gamemodes
+    gamemode_dict = {}
+    for gamemode in gamemodes:
+        if gamemode.game not in gamemode_dict:
+            gamemode_dict[gamemode.game] = []
+        gamemode_dict[gamemode.game].append(gamemode)
+
+    context = {'games': gamemode_dict}
+    return render(request, 'ranked/ranked_home.html', context)
 
 
 def leaderboard(request, name):

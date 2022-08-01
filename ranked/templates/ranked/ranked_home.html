@@ -2,17 +2,25 @@
 
 <div class="position-relative overflow-hidden text-center bg-primary">
     <div class="p-lg-4 mx-auto">
-        <h1 style="color:white" class="display-4 fw-normal">Ranked Leaderboards</h1>
+        <h1 style="color: white" class="display-4 fw-normal">
+            Ranked Leaderboards
+        </h1>
     </div>
 </div>
+
+{% for game, gamemodes in games.items %}
 
 <div
     class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-dark"
 >
-    <h2 style="color: white" class="display-10 fw-normal">SRC Rapid React</h2>
+    <h2 style="color: white" class="display-10 fw-normal">{{ game }}</h2>
     <br /><br />
 
-    <a href="/ranked/rr-3v3/" class="btn btn-outline-light">3v3 Leaderboard</a>
+    {% for gamemode in gamemodes %}
+    <a href="/ranked/{{ gamemode.short_code }}/" class="btn btn-outline-light"
+        >{{ gamemode.name }}</a
+    >
+    {% endfor %}
 </div>
 
-{% endblock %}
+{% endfor %} {% endblock %}
