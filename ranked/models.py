@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator, int_list_validator
 from discordoauth2.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 
@@ -53,6 +54,13 @@ class PlayerElo(models.Model):
     last_match_played_time = models.DateTimeField(null=True, blank=True)
     last_match_played_number = models.IntegerField(null=True, blank=True)
     total_score = models.IntegerField(default=0)
+
+    @property
+    def win_rate(self):
+        if self.matches_played == 0:
+            return 0
+        else:
+            return self.matches_won / self.matches_played * 100
 
     def __str__(self):
         return f"{self.player} - {self.game_mode} - {self.elo}"
