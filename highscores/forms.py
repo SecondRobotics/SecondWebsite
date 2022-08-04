@@ -35,3 +35,10 @@ class TPScoreForm(ScoreForm):
                                          queryset=models.Leaderboard.objects.filter(
                                              game='Tipping Point'),
                                          )
+
+
+class SUScoreForm(ScoreForm):
+    leaderboard = forms.ModelChoiceField(required=True,
+                                         queryset=models.Leaderboard.objects.filter(
+                                             game='Spin Up'),
+                                         )

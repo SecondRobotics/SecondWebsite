@@ -6,8 +6,8 @@ from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Max, Q
 
-from .forms import FFScoreForm, IRScoreForm, RRScoreForm, ScoreForm, TPScoreForm
-from SRCweb.settings import NEW_AES_KEY, DEBUG
+from .forms import FFScoreForm, IRScoreForm, RRScoreForm, SUScoreForm, ScoreForm, TPScoreForm
+from SRCweb.settings import NEW_AES_KEY, DEBUG, ADMINS, EMAIL_HOST_USER
 
 from Crypto.Cipher import AES
 from urllib.request import urlopen, Request
@@ -252,6 +252,42 @@ def tipping_point_submit(request):
     return render(request, SUBMIT_ACCEPTED_PAGE, {})
 
 
+@login_required(login_url='/login')
+def spin_up_submit(request):
+    if request.method != 'POST':
+        return render(request, SUBMIT_PAGE, {"form": SUScoreForm})
+
+    form = SUScoreForm(request.POST)
+    if not form.is_valid():
+        return render(request, SUBMIT_PAGE, {"form": form})
+
+    # Set up the score object
+    score_obj = extract_form_data(form, request)
+
+    # Check for older submissions from this user in this category
+    prev_submissions = Score.objects.filter(
+        leaderboard__name=score_obj.leaderboard, player=score_obj.player)
+
+    for submission in prev_submissions:
+        if submission.score >= score_obj.score:
+            return error_response(request, HIGHER_SCORE_MESSAGE)
+
+    # Check to ensure image / video is proper
+    res = submission_screenshot_check(score_obj, request)
+    if (res is not None):
+        return res
+
+    # Check the clean code
+    res = spin_up_clean_code_check(score_obj, request)
+    if (res is not None):
+        return res
+
+    # Code is valid! Instantly approve!
+    approve_score(score_obj, prev_submissions)
+
+    return render(request, SUBMIT_ACCEPTED_PAGE, {})
+
+
 def extract_form_data(form: ScoreForm, request):
     score_obj = Score()
     score_obj.leaderboard = form.cleaned_data['leaderboard']
@@ -393,7 +429,7 @@ def rapid_react_clean_code_check(score_obj: Score, request):
         if (res is not None):
             return res
         res = check_rapid_react_game_settings(
-            game_options, restart_option, game_index, request)
+            game_options, game_index, request)
         if (res is not None):
             return res
 
@@ -512,6 +548,52 @@ def tipping_point_clean_code_check(score_obj: Score, request):
     return None  # no error, proper clean code provided
 
 
+def spin_up_clean_code_check(score_obj: Score, request):
+    """ Checks if the clean code is valid.
+    :param score_obj: Score object to check
+    :param prev_submissions: List of previous submissions from this user in this category
+    :return: None if valid, HTTPResponse with error message if not
+    """
+    try:
+        # Clean code decryption
+        clean_code_decryption(score_obj)
+
+        # Clean code extraction
+        restart_option, game_options, robot_model, blue_score, red_score, game_index, auto_or_teleop = extract_clean_code_info(
+            score_obj)
+
+        # Check game settings
+        res = check_generic_game_settings(score_obj, request, auto_or_teleop)
+        if (res is not None):
+            return res
+        res = check_spin_up_game_settings(game_index, restart_option, request)
+        if (res is not None):
+            return res
+
+        # Check robot type
+        res = check_spin_up_robot_type(score_obj, robot_model, request)
+        if (res is not None):
+            return res
+
+        # Check score
+        res = check_skills_challenge_score(
+            score_obj, blue_score, red_score, request)
+        if (res is not None):
+            return res
+
+        # Search for code in database to ensure it is unique
+        res = search_for_reused_code(score_obj, request)
+        if (res is not None):
+            return res
+
+    except IndexError:  # code is for wrong game
+        return error_response(request, ERROR_WRONG_GAME_MESSAGE)
+    except Exception as e:  # code is corrupted during decryption
+        return error_response(request, ERROR_CORRUPT_CODE_MESSAGE)
+
+    return None  # no error, proper clean code provided
+
+
 def extract_clean_code_info(score_obj: Score):
     dataset = score_obj.decrypted_code.split(',')
 
@@ -573,7 +655,7 @@ def check_infinite_recharge_game_settings(game_options: list, restart_option: st
     return None  # No error
 
 
-def check_rapid_react_game_settings(game_options: list, restart_option: str, game_index: str, request):
+def check_rapid_react_game_settings(game_options: list, game_index: str, request):
     """ Checks if the Rapid React game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
@@ -611,6 +693,19 @@ def check_tipping_point_game_settings(game_index: str, request):
 
     if (game_index != '8'):
         return error_response(request, 'Wrong game! This form is for Tipping Point.')
+
+    return None  # No error
+
+
+def check_spin_up_game_settings(game_index: str, restart_option: str, request):
+    """ Checks if the Spin Up game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+
+    if (game_index != '11'):
+        return error_response(request, 'Wrong game! This form is for Spin Up.')
+    if (restart_option != '2'):
+        return error_response(request, 'You must use restart option 2 (skills challenge) for Spin Up high score submissions.')
 
     return None  # No error
 
@@ -686,6 +781,20 @@ def check_tipping_point_robot_type(score_obj: Score, robot_model: str, request):
     return None  # No error
 
 
+def check_spin_up_robot_type(score_obj: Score, robot_model: str, request):
+    """ Checks if the robot type is valid for Spin Up.
+    :return: None if the robot type is valid, or a response with an error message if it is not.
+    """
+    switch = {
+        'DiscShooter': 'Disc Shooter',
+    }
+
+    if switch[str(score_obj.leaderboard)] != robot_model:
+        return error_response(request, WRONG_ROBOT_MESSAGE)
+
+    return None  # No error
+
+
 def check_score(score_obj: Score, blue_score: str, red_score: str, request):
     """ Checks if the true score matches the reported score.
     :return: None if the score is valid, or a response with an error message if it is not.
@@ -696,6 +805,18 @@ def check_score(score_obj: Score, blue_score: str, red_score: str, request):
     else:
         if (red_score != str(score_obj.score)):
             return error_response(request, 'Double-check the score that you entered!')
+
+    return None  # No error
+
+
+def check_skills_challenge_score(score_obj: Score, blue_score: str, red_score: str, request):
+    """ Checks if the true score matches the reported score.
+    In Skills Challenge, your score is the sum of both alliances' scores.
+    :return: None if the score is valid, or a response with an error message if it is not.
+    """
+    score = int(blue_score) + int(red_score)
+    if (score != score_obj.score):
+        return error_response(request, 'Double-check the score that you entered! For Skills Challenge, your score is the sum of both alliances\' scores.')
 
     return None  # No error
 
@@ -731,8 +852,8 @@ def search_for_reused_code(score_obj: Score, request):
         message = f"{score_obj.player} attempted (and failed) to submit a score: [{score_obj.score}] - {score_obj.leaderboard}\n\n This score was already submitted by {clean_code_search[0].player}\n\n {score_obj.source}\n\nhttps://secondrobotics.org/admin/highscores/score/"
         try:
             if (not DEBUG):
-                send_mail(f"Possible cheating attempt from {score_obj.player}", message, "noreply@secondrobotics.org", [
-                          'brennan@secondrobotics.org'], fail_silently=False)
+                send_mail(f"Possible cheating attempt from {score_obj.player}",
+                          message, EMAIL_HOST_USER, ADMINS, fail_silently=False)
         except Exception as ex:
             print(ex)
 
