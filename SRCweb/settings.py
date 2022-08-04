@@ -37,8 +37,7 @@ DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
 API_KEY = os.getenv("API_KEY")
 
 # Sends an email to admins when debug = false and a 500 server error occurs
-ADMINS = [('Nick', 'nick@secondrobotics.org'),
-          ('Brennan', 'brennan@secondrobotics.org')]
+ADMINS = [('Webmaster', 'webmaster@secondrobotics.org')]
 
 AUTHENTICATION_BACKENDS = [
     # 'django.contrib.auth.backends.ModelBackend', # default backend
