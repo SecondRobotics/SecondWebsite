@@ -86,24 +86,24 @@ def reauth_user(request):
 
 
 def user_profile(request, user_id):
-    user_search = User.objects.filter(id=user_id)
-    if not user_search.exists():
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
-    user = user_search[0]
 
-    scoresdata = Score.objects.filter(player=user, approved=True)
-    scores = {"overallIR": 0, "overallFF": 0, "overallRR": 0}
-    sources = {}
-    for score in scoresdata:
-        sources.update({score.leaderboard.name: score.source})
-        scores.update({score.leaderboard.name: score.score})
-        if score.leaderboard.game == "Infinite Recharge":
-            scores.update({"overallIR": score.score + scores['overallIR']})
-        elif score.leaderboard.game == "Freight Frenzy":
-            scores.update({"overallFF": score.score + scores['overallFF']})
-        elif score.leaderboard.game == "Rapid React":
-            scores.update({"overallRR": score.score + scores['overallRR']})
-    context = {"scores": scores, "user": user, "sources": sources}
+    scores = Score.objects.filter(
+        player=user, approved=True).order_by('-time_set')
+
+    games = {}
+    for score in scores:
+        if score.leaderboard.game not in games:
+            games[score.leaderboard.game] = {
+                "overall": score.score, "slug": score.leaderboard.game_slug, "scores": [score]}
+        else:
+            games[score.leaderboard.game]["scores"] += [score]
+            games[score.leaderboard.game]["overall"] += score.score
+
+    context = {"games": games, "user": user}
     return render(request, "home/user_profile.html", context)
 
 
