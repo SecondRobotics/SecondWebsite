@@ -31,7 +31,17 @@ SUBMIT_ERROR_PAGE = "highscores/submit_error.html"
 
 
 def home(request):
-    return render(request, "highscores/highscore_home.html")
+    leaderboards = Leaderboard.objects.all().order_by('-id')
+
+    # Create a dictionary mapping game name to array of leaderboards
+    leaderboards_dict = {}
+    for leaderboard in leaderboards:
+        game = leaderboard.game
+        if game not in leaderboards_dict:
+            leaderboards_dict[game] = []
+        leaderboards_dict[leaderboard.game].append(leaderboard)
+
+    return render(request, "highscores/highscore_home.html", {"games": leaderboards_dict})
 
 
 def error_response(request, error_message):

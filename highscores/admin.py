@@ -10,7 +10,13 @@ class ScoreAdmin(admin.ModelAdmin):
     search_fields = ('player',)
 
 
+class LeaderboardAdmin(admin.ModelAdmin):
+    list_display = ('name', 'game', 'game_slug', 'auto_or_teleop',)
+    list_filter = ('game', 'game', 'auto_or_teleop',)
+    search_fields = ('name',)
+
+
 admin.site.site_header = "Second Robotics Admin Panel"
-admin.site.register(Leaderboard)
+admin.site.register(Leaderboard, LeaderboardAdmin)
 admin.site.register(Score, ScoreAdmin)
 admin.site.register(CleanCodeSubmission)

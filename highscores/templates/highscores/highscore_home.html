@@ -6,97 +6,33 @@
         xRC Sim Official Highscores
     </h1>
 </div>
+
+{% for game, leaderboards in games.items %}
+
 <div
     class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-dark"
 >
-    <h2 style="color: white" class="display-10 fw-normal">SRC Rapid React</h2>
-    <a href="/highscores/rr/combined/" class="btn btn-outline-light"
+    <h2 style="color: white" class="display-10 fw-normal">{{ game }}</h2>
+    {% if leaderboards|length > 1 %}
+    <a
+        href="/highscores/{{ leaderboards.copy.pop.game_slug }}/combined/"
+        class="btn btn-outline-light"
         >Combined Leaderboard</a
     >
     <br /><br />
-    <a href="/highscores/rr/MiniDrone/" class="btn btn-outline-light"
-        >MiniDrone</a
+    {% endif %} {% for leaderboard in leaderboards %}
+    <a
+        href="/highscores/{{ leaderboard.game_slug }}/{{ leaderboard.name }}/"
+        class="btn btn-outline-light"
+        >{{ leaderboard.name }}</a
     >
-    <a href="/highscores/rr/RRBulldogs/" class="btn btn-outline-light"
-        >Bulldogs</a
-    >
-    <a href="/highscores/rr/RRFRCShooter/" class="btn btn-outline-light"
-        >FRCShooter</a
-    >
-    <a href="/highscores/rr/Hot/" class="btn btn-outline-light"
-        >Hot</a
-    >
-    <a href="/highscores/rr/Greybots/" class="btn btn-outline-light"
-        >Greybots</a
-    >
-    <a href="/highscores/rr/Thunderstamps/" class="btn btn-outline-light"
-        >Thunderstamps</a
-    >
+    {% endfor %}
     <br /><br />
-    <a href="/highscores/rr/submit/" class="btn btn-outline-success"
+    <a
+        href="/highscores/{{ leaderboards.copy.pop.game_slug }}/submit/"
+        class="btn btn-outline-success"
         >Submit your score</a
     >
 </div>
-<div
-    class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-dark"
->
-    <h2 style="color: white" class="display-10 fw-normal">
-        SRC Infinite Recharge
-    </h2>
-    <a href="/highscores/ir/combined/" class="btn btn-outline-light"
-        >Combined Leaderboard</a
-    >
-    <br /><br />
-    <a href="/highscores/ir/OG/" class="btn btn-outline-light">OG</a>
-    <a href="/highscores/ir/Inertia/" class="btn btn-outline-light">Inertia</a>
-    <a href="/highscores/ir/Roboteers/" class="btn btn-outline-light"
-        >Roboteers</a
-    >
-    <a href="/highscores/ir/Waffles/" class="btn btn-outline-light">Waffles</a>
-    <a href="/highscores/ir/Triangle/" class="btn btn-outline-light"
-        >Triangle</a
-    >
-    <a href="/highscores/ir/Pushbot2/" class="btn btn-outline-light"
-        >Pushbot2</a
-    >
-    <br /><br />
-    <a href="/highscores/ir/submit/" class="btn btn-outline-success"
-        >Submit your score</a
-    >
-</div>
-<div
-    class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-dark"
->
-    <h2 style="color: white" class="display-10 fw-normal">
-        STC Freight Frenzy
-    </h2>
-    <a href="/highscores/ff/combined/" class="btn btn-outline-light"
-        >Combined Leaderboard</a
-    >
-    <br /><br />
-    <a href="/highscores/ff/Bulldogs/" class="btn btn-outline-light"
-        >Bulldogs</a
-    >
-    <a href="/highscores/ff/Kraken/" class="btn btn-outline-light">Kraken</a>
-    <a href="/highscores/ff/Bailey/" class="btn btn-outline-light">Bailey</a>
-    <a href="/highscores/ff/Cody/" class="btn btn-outline-light">Cody</a>
-    <a href="/highscores/ff/goBILDA/" class="btn btn-outline-light">goBILDA</a>
-    <a href="/highscores/ff/DualMeta/" class="btn btn-outline-light"
-        >DualMeta</a
-    >
-    <br /><br />
-    <a href="/highscores/ff/submit/" class="btn btn-outline-success"
-        >Submit your score</a
-    >
-</div>
-<div
-    class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-dark"
->
-    <h2 style="color: white" class="display-10 fw-normal">SVC Tipping Point</h2>
-    <a href="/highscores/tp/AMOGO2/" class="btn btn-outline-light">AMOGO2</a>
-    <br /><br />
-    <a href="/highscores/tp/submit/" class="btn btn-outline-success"
-        >Submit your score</a
-    >
-</div>
-{% endblock %}
+
+{% endfor %} {% endblock %}
