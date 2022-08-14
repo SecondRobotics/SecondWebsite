@@ -1,3 +1,4 @@
+from .models import Staff
 from teamleague.models import Alliance
 from django.http.response import HttpResponseRedirect
 from discordoauth2.models import User
@@ -29,7 +30,8 @@ def rules(response):
 
 
 def staff(response):
-    return render(response, "home/staff.html", {})
+    staff = Staff.objects.all()
+    return render(response, "home/staff.html", {"staffs": staff})
 
 
 def privacy(response):
