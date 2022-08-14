@@ -1,3 +1,4 @@
+from ranked.models import PlayerElo
 from .models import Staff
 from teamleague.models import Alliance
 from django.http.response import HttpResponseRedirect
@@ -105,7 +106,9 @@ def user_profile(request, user_id):
             games[score.leaderboard.game]["scores"] += [score]
             games[score.leaderboard.game]["overall"] += score.score
 
-    context = {"games": games, "user": user}
+    player_elos = PlayerElo.objects.filter(player=user)
+
+    context = {"games": games, "user": user, "elos": player_elos}
     return render(request, "home/user_profile.html", context)
 
 

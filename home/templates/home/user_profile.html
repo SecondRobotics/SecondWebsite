@@ -23,19 +23,60 @@
     </div>
 </div>
 
-{% for game_name, game in games.items %}
+{% if elos|length > 0 %}
+
+<div class="row">
+    <div
+        class="position-relative overflow-hidden p-md-3 m-md-3 shadowy text-center bg-secondary"
+    >
+        <h2>Ranked</h2>
+    </div>
+</div>
+
+{% for elo in elos %}
+
+<div class="row">
+    <div class="col-4">
+        <div
+            class="position-relative overflow-hidden p-3 p-md-3 shadowy m-md-3 text-center bg-dark"
+        >
+            <h3>
+                <a
+                    href="/ranked/{{elo.game_mode.short_code}}/"
+                    style="color: #fff; text-decoration: none"
+                    >{{elo.game_mode}}</a
+                >
+            </h3>
+            <h5>{{elo.elo|floatformat:1}}</h5>
+            <h5>
+                {{elo.matches_won}}-{{elo.matches_lost}}-{{elo.matches_drawn}}
+            </h5>
+        </div>
+    </div>
+</div>
+{% endfor %} {% endif %}
+
+<div class="row">
+    <div
+        class="position-relative overflow-hidden p-md-3 m-md-3 shadowy text-center bg-secondary"
+    >
+        <h2>Highscores</h2>
+    </div>
+</div>
+
+{% if games|length > 0 %} {% for game_name, game in games.items %}
 
 <div class="row">
     <div
         class="position-relative overflow-hidden p-3 shadowy p-md-3 m-md-3 text-center bg-dark"
     >
-        <h2>
+        <h3>
             <a
                 href="/highscores/{{game.slug}}/combined/"
                 style="color: #fff; text-decoration: none"
                 >{{game_name}}</a
             >
-        </h2>
+        </h3>
         <h4>{{game.overall}}</h4>
     </div>
 
@@ -53,7 +94,9 @@
                 >
             </h3>
             <h4>{{score.score}}</h4>
-            {% if score.score > 0 %} {% if "youtube" in score.source or "streamable" in sources.source %}
+            {% if score.score > 0 %}
+            <!---->
+            {% if "youtube" in score.source or "streamable" in sources.source %}
             <iframe
                 class="img-fluid rounded"
                 src="{{score.source}}"
@@ -74,4 +117,4 @@
     {% endfor %}
 </div>
 
-{% endfor %} {% endblock %}
+{% endfor %} {% endif %} {% endblock %}
