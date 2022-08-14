@@ -39,27 +39,27 @@ def privacy(response):
     return render(response, "home/privacy.html", {})
 
 
-def src_rules(response):
+def src_rules(_response):
     return redirect('https://bit.ly/SRCrules')
 
 
-def stc_rules(response):
+def stc_rules(_response):
     return redirect('https://bit.ly/STC-rules')
 
 
-def mrc_rules(response):
+def mrc_rules(_response):
     return redirect('https://bit.ly/MRC-rules')
 
 
-def discord(response):
+def svc_rules(_response):
+    return redirect('https://bit.ly/SVCrules')
+
+
+def discord(_response):
     return redirect('https://www.discord.gg/Zq3HXRc')
 
 
-def ranked(response):
-    return redirect('https://bit.ly/EloRanks')
-
-
-def merch(response):
+def merch(_response):
     return redirect('https://store.secondrobotics.org/')
 
 
