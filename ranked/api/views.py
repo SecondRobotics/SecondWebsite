@@ -121,12 +121,11 @@ def get_player_elo_history(request: Request, game_mode_code: str, player_id: str
 
     player_elo = PlayerElo.objects.get(player=player, game_mode=game_mode)
 
+    elo_history = EloHistory.objects.filter(player_elo=player_elo)
     if not elo_history.exists():
         return Response(status=404, data={
             'error': f'Player {player_id} has no elo history for {game_mode_code}.'
         })
-
-    elo_history = EloHistory.objects.filter(player_elo=player_elo)
 
     player_elo_serializer = PlayerEloSerializer(player_elo)
     elo_history_serializer = EloHistorySerializer(elo_history, many=True)
