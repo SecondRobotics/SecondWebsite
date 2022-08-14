@@ -18,6 +18,7 @@
                 🥇 {{event.first_place}} 🥇 {% if event.second_place %} <br />
                 🥈 {{event.second_place}} 🥈 {% endif %}
             </p>
+            {% if event.youtube_url %}
             <div class="embed-responsive shadowy embed-responsive-16by9">
                 <iframe
                     width="100%"
@@ -27,6 +28,7 @@
                     allowfullscreen
                 ></iframe>
             </div>
+            {% endif %}
         </div>
     </div>
     {% endfor %}
