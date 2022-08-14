@@ -1,17 +1,26 @@
 {% extends 'home/base.html' %} {% block content %} {% load rank_filter %}
 
-<div class="position-relative overflow-hidden text-center bg-primary">
-    <div class="p-lg-4 mx-auto">
-        <h1 style="color: white" class="display-4 fw-normal">
-            {{player.player}}
-        </h1>
-        <h1 style="color: white" class="display-6 fw-normal">
-            <a
-                href="/ranked/{{player.game_mode.short_code}}/"
-                style="color: #fff; text-decoration: none"
-                >{{player.game_mode.name}}</a
-            >
-        </h1>
+<div class="row">
+    <div class="col-2">
+        <img
+            src="{{player.player.avatar}}"
+            class="shadowy m-md-3 responsive img-profile rounded-circle img-fluid"
+            alt="User profile picture"
+        />
+    </div>
+    <div class="col-10">
+        <div
+            class="position-relative overflow-hidden bg-primary p-lg-4 mx-auto text-center"
+        >
+            <h1 class="display-4 fw-normal">{{player.player}}</h1>
+            <h1 class="display-6 fw-normal">
+                <a
+                    href="/ranked/{{player.game_mode.short_code}}/"
+                    style="color: #fff; text-decoration: none"
+                    >{{player.game_mode.name}}</a
+                >
+            </h1>
+        </div>
     </div>
 </div>
 
@@ -20,10 +29,8 @@
         <div
             class="position-relative overflow-hidden p-3 p-md-4 shadowy m-md-3 text-center bg-dark"
         >
-            <h1 style="color: white" class="display-4 fw-normal">
-                {{ mmr|get_rank }}
-            </h1>
-            <h2 style="color: white" class="display-6 fw-normal">
+            <h1 class="display-4 fw-normal">{{ mmr|get_rank }}</h1>
+            <h2 class="display-6 fw-normal">
                 {{ player.elo|floatformat:1 }} ELO<br />{{ mmr|floatformat:1 }}
                 MMR
             </h2>
@@ -33,14 +40,20 @@
         <div
             class="position-relative overflow-hidden p-3 p-md-4 shadowy m-md-3 text-center bg-dark"
         >
-            <h1 style="color: white" class="display-4 fw-normal">
+            <h1 class="display-4 fw-normal">
                 {{ player.win_rate|floatformat:2 }}% Win Rate
             </h1>
-            <h2 style="color: white" class="display-6 fw-normal">
+            <h2 class="display-6 fw-normal">
                 {{player.matches_won}}-{{player.matches_lost}}-{{player.matches_drawn}}<br />W-L-T
             </h2>
         </div>
     </div>
+</div>
+
+<div class="text-center">
+    <a href="/user/{{player.player.id}}/" class="btn btn-primary btn-lg"
+        >View Full Profile</a
+    >
 </div>
 
 {% endblock %}

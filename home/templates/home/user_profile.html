@@ -1,15 +1,9 @@
 {% extends 'home/base.html' %} {% block content %}
-<style>
-    .responsive {
-        width: 100%;
-        height: auto;
-    }
-</style>
 <div class="row">
     <div class="col-2">
         <img
             src="{{user.avatar}}"
-            class="shadowy m-md-3 responsive img-profile rounded-circle"
+            class="shadowy m-md-3 responsive img-profile rounded-circle img-fluid"
             alt="User profile picture"
         />
     </div>
