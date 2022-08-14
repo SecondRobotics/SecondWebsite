@@ -14,3 +14,14 @@ class Staff(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class HistoricEvent(models.Model):
+    name = models.CharField(max_length=50)
+    date = models.DateField()
+    youtube_url = models.URLField(null=True, blank=True)
+    first_place = models.CharField(max_length=100)
+    second_place = models.CharField(max_length=100, null=True, blank=True)
+
+    def __str__(self):
+        return self.name

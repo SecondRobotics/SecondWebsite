@@ -1,5 +1,5 @@
 from ranked.models import PlayerElo
-from .models import Staff
+from .models import HistoricEvent, Staff
 from teamleague.models import Alliance
 from django.http.response import HttpResponseRedirect
 from discordoauth2.models import User
@@ -64,7 +64,8 @@ def merch(response):
 
 
 def hall_of_fame(response):
-    return render(response, "home/hall_of_fame.html", {})
+    events = HistoricEvent.objects.all().order_by('-date')
+    return render(response, "home/hall_of_fame.html", {"events": events})
 
 
 def logos(response):

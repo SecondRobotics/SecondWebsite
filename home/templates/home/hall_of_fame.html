@@ -1,245 +1,34 @@
-{% extends 'home/base.html' %}
-
-{% block content %}
-<div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-primary">
-    <h1 style="color:white" class="display-4 fw-normal">Hall of Fame</h1>
-    <h2 style="color:white" class="display-12 fw-normal">An archive of past Second Robotics events</h4> 
+{% extends 'home/base.html' %} {% block content %}
+<div
+    class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-primary"
+>
+    <h1>Hall of Fame</h1>
+    <h4>An archive of past Second Robotics events</h4>
 </div>
 
-<div class="row">
+<div class="row row-cols-md-1 row-cols-lg-2 row-cols-xl-3">
+    {% for event in events %}
     <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">Minecraft Robotics Competition Regional</h4>
-            <h5 style="color:white">12/19/2020</h5>
-            <p style="color:white">🥇 darreman4    spaceturtl    DinoMax0112 🥇<br/>🥈 Waxton    ThatSoftwareDude    steggs85 🥈</p>
+        <div
+            class="position-relative overflow-hidden p-3 p-md-3 shadowy m-md-3 text-center bg-dark"
+        >
+            <h4>{{event.name}}</h4>
+            <h5>{{event.date}}</h5>
+            <p>
+                🥇 {{event.first_place}} 🥇 {% if event.second_place %} <br />
+                🥈 {{event.second_place}} 🥈 {% endif %}
+            </p>
             <div class="embed-responsive shadowy embed-responsive-16by9">
-                <iframe width="100%" height="190" src="https://www.youtube-nocookie.com/embed/_SMOkGr4IMI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                <iframe
+                    width="100%"
+                    height="190"
+                    src="{{event.youtube_url}}"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                ></iframe>
             </div>
         </div>
     </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">The Twelve 2</h4>
-            <h5 style="color:white">12/12/2020</h5>
-            <p style="color:white">🥇 Nick862 🥇<br/>🥈 Andrew2137 🥈</p>
-            <div class="embed-responsive shadowy embed-responsive-16by9">
-                <iframe width="100%" height="190" src="https://www.youtube-nocookie.com/embed/gvzpDJ0rAOM" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SRC Ladder: Season Two Championship</h4>
-            <h5 style="color:white">10/24/2020</h5>
-            <p style="color:white">🥇 Andrew2137    Logan4476    AdamD 🥇<br/>🥈 Dakota346    Cone4946    Darre2655 🥈</p>
-            <div class="embed-responsive shadowy embed-responsive-16by9">
-                <iframe width="100%" height="190" src="https://www.youtube-nocookie.com/embed/Q16-MTbNru0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SRC Ladder: Season Two All-Star Event</h4>
-            <h5 style="color:white">10/17/2020</h5>
-            <p style="color:white">🥇 Cone4946    Brennan4476    Labib12    Andrew2137    Anthony3175    Darre 🥇<br/></p>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">STC Ultimate Goal Event</h4>
-            <h5 style="color:white">9/19/2020</h5>
-            <p style="color:white">🥇 C4678   GregWC 🥇<br/>🥈 Andrew   Codster 🥈</p>
-            <div class="embed-responsive shadowy embed-responsive-16by9">
-                <iframe width="100%" height="190" src="https://www.youtube-nocookie.com/embed/YBpdvX-rTnU" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SRC Free For All</h4>
-            <h5 style="color:white">9/12/2020</h5>
-            <p style="color:white">🥇 Cone4946 🥇<br/>🥈 Codster 🥈</p>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SRC Ladder: Season One Championship</h4>
-            <h5 style="color:white">8/16/2020</h5>
-            <p style="color:white">🥇 Rj9    Panda4456    Bacon 🥇<br/>🥈 Cone4946    Brennan4476    Jeff 🥈</p>
-            <div class="embed-responsive shadowy embed-responsive-16by9">
-                <iframe width="100%" height="190" src="https://www.youtube-nocookie.com/embed/LvGn2-LTL8w" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SVC Event #2</h4>
-            <h5 style="color:white">6/20/2020</h5>
-            <p style="color:white">🥇 Brennan4476    Cone4946 🥇<br/>🥈 Josh2775J    Yuanyang1727 🥈</p>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SVC Double-Elimination Event #2</h4>
-            <h5 style="color:white">6/7/2020</h5>
-            <p style="color:white">🥇 Ilya241D    rj9 🥇<br/>🥈 Jake5468    Brennan4476 🥈</p>
-            <div class="embed-responsive shadowy embed-responsive-16by9">
-                <iframe width="100%" height="190" src="https://www.youtube-nocookie.com/embed/jc3tAVcBnpE" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SRC Standalone Event</h4>
-            <h5 style="color:white">6/6/2020</h5>
-            <p style="color:white">🥇 Anthony3175    Cone4946    Ruderooster 🥇<br/>🥈 Brennan4476    Nick862    Colin 🥈</p>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">STC June Round Robin</h4>
-            <h5 style="color:white">6/3/2020</h5>
-            <p style="color:white">🥇 Steven11115    Bacon14212 🥇<br/>🥈 Blu2th1000    Shankar8719 🥈</p>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SVC Double-Elimination Event #1</h4>
-            <h5 style="color:white">5/31/2020</h5>
-            <p style="color:white">🥇 RJ9    Yuanyang 🥇<br/>🥈 Sam5278C    Nex_Lvl_Gamin 🥈</p>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SRC May All-Star Event</h4>
-            <h5 style="color:white">5/30/2020</h5>
-            <p style="color:white">🥇 Cone4946    Nick862    AdamD    Alex1477    Bacon    Anthony3175 🥇<br/></p>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SVC Event #1</h4>
-            <h5 style="color:white">5/24/2020</h5>
-            <p style="color:white">🥇 RJ9   Yuanyang 🥇<br/>🥈 Ilya    Kevin 🥈</p>
-            <div class="embed-responsive shadowy embed-responsive-16by9">
-                <iframe width="100%" height="190" src="https://www.youtube-nocookie.com/embed/V1yODBKKR9c" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SRC 1v1 Double Elimination Event</h4>
-            <h5 style="color:white">5/23/2020</h5>
-            <p style="color:white">🥇 Brennan4476 🥇<br/>🥈 Cone4946 🥈</p>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SRC 2v2 Double Elimination Event</h4>
-            <h5 style="color:white">5/17/2020</h5>
-            <p style="color:white">🥇 Cone4946    Brennan4476 🥇<br/>🥈 Matt1727    Yuanyang1727 🥈</p>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SRC May District Championship</h4>
-            <h5 style="color:white">5/10/2020</h5>
-            <p style="color:white">🥇 Brennan4476    AdamD    Javon442 🥇<br/>🥈 Brian9605    Josh4910    Bacon 🥈</p>
-            <div class="embed-responsive shadowy embed-responsive-16by9">
-                <iframe width="100%" height="190" src="https://www.youtube-nocookie.com/embed/FuaRn_7KrIs" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">STC April Championship</h4>
-            <h5 style="color:white">4/29/2020</h5>
-            <p style="color:white">🥇 Blu2th    Devboi    Woosh3846 🥇<br/>🥈 Steven11115    Adam10836    Bacon14212 🥈</p>
-            <div class="embed-responsive shadowy embed-responsive-16by9">
-                <iframe width="100%" height="190" src="https://www.youtube-nocookie.com/embed/MjV5cb22VkA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SRC District Event #8</h4>
-            <h5 style="color:white">5/3/20</h5>
-            <p style="color:white">🥇 Brennan4476    Jeff    Javon442 🥇<br/>🥈 GregWC    Jett    Sohaib 🥈</p>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SRC District Event #7</h4>
-            <h5 style="color:white">4/25/20</h5>
-            <p style="color:white">🥇 Nick862    Logan4476    Attention 🥇<br/>🥈 Javon442    Jeff    Josh3674 🥈</p>
-            <div class="embed-responsive shadowy embed-responsive-16by9">
-                <iframe width="100%" height="190" src="https://www.youtube-nocookie.com/embed/YWmdX4Wbook" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SRC District Event #6</h4>
-            <h5 style="color:white">4/18/20</h5>
-            <p style="color:white">🥇 Logan4476    Brennan4476    panda4456 🥇<br/>🥈 cobbie    Jett2928    Attention 🥈</p>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SRC District Event #5</h4>
-            <h5 style="color:white">4/11/20</h5>
-            <p style="color:white">🥇 Logan4476    Josh4910    rj9    Ruderooster 🥇<br/>🥈 AdamD    Idkwhy    Jett2928    Javon442 🥈</p>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">SRC District Event #4</h4>
-            <h5 style="color:white">4/5/20</h5>
-            <p style="color:white">🥇 Logan4476    Daviado    Cobbie 🥇<br/>🥈 DeepVoiceGuy    Eli2791    Anthony3175 🥈</p>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 450px;">
-            <h4 style="color:white">OG FUN Sim Champs</h4>
-            <h5 style="color:white">4/4/2020</h5>
-            <p style="color:white">🥇 Yuanyang    Nick862    Daviado 🥇<br/>🥈 Matt7172    WooshWoosh    GlutenSteve 🥈</p>
-            <div class="embed-responsive shadowy embed-responsive-16by9">
-                <iframe width="100%" height="190" src="https://www.youtube-nocookie.com/embed/videoseries?list=PLkZ6_Ld1x9Y-LtxyC_VcGoDoWuAMjJNXT" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 200px;">
-            <h4 style="color:white">SRC District Event #3</h4>
-            <h5 style="color:white">3/28/20</h5>
-            <p style="color:white">🥇 Archer    Brennan4476    Dhruv 🥇<br/>🥈 Yuanyang    Attention4499    Eli2791 🥈</p>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 200px;">
-            <h4 style="color:white">SRC District Event #2</h4>
-            <h5 style="color:white">3/22/20</h5>
-            <p style="color:white">🥇 Matt1727    Josh4910    Eli2791    Dakota346 🥇<br/>🥈 Anthony3175    Nicholas4646    Attention4499    Trevor1102 🥈</p>
-        </div>
-    </div>
-    <div class="col">
-        <div class="position-relative overflow-hidden p-3 p-md-5 shadowy m-md-3 text-center bg-dark" style="height: 200px;">
-            <h4 style="color:white">SRC District Event #1</h4>
-            <h5 style="color:white">3/21/20</h5>
-            <p style="color:white">🥇 Ryan3559    Josh4910    Nate2791    Eli2791 🥇<br/>🥈 Bobert    Darre2655    Casey1086    LIPoofs2930 🥈</p>
-        </div>
-    </div>
+    {% endfor %}
 </div>
 {% endblock %}
