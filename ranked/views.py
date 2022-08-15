@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http.response import HttpResponseRedirect
 from django.db.models import Max, F
 
-from .models import GameMode, PlayerElo, Match
+from .models import EloHistory, GameMode, PlayerElo, Match
 
 # Create your views here.
 
@@ -72,6 +72,10 @@ def player_info(request, name, player_id):
     mmr = round(player.elo - ((most_recent_match - player.last_match_played_number)
                 * 1.15) + (30 * (player.matches_played / max_matches_played)), 1)
 
-    context = {'player': player, 'mmr': mmr}
+    elo_history = EloHistory.objects.filter(player_elo=player)
+    match_labels = [eh.match_number for eh in elo_history]
+    elo_history = [eh.elo for eh in elo_history]
 
+    context = {'player': player, 'mmr': mmr,
+               'elo_history': elo_history, 'match_labels': match_labels}
     return render(request, 'ranked/player_info.html', context)

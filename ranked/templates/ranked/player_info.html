@@ -50,6 +50,60 @@
     </div>
 </div>
 
+<script
+    src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"
+    integrity="sha256-+8RZJua0aEWg+QVVKg4LEzEEm/8RFez5Tb4JBNiV5xA="
+    crossorigin="anonymous"
+></script>
+
+<div class="row row-cols-1 row-cols-md-2 p-lg-5">
+    <div class="col">
+        <canvas id="chart-elo-history" width="400" height="400"></canvas>
+    </div>
+    <div class="col">
+        <canvas id="chart-win-rate" width="400" height="400"></canvas>
+    </div>
+</div>
+
+<script>
+    const winRateChart = new Chart(document.getElementById('chart-win-rate').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Wins', 'Losses', 'Draws'],
+            datasets: [{
+                data: [
+                    {{player.matches_won}},
+                    {{player.matches_lost}},
+                    {{player.matches_drawn}}
+                ],
+                backgroundColor: [
+                    '#28a745',
+                    '#dc3545',
+                    '#ffc107'
+                ],
+                borderColor: [
+                    '#28a745',
+                    '#dc3545',
+                    '#ffc107'
+                ],
+                borderWidth: 1
+            }]
+        },
+    });
+    const eloHistoryChart = new Chart(document.getElementById('chart-elo-history').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: JSON.parse("{{match_labels}}"),
+            datasets: [{
+                label: 'ELO',
+                data: JSON.parse("{{elo_history}}"),
+                backgroundColor: '#ffc107',
+                borderColor: '#ffc107',
+            }]
+        },
+    });
+</script>
+
 <div class="text-center">
     <a href="/user/{{player.player.id}}/" class="btn btn-primary btn-lg"
         >View Full Profile</a
