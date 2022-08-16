@@ -95,6 +95,9 @@
                 borderWidth: 1
             }]
         },
+        options: {
+            maintainAspectRatio: false,
+        },
     });
     const eloHistoryChart = new Chart(document.getElementById('chart-elo-history').getContext('2d'), {
         type: 'line',
@@ -106,6 +109,9 @@
                 backgroundColor: '#ffc107',
                 borderColor: '#ffc107',
             }]
+        },
+        options: {
+            maintainAspectRatio: false,
         },
     });
 </script>
