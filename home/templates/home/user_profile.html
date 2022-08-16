@@ -25,11 +25,8 @@
     >
         <h2>Ranked</h2>
     </div>
-</div>
 
-{% for elo in elos %}
-
-<div class="row">
+    {% for elo in elos %}
     <div class="col-4">
         <div
             class="position-relative overflow-hidden p-3 p-md-3 shadowy m-md-3 text-center bg-dark"
@@ -47,8 +44,9 @@
             </h5>
         </div>
     </div>
+    {% endfor %}
 </div>
-{% endfor %} {% endif %}
+{% endif %}
 
 <div class="row">
     <div

@@ -12,7 +12,13 @@
         <div
             class="position-relative overflow-hidden bg-primary p-lg-4 mx-auto text-center"
         >
-            <h1 class="display-4 fw-normal">{{player.player}}</h1>
+            <h1 class="display-4 fw-normal">
+                <a
+                    href="/user/{{player.player.id}}/"
+                    style="color: #fff; text-decoration: none"
+                    >{{player.player}}</a
+                >
+            </h1>
             <h1 class="display-6 fw-normal">
                 <a
                     href="/ranked/{{player.game_mode.short_code}}/"
@@ -103,11 +109,5 @@
         },
     });
 </script>
-
-<div class="text-center">
-    <a href="/user/{{player.player.id}}/" class="btn btn-primary btn-lg"
-        >View Full Profile</a
-    >
-</div>
 
 {% endblock %}
