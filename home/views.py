@@ -87,10 +87,10 @@ def reauth_user(request):
     return redirect('/oauth2/login')
 
 
-def user_profile(request, user_id):
+def user_profile(request, user_id: int):
     try:
         user = User.objects.get(id=user_id)
-    except User.DoesNotExist:
+    except (User.DoesNotExist, OverflowError):
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
     scores = Score.objects.filter(
