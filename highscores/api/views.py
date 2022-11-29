@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.request import Request, Empty
 from rest_framework.decorators import api_view
 
-from .serializers import UserSerializer
+from .serializers import UserSerializer, ScoreSerializer, LeaderboardSerializer
 from ..models import Score, Leaderboard
 
 
@@ -30,6 +30,37 @@ def auth(request: HttpRequest) -> HttpResponse:
         return redirect('http://localhost:22226/?sessionid=%s' % request.session.session_key)
     else:
         return redirect('/oauth2/loginapi')
+
+
+@api_view(['GET'])
+def get_my_scores(request: Request) -> Response:
+    """Returns the user's scores."""
+    if not request.user.is_authenticated:
+        return Response({'success': False, 'message': 'User is not authenticated.'})
+
+    scores = Score.objects.filter(player=request.user, approved=True)
+    serializer = ScoreSerializer(scores, many=True)
+    return Response({'success': True, 'scores': serializer.data})
+
+
+@api_view(['GET'])
+def get_leaderboard(request: Request, name: str) -> Response:
+    """Returns the leaderboard with the given name."""
+    if not Leaderboard.objects.filter(name=name).exists():
+        return Response({'success': False, 'message': 'Leaderboard does not exist.'})
+
+    scores = Score.objects.filter(leaderboard__name=name, approved=True).order_by(
+        '-score', 'time_set').all()[:10]
+    serializer = ScoreSerializer(scores, many=True)
+    return Response({'success': True, 'scores': serializer.data})
+
+
+@api_view(['GET'])
+def get_leaderboards(request: Request) -> Response:
+    """Returns all leaderboards."""
+    leaderboards = Leaderboard.objects.all()
+    serializer = LeaderboardSerializer(leaderboards, many=True)
+    return Response({'success': True, 'leaderboards': serializer.data})
 
 
 @api_view(['POST'])
