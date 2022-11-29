@@ -22,22 +22,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY") or "SECRET_KEY"
 
 # SECURITY WARNING: keep the AES key used in production secret!
-NEW_AES_KEY = os.getenv("NEW_AES_KEY")
+NEW_AES_KEY = os.getenv("NEW_AES_KEY") or "NEW_AES_KEY"
 
 # Discord Client ID (client safe)
 DISCORD_CLIENT_ID = "825618483957071873"
 
 # SECURITY WARNING: keep the Discord Client Secret used in production secret!
-DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
+DISCORD_CLIENT_SECRET = os.getenv(
+    "DISCORD_CLIENT_SECRET") or "DISCORD_CLIENT_SECRET"
 
 # SECURITY WARNING: keep the API Key used in production secret!
-API_KEY = os.getenv("API_KEY")
+API_KEY = os.getenv("API_KEY") or "API_KEY"
 
 # Sends an email to admins when debug = false and a 500 server error occurs
-ADMINS = [('Webmaster', 'webmaster@secondrobotics.org')]
+ADMINS = ['webmaster@secondrobotics.org']
 
 AUTHENTICATION_BACKENDS = [
     # 'django.contrib.auth.backends.ModelBackend', # default backend
