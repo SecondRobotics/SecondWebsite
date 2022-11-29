@@ -68,8 +68,8 @@ INSTALLED_APPS = [
     'home',
     'highscores',
     'events',
-    'teamleague',
-    'ladder',
+    # 'teamleague',
+    # 'ladder',
     'discordoauth2',
     'ranked'
 ]
