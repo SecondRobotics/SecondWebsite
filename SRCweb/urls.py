@@ -20,6 +20,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('home.urls')),
     path('highscores/', include('highscores.urls')),
+    path('api/highscores/', include('highscores.api.urls')),
     path('events/', include('events.urls')),
     path('api/events/', include('events.api.urls', namespace="api-events")),
     path('teamleague/', include('teamleague.urls')),

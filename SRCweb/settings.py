@@ -221,16 +221,20 @@ if os.getenv("PYTHON_ENV") == "development":
     MEDIA_ROOT = os.path.join(BASE_DIR, "/static/media")
     STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
     DISCORD_REDIRECT_URI = "http://localhost:8000/oauth2/login/redirect"
+    DISCORD_API_REDIRECT_URI = "http://localhost:8000/oauth2/loginapi/redirect"
     DISCORD_AUTH_URL = "https://discord.com/api/oauth2/authorize?client_id=825618483957071873&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Foauth2%2Flogin%2Fredirect&response_type=code&scope=identify%20email"
+    DISCORD_AUTH_API_URL = "https://discord.com/api/oauth2/authorize?client_id=825618483957071873&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Foauth2%2Floginapi%2Fredirect&response_type=code&scope=identify%20email"
 else:  # production
     DEBUG = False
     ALLOWED_HOSTS = ["secondrobotics.org", "www.secondrobotics.org"]
     STATIC_ROOT = "/home/bottxleg/secondrobotics.org/static"
     MEDIA_ROOT = "/home/bottxleg/secondrobotics.org/media"
     DISCORD_REDIRECT_URI = "https://secondrobotics.org/oauth2/login/redirect"
+    DISCORD_API_REDIRECT_URI = "https://secondrobotics.org/oauth2/loginapi/redirect"
     DISCORD_AUTH_URL = "https://discord.com/api/oauth2/authorize?client_id=825618483957071873&redirect_uri=https%3A%2F%2Fsecondrobotics.org%2Foauth2%2Flogin%2Fredirect&response_type=code&scope=identify%20email"
+    DISCORD_AUTH_API_URL = "https://discord.com/api/oauth2/authorize?client_id=825618483957071873&redirect_uri=https%3A%2F%2Fsecondrobotics.org%2Foauth2%2Floginapi%2Fredirect&response_type=code&scope=identify%20email"
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
 
-
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
 MAX_UPLOAD_SIZE = "5242880"
