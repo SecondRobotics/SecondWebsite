@@ -1,13 +1,11 @@
 from django.http import HttpRequest
-from django.shortcuts import render
 from django.core.mail import send_mail
-from django.contrib.auth.decorators import login_required
 
 from .models import Score, CleanCodeSubmission
-from .forms import RRScoreForm, ScoreForm
+from .forms import ScoreForm
 from SRCweb.settings import NEW_AES_KEY, DEBUG, ADMINS, EMAIL_HOST_USER
 
-from typing import Union
+from typing import Callable, Union
 from Crypto.Cipher import AES
 from urllib.request import urlopen, Request
 
@@ -23,7 +21,7 @@ PRERELEASE_MESSAGE = 'Pre-release versions are not allowed for high score submis
 WRONG_AUTO_OR_TELEOP_MESSAGE = 'Incorrect choice for control mode! Ensure you are submitting to the correct leaderboard for autonomous or tele-operated play.'
 
 
-def submit_infinite_recharge(score_obj: Score) -> Union[str, None]:
+def submit_score(score_obj: Score, clean_code_check_func: Callable[[Score], Union[str, None]]) -> Union[str, None]:
     # Check for older submissions from this user in this category
     prev_submissions = Score.objects.filter(
         leaderboard__name=score_obj.leaderboard, player=score_obj.player)
@@ -38,7 +36,7 @@ def submit_infinite_recharge(score_obj: Score) -> Union[str, None]:
         return res
 
     # Check the clean code
-    res = infinite_recharge_clean_code_check(score_obj)
+    res = clean_code_check_func(score_obj)
     if (res is not None):
         return res
 
@@ -47,119 +45,25 @@ def submit_infinite_recharge(score_obj: Score) -> Union[str, None]:
 
     return None  # No error
 
-    if request.method != 'POST':
-        return render(request, SUBMIT_PAGE, {"form": RRScoreForm})
 
-    form = RRScoreForm(request.POST)
-    if not form.is_valid():
-        return render(request, SUBMIT_PAGE, {"form": form})
-
-    # Set up the score object
-    score_obj = extract_form_data(form, request)
-
-    res = submit_rapid_react(score_obj)
-    if (res is not None):
-        return error_response(request, res)
-
-    return render(request, SUBMIT_ACCEPTED_PAGE, {})
+def submit_infinite_recharge(score_obj: Score) -> Union[str, None]:
+    return submit_score(score_obj, infinite_recharge_clean_code_check)
 
 
 def submit_rapid_react(score_obj: Score) -> Union[str, None]:
-    # Check for older submissions from this user in this category
-    prev_submissions = Score.objects.filter(
-        leaderboard__name=score_obj.leaderboard, player=score_obj.player)
-
-    for submission in prev_submissions:
-        if submission.score >= score_obj.score:
-            return HIGHER_SCORE_MESSAGE
-
-    # Check to ensure image / video is proper
-    res = submission_screenshot_check(score_obj)
-    if (res is not None):
-        return res
-
-    # Check the clean code
-    res = rapid_react_clean_code_check(score_obj)
-    if (res is not None):
-        return res
-
-    # Code is valid! Instantly approve!
-    approve_score(score_obj, prev_submissions)
-
-    return None  # No error
+    return submit_score(score_obj, rapid_react_clean_code_check)
 
 
 def submit_freight_frenzy(score_obj: Score) -> Union[str, None]:
-    # Check for older submissions from this user in this category
-    prev_submissions = Score.objects.filter(
-        leaderboard__name=score_obj.leaderboard, player=score_obj.player)
-
-    for submission in prev_submissions:
-        if submission.score >= score_obj.score:
-            return HIGHER_SCORE_MESSAGE
-
-    # Check to ensure image / video is proper
-    res = submission_screenshot_check(score_obj)
-    if (res is not None):
-        return res
-
-    # Check the clean code
-    res = freight_frenzy_clean_code_check(score_obj)
-    if (res is not None):
-        return res
-
-    # Code is valid! Instantly approve!
-    approve_score(score_obj, prev_submissions)
-
-    return None  # No error
+    return submit_score(score_obj, freight_frenzy_clean_code_check)
 
 
 def submit_tipping_point(score_obj: Score) -> Union[str, None]:
-    # Check for older submissions from this user in this category
-    prev_submissions = Score.objects.filter(
-        leaderboard__name=score_obj.leaderboard, player=score_obj.player)
-
-    for submission in prev_submissions:
-        if submission.score >= score_obj.score:
-            return HIGHER_SCORE_MESSAGE
-
-    # Check to ensure image / video is proper
-    res = submission_screenshot_check(score_obj)
-    if (res is not None):
-        return res
-
-    # Check the clean code
-    res = tipping_point_clean_code_check(score_obj)
-    if (res is not None):
-        return res
-
-    # Code is valid! Instantly approve!
-    approve_score(score_obj, prev_submissions)
-
-    return None  # No error
+    return submit_score(score_obj, tipping_point_clean_code_check)
 
 
 def submit_spin_up(score_obj: Score) -> Union[str, None]:
-    # Check for older submissions from this user in this category
-    prev_submissions = Score.objects.filter(
-        leaderboard__name=score_obj.leaderboard, player=score_obj.player)
-
-    for submission in prev_submissions:
-        if submission.score >= score_obj.score:
-            return HIGHER_SCORE_MESSAGE
-
-    # Check to ensure image / video is proper
-    res = submission_screenshot_check(score_obj)
-    if (res is not None):
-        return res
-
-    # Check the clean code
-    res = spin_up_clean_code_check(score_obj)
-    if (res is not None):
-        return res
-
-    # Code is valid! Instantly approve!
-    approve_score(score_obj, prev_submissions)
+    return submit_score(score_obj, spin_up_clean_code_check)
 
 
 def extract_form_data(form: ScoreForm, request: HttpRequest) -> Score:
@@ -237,10 +141,9 @@ def submission_screenshot_check(score_obj: Score) -> Union[str, None]:
     return None  # no error, proper url provided
 
 
-def infinite_recharge_clean_code_check(score_obj: Score) -> Union[str, None]:
+def clean_code_check(score_obj: Score, settings_callback: Callable[[list[str], str, str], Union[str, None]], robot_type_callback: Callable[[Score, str], Union[str, None]], score_callback: Callable[[Score, str, str], Union[str, None]]) -> Union[str, None]:
     """ Checks if the clean code is valid.
     :param score_obj: Score object to check
-    :param prev_submissions: List of previous submissions from this user in this category
     :return: None if valid, HttpResponse with error message if not
     """
     try:
@@ -255,203 +158,17 @@ def infinite_recharge_clean_code_check(score_obj: Score) -> Union[str, None]:
         res = check_generic_game_settings(score_obj, auto_or_teleop)
         if (res is not None):
             return res
-        res = check_infinite_recharge_game_settings(
-            game_options, restart_option, game_index)
+        res = settings_callback(game_options, restart_option, game_index)
         if (res is not None):
             return res
 
         # Check robot type
-        res = check_infinite_recharge_robot_type(
-            score_obj, robot_model)
+        res = robot_type_callback(score_obj, robot_model)
         if (res is not None):
             return res
 
         # Check score
-        res = check_score(score_obj, blue_score, red_score)
-        if (res is not None):
-            return res
-
-        # Search for code in database to ensure it is unique
-        res = search_for_reused_code(score_obj)
-        if (res is not None):
-            return res
-
-    except IndexError:  # code is for wrong game
-        return ERROR_WRONG_GAME_MESSAGE
-    except Exception:  # code is corrupted during decryption
-        return ERROR_CORRUPT_CODE_MESSAGE
-
-    return None  # no error, proper clean code provided
-
-
-def rapid_react_clean_code_check(score_obj: Score) -> Union[str, None]:
-    """ Checks if the clean code is valid.
-    :param score_obj: Score object to check
-    :param prev_submissions: List of previous submissions from this user in this category
-    :return: None if valid, HttpResponse with error message if not
-    """
-    try:
-        # Clean code decryption
-        clean_code_decryption(score_obj)
-
-        # Clean code extraction
-        restart_option, game_options, robot_model, blue_score, red_score, game_index, auto_or_teleop = extract_clean_code_info(
-            score_obj)
-
-        # Check game settings
-        res = check_generic_game_settings(score_obj, auto_or_teleop)
-        if (res is not None):
-            return res
-        res = check_rapid_react_game_settings(
-            game_options, game_index)
-        if (res is not None):
-            return res
-
-        # Check robot type
-        res = check_rapid_react_robot_type(score_obj, robot_model)
-        if (res is not None):
-            return res
-
-        # Check score
-        res = check_rapid_react_score(
-            score_obj, blue_score, red_score)
-        if (res is not None):
-            return res
-
-        # Search for code in database to ensure it is unique
-        res = search_for_reused_code(score_obj)
-        if (res is not None):
-            return res
-
-    except IndexError:  # code is for wrong game
-        return ERROR_WRONG_GAME_MESSAGE
-    except Exception:  # code is corrupted during decryption
-        return ERROR_CORRUPT_CODE_MESSAGE
-
-    return None  # no error, proper clean code provided
-
-
-def freight_frenzy_clean_code_check(score_obj: Score) -> Union[str, None]:
-    """ Checks if the clean code is valid.
-    :param score_obj: Score object to check
-    :param prev_submissions: List of previous submissions from this user in this category
-    :return: None if valid, HttpResponse with error message if not
-    """
-    try:
-        # Clean code decryption
-        clean_code_decryption(score_obj)
-
-        # Clean code extraction
-        restart_option, game_options, robot_model, blue_score, red_score, game_index, auto_or_teleop = extract_clean_code_info(
-            score_obj)
-
-        # Check game settings
-        res = check_generic_game_settings(score_obj, auto_or_teleop)
-        if (res is not None):
-            return res
-        res = check_freight_frenzy_game_settings(
-            game_options, game_index)
-        if (res is not None):
-            return res
-
-        # Check robot type
-        res = check_freight_frenzy_robot_type(score_obj, robot_model)
-        if (res is not None):
-            return res
-
-        # Check score
-        res = check_score(score_obj, blue_score, red_score)
-        if (res is not None):
-            return res
-
-        # Search for code in database to ensure it is unique
-        res = search_for_reused_code(score_obj)
-        if (res is not None):
-            return res
-
-    except IndexError:  # code is for wrong game
-        return ERROR_WRONG_GAME_MESSAGE
-    except Exception:  # code is corrupted during decryption
-        return ERROR_CORRUPT_CODE_MESSAGE
-
-    return None  # no error, proper clean code provided
-
-
-def tipping_point_clean_code_check(score_obj: Score) -> Union[str, None]:
-    """ Checks if the clean code is valid.
-    :param score_obj: Score object to check
-    :param prev_submissions: List of previous submissions from this user in this category
-    :return: None if valid, HttpResponse with error message if not
-    """
-    try:
-        # Clean code decryption
-        clean_code_decryption(score_obj)
-
-        # Clean code extraction
-        restart_option, game_options, robot_model, blue_score, red_score, game_index, auto_or_teleop = extract_clean_code_info(
-            score_obj)
-
-        # Check game settings
-        res = check_generic_game_settings(score_obj, auto_or_teleop)
-        if (res is not None):
-            return res
-        res = check_tipping_point_game_settings(game_index)
-        if (res is not None):
-            return res
-
-        # Check robot type
-        res = check_tipping_point_robot_type(score_obj, robot_model)
-        if (res is not None):
-            return res
-
-        # Check score
-        res = check_score(score_obj, blue_score, red_score)
-        if (res is not None):
-            return res
-
-        # Search for code in database to ensure it is unique
-        res = search_for_reused_code(score_obj)
-        if (res is not None):
-            return res
-
-    except IndexError:  # code is for wrong game
-        return ERROR_WRONG_GAME_MESSAGE
-    except Exception:  # code is corrupted during decryption
-        return ERROR_CORRUPT_CODE_MESSAGE
-
-    return None  # no error, proper clean code provided
-
-
-def spin_up_clean_code_check(score_obj: Score) -> Union[str, None]:
-    """ Checks if the clean code is valid.
-    :param score_obj: Score object to check
-    :param prev_submissions: List of previous submissions from this user in this category
-    :return: None if valid, HttpResponse with error message if not
-    """
-    try:
-        # Clean code decryption
-        clean_code_decryption(score_obj)
-
-        # Clean code extraction
-        restart_option, game_options, robot_model, blue_score, red_score, game_index, auto_or_teleop = extract_clean_code_info(
-            score_obj)
-
-        # Check game settings
-        res = check_generic_game_settings(score_obj, auto_or_teleop)
-        if (res is not None):
-            return res
-        res = check_spin_up_game_settings(game_index, restart_option)
-        if (res is not None):
-            return res
-
-        # Check robot type
-        res = check_spin_up_robot_type(score_obj, robot_model)
-        if (res is not None):
-            return res
-
-        # Check score
-        res = check_skills_challenge_score(
-            score_obj, blue_score, red_score)
+        res = score_callback(score_obj, blue_score, red_score)
         if (res is not None):
             return res
 
@@ -468,7 +185,27 @@ def spin_up_clean_code_check(score_obj: Score) -> Union[str, None]:
     return None  # no error, proper clean code provided
 
 
-def extract_clean_code_info(score_obj: Score) -> tuple:
+def infinite_recharge_clean_code_check(score_obj: Score) -> Union[str, None]:
+    return clean_code_check(score_obj, check_infinite_recharge_game_settings, check_infinite_recharge_robot_type, check_score)
+
+
+def rapid_react_clean_code_check(score_obj: Score) -> Union[str, None]:
+    return clean_code_check(score_obj, check_rapid_react_game_settings, check_rapid_react_robot_type, check_score)
+
+
+def freight_frenzy_clean_code_check(score_obj: Score) -> Union[str, None]:
+    return clean_code_check(score_obj, check_freight_frenzy_game_settings, check_freight_frenzy_robot_type, check_score)
+
+
+def tipping_point_clean_code_check(score_obj: Score) -> Union[str, None]:
+    return clean_code_check(score_obj, check_tipping_point_game_settings, check_tipping_point_robot_type, check_score)
+
+
+def spin_up_clean_code_check(score_obj: Score) -> Union[str, None]:
+    return clean_code_check(score_obj, check_spin_up_game_settings, check_spin_up_robot_type, check_skills_challenge_score)
+
+
+def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str]:
     """ Extracts the relevant information from the clean code.
     :param score_obj: Score object to extract from
     :return: Tuple of the relevant information
@@ -540,7 +277,7 @@ def check_infinite_recharge_game_settings(game_options: list, restart_option: st
     return None  # No error
 
 
-def check_rapid_react_game_settings(game_options: list, game_index: str) -> Union[str, None]:
+def check_rapid_react_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
     """ Checks if the Rapid React game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
@@ -558,7 +295,7 @@ def check_rapid_react_game_settings(game_options: list, game_index: str) -> Unio
     return None  # No error
 
 
-def check_freight_frenzy_game_settings(game_options: list, game_index: str) -> Union[str, None]:
+def check_freight_frenzy_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
     """ Checks if the Freight Frenzy game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
@@ -571,7 +308,7 @@ def check_freight_frenzy_game_settings(game_options: list, game_index: str) -> U
     return None  # No error
 
 
-def check_tipping_point_game_settings(game_index: str) -> Union[str, None]:
+def check_tipping_point_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
     """ Checks if the Tipping Point game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
@@ -582,7 +319,7 @@ def check_tipping_point_game_settings(game_index: str) -> Union[str, None]:
     return None  # No error
 
 
-def check_spin_up_game_settings(game_index: str, restart_option: str) -> Union[str, None]:
+def check_spin_up_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
     """ Checks if the Spin Up game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
