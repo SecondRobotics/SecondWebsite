@@ -44,12 +44,12 @@ def get_my_scores(request: Request) -> Response:
 
 
 @api_view(['GET'])
-def get_leaderboard(request: Request, name: str) -> Response:
+def get_leaderboard(request: Request, game_slug: str) -> Response:
     """Returns the leaderboard with the given name."""
-    if not Leaderboard.objects.filter(name=name).exists():
+    if not Leaderboard.objects.filter(game_slug=game_slug).exists():
         return Response({'success': False, 'message': 'Leaderboard does not exist.'})
 
-    scores = Score.objects.filter(leaderboard__name=name, approved=True).order_by(
+    scores = Score.objects.filter(leaderboard__game_slug=game_slug, approved=True).order_by(
         '-score', 'time_set').all()[:10]
     serializer = ScoreSerializer(scores, many=True)
     return Response({'success': True, 'scores': serializer.data})
