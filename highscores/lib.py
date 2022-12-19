@@ -20,6 +20,45 @@ WRONG_VERSION_MESSAGE = 'Your version of the game is outdated and not supported.
 PRERELEASE_MESSAGE = 'Pre-release versions are not allowed for high score submission!'
 WRONG_AUTO_OR_TELEOP_MESSAGE = 'Incorrect choice for control mode! Ensure you are submitting to the correct leaderboard for autonomous or tele-operated play.'
 
+infinite_recharge_robots = {
+    'OG': 'FRC shooter',
+    'Inertia': 'NUTRONs 125',
+    'Roboteers': 'Roboteers 2481',
+    'Pushbot2': 'PushBot2',
+    'Triangle': 'T Shooter',
+    'Waffles': 'Waffles',
+}
+
+rapid_react_robots = {
+    'MiniDrone': 'RR_MiniDrone',
+    'RRBulldogs': 'RR_Bulldogs',
+    'RRFRCShooter': 'RR_FRC_Shooter',
+    'Hot': 'HOT 67',
+    'Greybots': 'Greybots 973',
+    'Thunderstamps': 'Thunderstamps 4907',
+}
+
+freight_frenzy_robots = {
+    'Bulldogs': 'Bulldogs',
+    'Kraken': 'KrakenPinion',
+    'Bailey': 'Bailey',
+    'Cody': 'Cody',
+    'goBILDA': 'goBILDA_ff',
+    'DualMeta': 'dual_meta',
+}
+
+tipping_point_robots = {
+    'AMOGO2': 'AMOGO_v2',
+}
+
+spin_up_robots = {
+    'DiscShooter': 'Disc Shooter',
+}
+
+leaderboard_robot_lookup = {**infinite_recharge_robots, **rapid_react_robots,
+                            **freight_frenzy_robots, **tipping_point_robots, **spin_up_robots}
+robot_leaderboard_lookup = {v: k for k, v in leaderboard_robot_lookup.items()}
+
 
 def submit_score(score_obj: Score, clean_code_check_func: Callable[[Score], Union[str, None]]) -> Union[str, None]:
     # Check for older submissions from this user in this category
@@ -141,7 +180,7 @@ def submission_screenshot_check(score_obj: Score) -> Union[str, None]:
     return None  # no error, proper url provided
 
 
-def clean_code_check(score_obj: Score, settings_callback: Callable[[list[str], str, str], Union[str, None]], robot_type_callback: Callable[[Score, str], Union[str, None]], score_callback: Callable[[Score, str, str], Union[str, None]]) -> Union[str, None]:
+def clean_code_check(score_obj: Score, settings_callback: Callable[[list[str], str, str], Union[str, None]], robot_type_switch: dict[str, str], score_callback: Callable[[Score, str, str], Union[str, None]]) -> Union[str, None]:
     """ Checks if the clean code is valid.
     :param score_obj: Score object to check
     :return: None if valid, HttpResponse with error message if not
@@ -163,7 +202,7 @@ def clean_code_check(score_obj: Score, settings_callback: Callable[[list[str], s
             return res
 
         # Check robot type
-        res = robot_type_callback(score_obj, robot_model)
+        res = check_robot_type(score_obj, robot_model, robot_type_switch)
         if (res is not None):
             return res
 
@@ -186,23 +225,23 @@ def clean_code_check(score_obj: Score, settings_callback: Callable[[list[str], s
 
 
 def infinite_recharge_clean_code_check(score_obj: Score) -> Union[str, None]:
-    return clean_code_check(score_obj, check_infinite_recharge_game_settings, check_infinite_recharge_robot_type, check_score)
+    return clean_code_check(score_obj, check_infinite_recharge_game_settings, infinite_recharge_robots, check_score)
 
 
 def rapid_react_clean_code_check(score_obj: Score) -> Union[str, None]:
-    return clean_code_check(score_obj, check_rapid_react_game_settings, check_rapid_react_robot_type, check_score)
+    return clean_code_check(score_obj, check_rapid_react_game_settings, rapid_react_robots, check_score)
 
 
 def freight_frenzy_clean_code_check(score_obj: Score) -> Union[str, None]:
-    return clean_code_check(score_obj, check_freight_frenzy_game_settings, check_freight_frenzy_robot_type, check_score)
+    return clean_code_check(score_obj, check_freight_frenzy_game_settings, freight_frenzy_robots, check_score)
 
 
 def tipping_point_clean_code_check(score_obj: Score) -> Union[str, None]:
-    return clean_code_check(score_obj, check_tipping_point_game_settings, check_tipping_point_robot_type, check_score)
+    return clean_code_check(score_obj, check_tipping_point_game_settings, tipping_point_robots, check_score)
 
 
 def spin_up_clean_code_check(score_obj: Score) -> Union[str, None]:
-    return clean_code_check(score_obj, check_spin_up_game_settings, check_spin_up_robot_type, check_skills_challenge_score)
+    return clean_code_check(score_obj, check_spin_up_game_settings, spin_up_robots, check_skills_challenge_score)
 
 
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str]:
@@ -299,7 +338,6 @@ def check_freight_frenzy_game_settings(game_options: list, restart_option: str, 
     """ Checks if the Freight Frenzy game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
-
     if (game_index != '9'):
         return 'Wrong game! This form is for Freight Frenzy.'
     if (game_options[3] != '1'):
@@ -312,7 +350,6 @@ def check_tipping_point_game_settings(game_options: list, restart_option: str, g
     """ Checks if the Tipping Point game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
-
     if (game_index != '8'):
         return 'Wrong game! This form is for Tipping Point.'
 
@@ -323,7 +360,6 @@ def check_spin_up_game_settings(game_options: list, restart_option: str, game_in
     """ Checks if the Spin Up game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
-
     if (game_index != '11'):
         return 'Wrong game! This form is for Spin Up.'
     if (restart_option != '2'):
@@ -332,85 +368,10 @@ def check_spin_up_game_settings(game_options: list, restart_option: str, game_in
     return None  # No error
 
 
-def check_infinite_recharge_robot_type(score_obj: Score, robot_model: str) -> Union[str, None]:
-    """ Checks if the robot type is valid for Infinite Recharge.
+def check_robot_type(score_obj: Score, robot_model: str, switch: dict[str, str]) -> Union[str, None]:
+    """ Checks if the robot type is valid for the given game.
     :return: None if the robot type is valid, or a response with an error message if it is not.
     """
-    switch = {
-        'OG': 'FRC shooter',
-        'Inertia': 'NUTRONs 125',
-        'Roboteers': 'Roboteers 2481',
-        'Pushbot2': 'PushBot2',
-        'Triangle': 'T Shooter',
-        'Waffles': 'Waffles',
-    }
-
-    if switch[str(score_obj.leaderboard)] != robot_model:
-        return WRONG_ROBOT_MESSAGE
-
-    return None  # No error
-
-
-def check_rapid_react_robot_type(score_obj: Score, robot_model: str) -> Union[str, None]:
-    """ Checks if the robot type is valid for Rapid React.
-    :return: None if the robot type is valid, or a response with an error message if it is not.
-    """
-    switch = {
-        'MiniDrone': 'RR_MiniDrone',
-        'RRBulldogs': 'RR_Bulldogs',
-        'RRFRCShooter': 'RR_FRC_Shooter',
-        'Hot': 'HOT 67',
-        'Greybots': 'Greybots 973',
-        'Thunderstamps': 'Thunderstamps 4907',
-    }
-
-    if switch[str(score_obj.leaderboard)] != robot_model:
-        return WRONG_ROBOT_MESSAGE
-
-    return None  # No error
-
-
-def check_freight_frenzy_robot_type(score_obj: Score, robot_model: str) -> Union[str, None]:
-    """ Checks if the robot type is valid for Freight Frenzy.
-    :return: None if the robot type is valid, or a response with an error message if it is not.
-    """
-    switch = {
-        'Bulldogs': 'Bulldogs',
-        'Kraken': 'KrakenPinion',
-        'Bailey': 'Bailey',
-        'Cody': 'Cody',
-        'goBILDA': 'goBILDA_ff',
-        'DualMeta': 'dual_meta',
-    }
-
-    if switch[str(score_obj.leaderboard)] != robot_model:
-        return WRONG_ROBOT_MESSAGE
-
-    return None  # No error
-
-
-def check_tipping_point_robot_type(score_obj: Score, robot_model: str) -> Union[str, None]:
-    """ Checks if the robot type is valid for Tipping Point.
-    :return: None if the robot type is valid, or a response with an error message if it is not.
-    """
-    switch = {
-        'AMOGO2': 'AMOGO_v2',
-    }
-
-    if switch[str(score_obj.leaderboard)] != robot_model:
-        return WRONG_ROBOT_MESSAGE
-
-    return None  # No error
-
-
-def check_spin_up_robot_type(score_obj: Score, robot_model: str) -> Union[str, None]:
-    """ Checks if the robot type is valid for Spin Up.
-    :return: None if the robot type is valid, or a response with an error message if it is not.
-    """
-    switch = {
-        'DiscShooter': 'Disc Shooter',
-    }
-
     if switch[str(score_obj.leaderboard)] != robot_model:
         return WRONG_ROBOT_MESSAGE
 
