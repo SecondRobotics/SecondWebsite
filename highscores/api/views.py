@@ -4,8 +4,10 @@ from rest_framework.response import Response
 from rest_framework.request import Request, Empty
 from rest_framework.decorators import api_view
 
-from .serializers import UserSerializer, ScoreSerializer, LeaderboardSerializer
+from discordoauth2.models import User
+from .serializers import UserSerializer, ScoreWithLeaderboardSerializer, ScoreWithPlayerSerializer, LeaderboardSerializer
 from ..models import Score, Leaderboard
+from ..lib import robot_leaderboard_lookup, submit_infinite_recharge, submit_rapid_react, submit_freight_frenzy, submit_tipping_point, submit_spin_up
 
 
 @api_view(['GET'])
@@ -38,20 +40,64 @@ def get_my_scores(request: Request) -> Response:
     if not request.user.is_authenticated:
         return Response({'success': False, 'message': 'User is not authenticated.'})
 
-    scores = Score.objects.filter(player=request.user, approved=True)
-    serializer = ScoreSerializer(scores, many=True)
+    scores = Score.objects.filter(
+        player=request.user, approved=True).order_by('-time_set')
+    serializer = ScoreWithLeaderboardSerializer(scores, many=True)
     return Response({'success': True, 'scores': serializer.data})
 
 
 @api_view(['GET'])
-def get_leaderboard(request: Request, game_slug: str) -> Response:
-    """Returns the leaderboard with the given name."""
-    if not Leaderboard.objects.filter(game_slug=game_slug).exists():
+def get_player_scores(request: Request, user_id: int) -> Response:
+    """Returns the player's scores."""
+    try:
+        user = User.objects.get(id=user_id)
+    except (User.DoesNotExist, OverflowError):
+        return Response({'success': False, 'message': 'User does not exist.'})
+
+    scores = Score.objects.filter(
+        player=user, approved=True).order_by('-time_set')
+    serializer = ScoreWithLeaderboardSerializer(scores, many=True)
+    return Response({'success': True, 'scores': serializer.data})
+
+
+@api_view(['GET'])
+def get_game_leaderboard(request: Request, game: str) -> Response:
+    """Returns the leaderboard with the given game slug or game name."""
+    if Leaderboard.objects.filter(game_slug=game).exists():
+        scores = Score.objects.filter(leaderboard__game_slug=game, approved=True).order_by(
+            '-score', 'time_set').all()[:10]
+    elif Leaderboard.objects.filter(game=game).exists():
+        scores = Score.objects.filter(leaderboard__game=game, approved=True).order_by(
+            '-score', 'time_set').all()[:10]
+    else:
         return Response({'success': False, 'message': 'Leaderboard does not exist.'})
 
-    scores = Score.objects.filter(leaderboard__game_slug=game_slug, approved=True).order_by(
+    serializer = ScoreWithPlayerSerializer(scores, many=True)
+    return Response({'success': True, 'scores': serializer.data})
+
+
+@api_view(['GET'])
+def get_robot_leaderboard(request: Request, robot: str) -> Response:
+    """Returns the leaderboard with the given robot name."""
+    leaderboard = robot_leaderboard_lookup.get(robot, None)
+    if leaderboard is None:
+        return Response({'success': False, 'message': 'There is no leaderboard for that robot.'})
+
+    scores = Score.objects.filter(leaderboard__name=leaderboard, approved=True).order_by(
         '-score', 'time_set').all()[:10]
-    serializer = ScoreSerializer(scores, many=True)
+    serializer = ScoreWithPlayerSerializer(scores, many=True)
+    return Response({'success': True, 'scores': serializer.data})
+
+
+@api_view(['GET'])
+def get_leaderboard(request: Request, leaderboard: str) -> Response:
+    """Returns the leaderboard with the given name."""
+    if not Leaderboard.objects.filter(name=leaderboard).exists():
+        return Response({'success': False, 'message': 'Leaderboard does not exist.'})
+
+    scores = Score.objects.filter(leaderboard__name=leaderboard, approved=True).order_by(
+        '-score', 'time_set').all()[:10]
+    serializer = ScoreWithPlayerSerializer(scores, many=True)
     return Response({'success': True, 'scores': serializer.data})
 
 
@@ -75,30 +121,35 @@ def submit(request: Request) -> Response:
 
     # Get the score from the request.
     score = getattr(data, 'score', None)  # type: int | None
-    leaderboard = getattr(data, 'leaderboard', None)  # type: str | None
+    robot = getattr(data, 'robot', None)  # type: str | None
+    game = getattr(data, 'game', None)  # type: str | None
     source = getattr(data, 'source_link', None)  # type: str | None
     clean_code = getattr(data, 'clean_code', None)  # type: str | None
 
-    if score is None or leaderboard is None or source is None or clean_code is None:
+    if score is None or robot is None or game is None or source is None or clean_code is None:
         return Response({'success': False, 'message': 'Missing data.'})
 
-    leaderboard_obj = Leaderboard.objects.get(name=leaderboard)
+    leaderboard_name = robot_leaderboard_lookup.get(robot or '', None)
+    if leaderboard_name is None:
+        return Response({'success': False, 'message': 'There is no leaderboard for that robot.'})
+
+    leaderboard_obj = Leaderboard.objects.get(name=leaderboard_name, game=game)
     if leaderboard_obj is None:
         return Response({'success': False, 'message': 'Invalid leaderboard.'})
 
     # Determine the leaderboard to submit to.
-    if leaderboard == 'Infinite Recharge':
-        from ..lib import submit_infinite_recharge as submit_score
-    elif leaderboard == 'Rapid React':
-        from ..lib import submit_rapid_react as submit_score
-    elif leaderboard == 'Freight Frenzy':
-        from ..lib import submit_freight_frenzy as submit_score
-    elif leaderboard == 'Tipping Point':
-        from ..lib import submit_tipping_point as submit_score
-    elif leaderboard == 'Spin Up':
-        from ..lib import submit_spin_up as submit_score
+    if game == 'Infinite Recharge':
+        submit_score = submit_infinite_recharge
+    elif game == 'Rapid React':
+        submit_score = submit_rapid_react
+    elif game == 'Freight Frenzy':
+        submit_score = submit_freight_frenzy
+    elif game == 'Tipping Point':
+        submit_score = submit_tipping_point
+    elif game == 'Spin Up':
+        submit_score = submit_spin_up
     else:
-        return Response({'success': False, 'message': 'Invalid leaderboard.'})
+        return Response({'success': False, 'message': 'Leaderboard provided is not supported yet.'})
 
     score_obj = Score()
     score_obj.leaderboard = leaderboard_obj

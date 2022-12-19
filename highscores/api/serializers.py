@@ -10,16 +10,23 @@ class UserSerializer(ModelSerializer):
                   'avatar', 'date_joined', 'is_staff']
 
 
-# ScoreSerializer contains the fields leaderboard, player (display name and avatar), and score.
-class ScoreSerializer(ModelSerializer):
-    player = UserSerializer()
-
-    class Meta:
-        model = Score
-        fields = ['leaderboard', 'player', 'score']
-
-
 class LeaderboardSerializer(ModelSerializer):
     class Meta:
         model = Leaderboard
         fields = '__all__'
+
+
+class ScoreWithLeaderboardSerializer(ModelSerializer):
+    leaderboard = LeaderboardSerializer()
+
+    class Meta:
+        model = Score
+        fields = ['leaderboard', 'score', 'time_set']
+
+
+class ScoreWithPlayerSerializer(ModelSerializer):
+    player = UserSerializer()
+
+    class Meta:
+        model = Score
+        fields = ['player', 'score', 'time_set']
