@@ -117,14 +117,15 @@ def submit(request: Request) -> Response:
 
     if not request.data or request.data is Empty:
         return Response({'success': False, 'message': 'No data was provided.'})
-    data = request.data
+    data = request.data  # type: ignore
+    data = data  # type: dict
 
     # Get the score from the request.
-    score = getattr(data, 'score', None)  # type: int | None
-    robot = getattr(data, 'robot', None)  # type: str | None
-    game = getattr(data, 'game', None)  # type: str | None
-    source = getattr(data, 'source_link', None)  # type: str | None
-    clean_code = getattr(data, 'clean_code', None)  # type: str | None
+    score = data.get('score', None)  # type: int | None
+    robot = data.get('robot', None)  # type: str | None
+    game = data.get('game', None)  # type: str | None
+    source = data.get('source', None)  # type: str | None
+    clean_code = data.get('clean_code', None)  # type: str | None
 
     if score is None or robot is None or game is None or source is None or clean_code is None:
         return Response({'success': False, 'message': 'Missing data.'})
@@ -153,7 +154,7 @@ def submit(request: Request) -> Response:
 
     score_obj = Score()
     score_obj.leaderboard = leaderboard_obj
-    score_obj.user = request.user  # type: ignore
+    score_obj.player = request.user
     score_obj.score = score
     score_obj.source = source
     score_obj.clean_code = clean_code
