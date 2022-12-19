@@ -3,6 +3,7 @@ from django.http import HttpResponse, HttpRequest
 from rest_framework.response import Response
 from rest_framework.request import Request, Empty
 from rest_framework.decorators import api_view
+from rest_framework.authtoken.models import Token
 
 from discordoauth2.models import User
 from .serializers import UserSerializer, ScoreWithLeaderboardSerializer, ScoreWithPlayerSerializer, LeaderboardSerializer
@@ -13,7 +14,6 @@ from ..lib import robot_leaderboard_lookup, submit_infinite_recharge, submit_rap
 @api_view(['GET'])
 def get_session_validity(request: Request) -> Response:
     """Returns whether the user's session is valid or not."""
-    print(request.user)
     if request.user.is_authenticated:
         serializer = UserSerializer(request.user)
         return Response({
@@ -28,8 +28,10 @@ def get_session_validity(request: Request) -> Response:
 def auth(request: HttpRequest) -> HttpResponse:
     """Authenticates the user."""
     if request.user.is_authenticated:
-        # Redirect to localhost:22226 with the sessionid as a query parameter.
-        return redirect('http://localhost:22226/?sessionid=%s' % request.session.session_key)
+        # Upsert the user's token.
+        token = Token.objects.get_or_create(user=request.user)[0]
+        # Redirect to localhost:22226 with the token key as a query parameter.
+        return redirect('http://localhost:22226/?token=%s' % token.key)
     else:
         return redirect('/oauth2/loginapi')
 

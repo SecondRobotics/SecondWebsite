@@ -63,6 +63,7 @@ INSTALLED_APPS = [
 
     'widget_tweaks',
     'rest_framework',
+    'rest_framework.authtoken',
 
     # Custom stuff
 
@@ -74,6 +75,13 @@ INSTALLED_APPS = [
     'discordoauth2',
     'ranked'
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}
 
 # config/settings.py
 DEFAULT_FROM_EMAIL = 'noreply@secondrobotics.org'
