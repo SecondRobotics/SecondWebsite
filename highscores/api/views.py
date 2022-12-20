@@ -63,32 +63,20 @@ def get_player_scores(request: Request, user_id: int) -> Response:
 
 
 @api_view(['GET'])
-def get_game_leaderboard(request: Request, game: str) -> Response:
-    """Returns the leaderboard with the given game slug or game name."""
-    if Leaderboard.objects.filter(game_slug=game).exists():
-        scores = Score.objects.filter(leaderboard__game_slug=game, approved=True).order_by(
-            '-score', 'time_set').all()[:10]
-    elif Leaderboard.objects.filter(game=game).exists():
-        scores = Score.objects.filter(leaderboard__game=game, approved=True).order_by(
-            '-score', 'time_set').all()[:10]
-    else:
-        return Response({'success': False, 'message': 'Leaderboard does not exist.'})
-
-    serializer = ScoreWithPlayerSerializer(scores, many=True)
-    return Response({'success': True, 'scores': serializer.data})
-
-
-@api_view(['GET'])
 def get_robot_leaderboard(request: Request, robot: str) -> Response:
     """Returns the leaderboard with the given robot name."""
+    robot = robot.replace('_', ' ')
     leaderboard = robot_leaderboard_lookup.get(robot, None)
     if leaderboard is None:
         return Response({'success': False, 'message': 'There is no leaderboard for that robot.'})
 
+    message = Leaderboard.objects.get(name=leaderboard).message
+
     scores = Score.objects.filter(leaderboard__name=leaderboard, approved=True).order_by(
-        '-score', 'time_set').all()[:10]
-    serializer = ScoreWithPlayerSerializer(scores, many=True)
-    return Response({'success': True, 'scores': serializer.data})
+        '-score', 'time_set').all()
+    top_scores = scores[:10]
+    serializer = ScoreWithPlayerSerializer(top_scores, many=True)
+    return Response({'success': True, 'message': message, 'scores': serializer.data})
 
 
 @api_view(['GET'])
@@ -97,15 +85,33 @@ def get_leaderboard(request: Request, leaderboard: str) -> Response:
     if not Leaderboard.objects.filter(name=leaderboard).exists():
         return Response({'success': False, 'message': 'Leaderboard does not exist.'})
 
+    message = Leaderboard.objects.get(name=leaderboard).message
+
     scores = Score.objects.filter(leaderboard__name=leaderboard, approved=True).order_by(
-        '-score', 'time_set').all()[:10]
-    serializer = ScoreWithPlayerSerializer(scores, many=True)
+        '-score', 'time_set').all()
+    top_scores = scores[:10]
+    serializer = ScoreWithPlayerSerializer(top_scores, many=True)
+    return Response({'success': True, 'message': message, 'scores': serializer.data})
+
+
+@api_view(['GET'])
+def get_game_leaderboards(request: Request, game: str) -> Response:
+    """Returns a list of leaderboards with the given game slug or game name."""
+    game = game.replace('_', ' ')
+    if Leaderboard.objects.filter(game_slug=game).exists():
+        leaderboards = Leaderboard.objects.filter(game_slug=game).all()
+    elif Leaderboard.objects.filter(game=game).exists():
+        leaderboards = Leaderboard.objects.filter(game=game).all()
+    else:
+        return Response({'success': False, 'message': 'No leaderboards exist for that game.'})
+
+    serializer = LeaderboardSerializer(leaderboards, many=True)
     return Response({'success': True, 'scores': serializer.data})
 
 
 @api_view(['GET'])
 def get_leaderboards(request: Request) -> Response:
-    """Returns all leaderboards."""
+    """Returns a list of all leaderboards."""
     leaderboards = Leaderboard.objects.all()
     serializer = LeaderboardSerializer(leaderboards, many=True)
     return Response({'success': True, 'leaderboards': serializer.data})
@@ -126,10 +132,10 @@ def submit(request: Request) -> Response:
     score = data.get('score', None)  # type: int | None
     robot = data.get('robot', None)  # type: str | None
     game = data.get('game', None)  # type: str | None
-    source = data.get('source', None)  # type: str | None
+    source = data.get('source', 'https://i.imgur.com/bUUfB8c.png')  # type: str
     clean_code = data.get('clean_code', None)  # type: str | None
 
-    if score is None or robot is None or game is None or source is None or clean_code is None:
+    if score is None or robot is None or game is None or clean_code is None:
         return Response({'success': False, 'message': 'Missing data.'})
 
     leaderboard_name = robot_leaderboard_lookup.get(robot or '', None)
