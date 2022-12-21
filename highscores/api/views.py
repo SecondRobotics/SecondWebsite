@@ -63,16 +63,20 @@ def get_player_scores(request: Request, user_id: int) -> Response:
 
 
 @api_view(['GET'])
-def get_robot_leaderboard(request: Request, robot: str) -> Response:
+def get_robot_leaderboard(request: Request, game: str, robot: str) -> Response:
     """Returns the leaderboard with the given robot name."""
+    game = game.replace('_', ' ')
     robot = robot.replace('_', ' ')
     leaderboard = robot_leaderboard_lookup.get(robot, None)
     if leaderboard is None:
         return Response({'success': False, 'message': 'There is no leaderboard for that robot.'})
 
-    message = Leaderboard.objects.get(name=leaderboard).message
+    if not Leaderboard.objects.filter(name=leaderboard, game=game).exists():
+        return Response({'success': False, 'message': 'Leaderboard does not exist.'})
 
-    scores = Score.objects.filter(leaderboard__name=leaderboard, approved=True).order_by(
+    message = Leaderboard.objects.get(name=leaderboard, game=game).message
+
+    scores = Score.objects.filter(leaderboard__name=leaderboard, leaderboard__game=game, approved=True).order_by(
         '-score', 'time_set').all()
     top_scores = scores[:10]
     serializer = ScoreWithPlayerSerializer(top_scores, many=True)
