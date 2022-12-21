@@ -146,6 +146,9 @@ def submit(request: Request) -> Response:
     if leaderboard_name is None:
         return Response({'success': False, 'message': 'There is no leaderboard for that robot.'})
 
+    if not Leaderboard.objects.filter(name=leaderboard_name, game=game).exists():
+        return Response({'success': False, 'message': 'Leaderboard does not exist.'})
+
     leaderboard_obj = Leaderboard.objects.get(name=leaderboard_name, game=game)
     if leaderboard_obj is None:
         return Response({'success': False, 'message': 'Invalid leaderboard.'})
