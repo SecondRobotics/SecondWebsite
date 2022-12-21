@@ -78,9 +78,20 @@ def get_robot_leaderboard(request: Request, game: str, robot: str) -> Response:
 
     scores = Score.objects.filter(leaderboard__name=leaderboard, leaderboard__game=game, approved=True).order_by(
         '-score', 'time_set').all()
+
     top_scores = scores[:10]
     serializer = ScoreWithPlayerSerializer(top_scores, many=True)
-    return Response({'success': True, 'message': message, 'scores': serializer.data})
+
+    self_score_data = None
+    if request.user.is_authenticated:
+        self_score = scores.filter(player=request.user).first()
+        if self_score is not None:
+            self_serializer = ScoreWithPlayerSerializer(self_score)
+            self_score_data = self_serializer.data
+            self_score_data['rank'] = scores.filter(score__gt=self_score.score).count(
+            ) + scores.filter(score=self_score.score, time_set__lt=self_score.time_set).count() + 1
+
+    return Response({'success': True, 'message': message, 'scores': serializer.data, 'self': self_score_data})
 
 
 @api_view(['GET'])
@@ -93,9 +104,20 @@ def get_leaderboard(request: Request, leaderboard: str) -> Response:
 
     scores = Score.objects.filter(leaderboard__name=leaderboard, approved=True).order_by(
         '-score', 'time_set').all()
+
     top_scores = scores[:10]
     serializer = ScoreWithPlayerSerializer(top_scores, many=True)
-    return Response({'success': True, 'message': message, 'scores': serializer.data})
+
+    self_score_data = None
+    if request.user.is_authenticated:
+        self_score = scores.filter(player=request.user).first()
+        if self_score is not None:
+            self_serializer = ScoreWithPlayerSerializer(self_score)
+            self_score_data = self_serializer.data
+            self_score_data['rank'] = scores.filter(score__gt=self_score.score).count(
+            ) + scores.filter(score=self_score.score, time_set__lt=self_score.time_set).count() + 1
+
+    return Response({'success': True, 'message': message, 'scores': serializer.data, 'self': self_score_data})
 
 
 @api_view(['GET'])
