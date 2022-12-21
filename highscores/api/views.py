@@ -121,6 +121,13 @@ def get_leaderboards(request: Request) -> Response:
     return Response({'success': True, 'leaderboards': serializer.data})
 
 
+@api_view(['GET'])
+def get_games(request: Request) -> Response:
+    """Returns a list of all games."""
+    games = Leaderboard.objects.values_list('game', flat=True).distinct()
+    return Response({'success': True, 'games': games})
+
+
 @api_view(['POST'])
 def submit(request: Request) -> Response:
     """Submits a score."""

@@ -11,6 +11,7 @@ urlpatterns = [
     path('scores/<int:user_id>/', views.get_player_scores,
          name='get_player_scores'),
     path('leaderboard/', views.get_leaderboards, name='get_all_leaderboards'),
+    path('leaderboard/game/', views.get_games, name='get_all_games'),
     path('leaderboard/game/<str:game>/',
          views.get_game_leaderboards, name='get_leaderboards_by_game'),
     path('leaderboard/game/<str:game>/<str:robot>/',
