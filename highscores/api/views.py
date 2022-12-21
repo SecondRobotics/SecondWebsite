@@ -168,8 +168,14 @@ def submit(request: Request) -> Response:
     source = data.get('source', 'https://i.imgur.com/bUUfB8c.png')  # type: str
     clean_code = data.get('clean_code', None)  # type: str | None
 
-    if score is None or robot is None or game is None or clean_code is None:
-        return Response({'success': False, 'message': 'Missing data.'})
+    if score is None:
+        return Response({'success': False, 'message': 'Missing score.'})
+    if robot is None:
+        return Response({'success': False, 'message': 'Missing robot.'})
+    if game is None:
+        return Response({'success': False, 'message': 'Missing game.'})
+    if clean_code is None:
+        return Response({'success': False, 'message': 'Missing clean code.'})
 
     leaderboard_name = robot_leaderboard_lookup.get(robot or '', None)
     if leaderboard_name is None:
