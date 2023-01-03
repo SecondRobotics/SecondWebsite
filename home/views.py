@@ -70,6 +70,10 @@ def logos(response):
     return render(response, "home/logos.html", {})
 
 
+def link_success(response):
+    return render(response, "home/link_success.html", {})
+
+
 def login_page(request):
     if request.user.is_authenticated:
         return redirect('/')

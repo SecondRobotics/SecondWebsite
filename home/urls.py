@@ -23,4 +23,5 @@ urlpatterns = [
     path("merch/", views.merch, name="merch"),
     path("privacy/", views.privacy, name="privacy"),
     path("logopack/", views.logos, name="logos"),
+    path("link-success/", views.link_success, name="link success"),
 ]
