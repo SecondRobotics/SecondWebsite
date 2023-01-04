@@ -6,9 +6,9 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Max
 
-from .lib import extract_form_data, submit_infinite_recharge, submit_rapid_react, submit_freight_frenzy, submit_spin_up, submit_tipping_point
+from .lib import extract_form_data, game_slug_to_submit_func
 from .models import Leaderboard, Score
-from .forms import ScoreForm, FFScoreForm, IRScoreForm, RRScoreForm, SUScoreForm, TPScoreForm
+from .forms import ScoreForm, get_score_form
 
 COMBINED_LEADERBOARD_PAGE = "highscores/combined_leaderboard.html"
 SUBMIT_PAGE = "highscores/submit.html"
@@ -34,11 +34,13 @@ def error_response(request: HttpRequest, error_message: str) -> HttpResponse:
     return render(request, SUBMIT_ERROR_PAGE, {'error': error_message})
 
 
-def leaderboard_index(request: HttpRequest, name: str) -> HttpResponse:
-    if not Leaderboard.objects.filter(name=name).exists():
+def leaderboard_robot(request: HttpRequest, game_slug: str, name: str) -> HttpResponse:
+    if not Leaderboard.objects.filter(game_slug=game_slug, name=name).exists():
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+
     sorted_board = Score.objects.filter(
-        leaderboard__name=name, approved=True).order_by('-score', 'time_set')
+        leaderboard__game_slug=game_slug, leaderboard__name=name, approved=True).order_by('-score', 'time_set')
+
     i = 1
     context = []
     # Create ranking numbers and append them to sorted values
@@ -49,10 +51,16 @@ def leaderboard_index(request: HttpRequest, name: str) -> HttpResponse:
     return render(request, "highscores/leaderboard_ranks.html", {"ls": context, "robot_name": name})
 
 
-def leaderboard_combined(request: HttpRequest, game_name: str) -> HttpResponse:
-    scores = Score.objects.filter(leaderboard__game=game_name, approved=True).values(
+def leaderboard_combined(request: HttpRequest, game_slug: str) -> HttpResponse:
+    if not Leaderboard.objects.filter(game_slug=game_slug).exists():
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+
+    game_name = Leaderboard.objects.filter(game_slug=game_slug)[0].game
+
+    scores = Score.objects.filter(leaderboard__game_slug=game_slug, approved=True).values(
         'player').annotate(time_set=Max('time_set')).annotate(score=Sum('score'))
     sorted_board = scores.order_by('-score', 'time_set')
+
     i = 1
     context = []
     # Create ranking numbers and append them to sorted values
@@ -62,18 +70,6 @@ def leaderboard_combined(request: HttpRequest, game_name: str) -> HttpResponse:
         i += 1
 
     return render(request, COMBINED_LEADERBOARD_PAGE, {"ls": context, "game_name": game_name})
-
-
-def infinite_recharge_combined(request: HttpRequest) -> HttpResponse:
-    return leaderboard_combined(request, "Infinite Recharge")
-
-
-def rapid_react_combined(request: HttpRequest) -> HttpResponse:
-    return leaderboard_combined(request, "Rapid React")
-
-
-def freight_frenzy_combined(request: HttpRequest) -> HttpResponse:
-    return leaderboard_combined(request, "Freight Frenzy")
 
 
 def submit_form_view(request: HttpRequest, form_class: Type[ScoreForm], submit_func: Callable[[Score], Optional[str]]) -> HttpResponse:
@@ -95,25 +91,5 @@ def submit_form_view(request: HttpRequest, form_class: Type[ScoreForm], submit_f
 
 
 @login_required(login_url='/login')
-def infinite_recharge_submit_form(request: HttpRequest) -> HttpResponse:
-    return submit_form_view(request, IRScoreForm, submit_infinite_recharge)
-
-
-@login_required(login_url='/login')
-def rapid_react_submit_form(request: HttpRequest) -> HttpResponse:
-    return submit_form_view(request, RRScoreForm, submit_rapid_react)
-
-
-@login_required(login_url='/login')
-def freight_frenzy_submit_form(request: HttpRequest) -> HttpResponse:
-    return submit_form_view(request, FFScoreForm, submit_freight_frenzy)
-
-
-@login_required(login_url='/login')
-def tipping_point_submit_form(request: HttpRequest) -> HttpResponse:
-    return submit_form_view(request, TPScoreForm, submit_tipping_point)
-
-
-@login_required(login_url='/login')
-def spin_up_submit_form(request: HttpRequest) -> HttpResponse:
-    return submit_form_view(request, SUScoreForm, submit_spin_up)
+def submit_form(request: HttpRequest, game_slug: str) -> HttpResponse:
+    return submit_form_view(request, get_score_form(game_slug), game_slug_to_submit_func[game_slug])

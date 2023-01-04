@@ -54,8 +54,16 @@ def submit_rapid_react(score_obj: Score) -> Union[str, None]:
     return submit_score(score_obj, rapid_react_clean_code_check)
 
 
+def submit_charged_up(score_obj: Score) -> Union[str, None]:
+    return submit_score(score_obj, charged_up_clean_code_check)
+
+
 def submit_freight_frenzy(score_obj: Score) -> Union[str, None]:
     return submit_score(score_obj, freight_frenzy_clean_code_check)
+
+
+def submit_power_play(score_obj: Score) -> Union[str, None]:
+    return submit_score(score_obj, power_play_clean_code_check)
 
 
 def submit_tipping_point(score_obj: Score) -> Union[str, None]:
@@ -193,8 +201,16 @@ def rapid_react_clean_code_check(score_obj: Score) -> Union[str, None]:
     return clean_code_check(score_obj, check_rapid_react_game_settings, check_score)
 
 
+def charged_up_clean_code_check(score_obj: Score) -> Union[str, None]:
+    return clean_code_check(score_obj, check_charged_up_game_settings, check_score)
+
+
 def freight_frenzy_clean_code_check(score_obj: Score) -> Union[str, None]:
     return clean_code_check(score_obj, check_freight_frenzy_game_settings, check_score)
+
+
+def power_play_clean_code_check(score_obj: Score) -> Union[str, None]:
+    return clean_code_check(score_obj, check_power_play_game_settings, check_skills_challenge_score)
 
 
 def tipping_point_clean_code_check(score_obj: Score) -> Union[str, None]:
@@ -295,6 +311,19 @@ def check_rapid_react_game_settings(game_options: list, restart_option: str, gam
     return None  # No error
 
 
+def check_charged_up_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
+    """ Checks if the Charged Up game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if (game_index != '13'):
+        return 'Wrong game! This form is for Charged Up.'
+    # TODO: Find game option index of power-up setting
+    if (game_options[5] != '0'):
+        return 'You may not use power-ups for high score submissions.'
+
+    return None  # No error
+
+
 def check_freight_frenzy_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
     """ Checks if the Freight Frenzy game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
@@ -303,6 +332,16 @@ def check_freight_frenzy_game_settings(game_options: list, restart_option: str, 
         return 'Wrong game! This form is for Freight Frenzy.'
     if (game_options[3] != '1'):
         return 'You must enable possession limit for high score submissions.'
+
+    return None  # No error
+
+
+def check_power_play_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
+    """ Checks if the Power Play game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if (game_index != '12'):
+        return 'Wrong game! This form is for Power Play.'
 
     return None  # No error
 
@@ -410,3 +449,24 @@ def search_for_reused_code(score_obj: Score) -> Union[str, None]:
         return 'That clean code has already been submitted by another player.'
 
     return None  # No error
+
+
+game_slug_to_submit_func = {
+    "ir": submit_infinite_recharge,
+    "rr": submit_rapid_react,
+    "cu": submit_charged_up,
+    "ff": submit_freight_frenzy,
+    "pp": submit_power_play,
+    "tp": submit_tipping_point,
+    "su": submit_spin_up,
+}
+
+game_to_submit_func = {
+    "Infinite Recharge": submit_infinite_recharge,
+    "Rapid React": submit_rapid_react,
+    "Charged Up": submit_charged_up,
+    "Freight Frenzy": submit_freight_frenzy,
+    "Power Play": submit_power_play,
+    "Tipping Point": submit_tipping_point,
+    "Spin Up": submit_spin_up,
+}

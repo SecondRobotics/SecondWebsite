@@ -8,7 +8,7 @@ from rest_framework.authtoken.models import Token
 from discordoauth2.models import User
 from .serializers import UserSerializer, ScoreWithLeaderboardSerializer, ScoreWithPlayerSerializer, LeaderboardSerializer
 from ..models import Score, Leaderboard
-from ..lib import submit_infinite_recharge, submit_rapid_react, submit_freight_frenzy, submit_tipping_point, submit_spin_up
+from ..lib import game_to_submit_func
 
 
 @api_view(['GET'])
@@ -133,7 +133,6 @@ def get_game_leaderboards(request: Request, game: str) -> Response:
     for leaderboard in serializer_data:
         leaderboard['link'] = f'https://secondrobotics.org/highscores/{leaderboard["game_slug"]}/{leaderboard["name"]}/'
 
-    # FIXME: rename scores to leaderboards
     return Response({'success': True, 'scores': serializer_data})
 
 
@@ -192,17 +191,8 @@ def submit(request: Request) -> Response:
         return Response({'success': False, 'message': 'Invalid leaderboard.'})
 
     # Determine the leaderboard to submit to.
-    if game == 'Infinite Recharge':
-        submit_score = submit_infinite_recharge
-    elif game == 'Rapid React':
-        submit_score = submit_rapid_react
-    elif game == 'Freight Frenzy':
-        submit_score = submit_freight_frenzy
-    elif game == 'Tipping Point':
-        submit_score = submit_tipping_point
-    elif game == 'Spin Up':
-        submit_score = submit_spin_up
-    else:
+    submit_score = game_to_submit_func.get(game, None)
+    if submit_score is None:
         return Response({'success': False, 'message': 'Leaderboard provided is not supported yet.'})
 
     score_obj = Score()
