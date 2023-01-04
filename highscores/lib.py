@@ -20,45 +20,6 @@ WRONG_VERSION_MESSAGE = 'Your version of the game is outdated and not supported.
 PRERELEASE_MESSAGE = 'Pre-release versions are not allowed for high score submission!'
 WRONG_AUTO_OR_TELEOP_MESSAGE = 'Incorrect choice for control mode! Ensure you are submitting to the correct leaderboard for autonomous or tele-operated play.'
 
-infinite_recharge_robots = {
-    'OG': 'FRC shooter',
-    'Inertia': 'NUTRONs 125',
-    'Roboteers': 'Roboteers 2481',
-    'Pushbot2': 'PushBot2',
-    'Triangle': 'T Shooter',
-    'Waffles': 'Waffles',
-}
-
-rapid_react_robots = {
-    'MiniDrone': 'RR_MiniDrone',
-    'RRBulldogs': 'RR_Bulldogs',
-    'RRFRCShooter': 'RR_FRC_Shooter',
-    'Hot': 'HOT 67',
-    'Greybots': 'Greybots 973',
-    'Thunderstamps': 'Thunderstamps 4907',
-}
-
-freight_frenzy_robots = {
-    'Bulldogs': 'Bulldogs',
-    'Kraken': 'KrakenPinion',
-    'Bailey': 'Bailey',
-    'Cody': 'Cody',
-    'goBILDA': 'goBILDA_ff',
-    'DualMeta': 'dual_meta',
-}
-
-tipping_point_robots = {
-    'AMOGO2': 'AMOGO_v2',
-}
-
-spin_up_robots = {
-    'DiscShooter': 'Disc Shooter',
-}
-
-leaderboard_robot_lookup = {**infinite_recharge_robots, **rapid_react_robots,
-                            **freight_frenzy_robots, **tipping_point_robots, **spin_up_robots}
-robot_leaderboard_lookup = {v: k for k, v in leaderboard_robot_lookup.items()}
-
 
 def submit_score(score_obj: Score, clean_code_check_func: Callable[[Score], Union[str, None]]) -> Union[str, None]:
     # Check for older submissions from this user in this category

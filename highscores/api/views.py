@@ -8,7 +8,7 @@ from rest_framework.authtoken.models import Token
 from discordoauth2.models import User
 from .serializers import UserSerializer, ScoreWithLeaderboardSerializer, ScoreWithPlayerSerializer, LeaderboardSerializer
 from ..models import Score, Leaderboard
-from ..lib import robot_leaderboard_lookup, submit_infinite_recharge, submit_rapid_react, submit_freight_frenzy, submit_tipping_point, submit_spin_up
+from ..lib import submit_infinite_recharge, submit_rapid_react, submit_freight_frenzy, submit_tipping_point, submit_spin_up
 
 
 @api_view(['GET'])
@@ -67,16 +67,12 @@ def get_robot_leaderboard(request: Request, game: str, robot: str) -> Response:
     """Returns the leaderboard with the given robot name."""
     game = game.replace('_', ' ')
     robot = robot.replace('_', ' ')
-    leaderboard = robot_leaderboard_lookup.get(robot, None)
-    if leaderboard is None:
-        return Response({'success': False, 'message': 'There is no leaderboard for that robot.'})
-
-    if not Leaderboard.objects.filter(name=leaderboard, game=game).exists():
+    if not Leaderboard.objects.filter(robot=robot, game=game).exists():
         return Response({'success': False, 'message': 'Leaderboard does not exist.'})
 
-    message = Leaderboard.objects.get(name=leaderboard, game=game).message
+    message = Leaderboard.objects.get(robot=robot, game=game).message
 
-    scores = Score.objects.filter(leaderboard__name=leaderboard, leaderboard__game=game, approved=True).order_by(
+    scores = Score.objects.filter(leaderboard__robot=robot, leaderboard__game=game, approved=True).order_by(
         '-score', 'time_set').all()
 
     top_scores = scores[:10]
@@ -177,14 +173,10 @@ def submit(request: Request) -> Response:
     if clean_code is None:
         return Response({'success': False, 'message': 'Missing clean code.'})
 
-    leaderboard_name = robot_leaderboard_lookup.get(robot or '', None)
-    if leaderboard_name is None:
-        return Response({'success': False, 'message': 'There is no leaderboard for that robot.'})
-
-    if not Leaderboard.objects.filter(name=leaderboard_name, game=game).exists():
+    if not Leaderboard.objects.filter(robot=robot, game=game).exists():
         return Response({'success': False, 'message': 'Leaderboard does not exist.'})
 
-    leaderboard_obj = Leaderboard.objects.get(name=leaderboard_name, game=game)
+    leaderboard_obj = Leaderboard.objects.get(robot=robot, game=game)
     if leaderboard_obj is None:
         return Response({'success': False, 'message': 'Invalid leaderboard.'})
 
