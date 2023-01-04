@@ -1,4 +1,4 @@
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/SecondRobotics/SecondWebsite/%F0%9F%9A%80%20Deploy%20Django?style=plastic)](https://github.com/SecondRobotics/SecondWebsite/actions)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/SecondRobotics/SecondWebsite/django.yml?branch=main&style=plastic)](https://github.com/SecondRobotics/SecondWebsite/actions)
 [![Repo License](https://img.shields.io/github/license/SecondRobotics/SecondWebsite?style=plastic)](https://github.com/SecondRobotics/SecondWebsite/blob/master/LICENSE)
 [![Discord](https://img.shields.io/discord/637407041048281098?label=xRC%20Sim%20Discord&style=plastic)](https://discord.gg/mhc9tkB)
 
