@@ -127,16 +127,27 @@ def get_game_leaderboards(request: Request, game: str) -> Response:
     else:
         return Response({'success': False, 'message': 'No leaderboards exist for that game.'})
 
-    serializer = LeaderboardSerializer(leaderboards, many=True)
-    return Response({'success': True, 'scores': serializer.data})
+    serializer_data = LeaderboardSerializer(leaderboards, many=True).data
+
+    # Append a link to each leaderboard.
+    for leaderboard in serializer_data:
+        leaderboard['link'] = f'https://secondrobotics.org/highscores/{leaderboard["game_slug"]}/{leaderboard["name"]}/'
+
+    # FIXME: rename scores to leaderboards
+    return Response({'success': True, 'scores': serializer_data})
 
 
 @api_view(['GET'])
 def get_leaderboards(request: Request) -> Response:
     """Returns a list of all leaderboards."""
     leaderboards = Leaderboard.objects.all()
-    serializer = LeaderboardSerializer(leaderboards, many=True)
-    return Response({'success': True, 'leaderboards': serializer.data})
+    serializer_data = LeaderboardSerializer(leaderboards, many=True).data
+
+    # Append a link to each leaderboard.
+    for leaderboard in serializer_data:
+        leaderboard['link'] = f'https://secondrobotics.org/highscores/{leaderboard["game_slug"]}/{leaderboard["name"]}/'
+
+    return Response({'success': True, 'leaderboards': serializer_data})
 
 
 @api_view(['GET'])
