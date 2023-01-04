@@ -180,7 +180,7 @@ def submission_screenshot_check(score_obj: Score) -> Union[str, None]:
     return None  # no error, proper url provided
 
 
-def clean_code_check(score_obj: Score, settings_callback: Callable[[list[str], str, str], Union[str, None]], robot_type_switch: dict[str, str], score_callback: Callable[[Score, str, str], Union[str, None]]) -> Union[str, None]:
+def clean_code_check(score_obj: Score, settings_callback: Callable[[list[str], str, str], Union[str, None]], score_callback: Callable[[Score, str, str], Union[str, None]]) -> Union[str, None]:
     """ Checks if the clean code is valid.
     :param score_obj: Score object to check
     :return: None if valid, HttpResponse with error message if not
@@ -202,7 +202,7 @@ def clean_code_check(score_obj: Score, settings_callback: Callable[[list[str], s
             return res
 
         # Check robot type
-        res = check_robot_type(score_obj, robot_model, robot_type_switch)
+        res = check_robot_type(score_obj, robot_model)
         if (res is not None):
             return res
 
@@ -225,23 +225,23 @@ def clean_code_check(score_obj: Score, settings_callback: Callable[[list[str], s
 
 
 def infinite_recharge_clean_code_check(score_obj: Score) -> Union[str, None]:
-    return clean_code_check(score_obj, check_infinite_recharge_game_settings, infinite_recharge_robots, check_score)
+    return clean_code_check(score_obj, check_infinite_recharge_game_settings, check_score)
 
 
 def rapid_react_clean_code_check(score_obj: Score) -> Union[str, None]:
-    return clean_code_check(score_obj, check_rapid_react_game_settings, rapid_react_robots, check_score)
+    return clean_code_check(score_obj, check_rapid_react_game_settings, check_score)
 
 
 def freight_frenzy_clean_code_check(score_obj: Score) -> Union[str, None]:
-    return clean_code_check(score_obj, check_freight_frenzy_game_settings, freight_frenzy_robots, check_score)
+    return clean_code_check(score_obj, check_freight_frenzy_game_settings, check_score)
 
 
 def tipping_point_clean_code_check(score_obj: Score) -> Union[str, None]:
-    return clean_code_check(score_obj, check_tipping_point_game_settings, tipping_point_robots, check_score)
+    return clean_code_check(score_obj, check_tipping_point_game_settings, check_score)
 
 
 def spin_up_clean_code_check(score_obj: Score) -> Union[str, None]:
-    return clean_code_check(score_obj, check_spin_up_game_settings, spin_up_robots, check_skills_challenge_score)
+    return clean_code_check(score_obj, check_spin_up_game_settings, check_skills_challenge_score)
 
 
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str]:
@@ -368,11 +368,11 @@ def check_spin_up_game_settings(game_options: list, restart_option: str, game_in
     return None  # No error
 
 
-def check_robot_type(score_obj: Score, robot_model: str, switch: dict[str, str]) -> Union[str, None]:
-    """ Checks if the robot type is valid for the given game.
-    :return: None if the robot type is valid, or a response with an error message if it is not.
+def check_robot_type(score_obj: Score, robot_model: str) -> Union[str, None]:
+    """ Checks if the robot model is valid.
+    :return: None if the robot model is valid, or a response with an error message if it is not.
     """
-    if switch[str(score_obj.leaderboard)] != robot_model:
+    if score_obj.leaderboard.robot != robot_model:
         return WRONG_ROBOT_MESSAGE
 
     return None  # No error

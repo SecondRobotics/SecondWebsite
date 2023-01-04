@@ -5,7 +5,9 @@ from django.db import models
 
 
 class Leaderboard(models.Model):
-    name = models.CharField(max_length=25)  # robot type
+    name = models.CharField(max_length=25)  # "informal" robot name
+    robot = models.CharField(max_length=25)  # in-game robot name
+
     game = models.CharField(max_length=25)
     game_slug = models.CharField(max_length=5)
     auto_or_teleop = models.CharField(
