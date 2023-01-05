@@ -96,12 +96,14 @@
                 allowfullscreen
             ></iframe>
             {% else %}
-            <img
-                src="{{score.source}}"
-                class="img-fluid rounded"
-                alt="{{score.leaderboard.name}} score screenshot"
-                width="300"
-            />
+                {% if "https://i.imgur.com/bUUfB8c.png" not in score.source %}
+                <img
+                    src="{{score.source}}"
+                    class="img-fluid rounded"
+                    alt="{{score.leaderboard.name}} score screenshot"
+                    width="300"
+                />
+                {% endif %}
             {% endif %} {% endif %}
         </div>
     </div>
