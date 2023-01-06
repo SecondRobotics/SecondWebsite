@@ -22,14 +22,6 @@ WRONG_AUTO_OR_TELEOP_MESSAGE = 'Incorrect choice for control mode! Ensure you ar
 
 
 def submit_score(score_obj: Score, clean_code_check_func: Callable[[Score], Union[str, None]]) -> Union[str, None]:
-    # Check for older submissions from this user in this category
-    prev_submissions = Score.objects.filter(
-        leaderboard__name=score_obj.leaderboard, player=score_obj.player)
-
-    for submission in prev_submissions:
-        if submission.score >= score_obj.score:
-            return HIGHER_SCORE_MESSAGE
-
     # Check to ensure image / video is proper
     res = submission_screenshot_check(score_obj)
     if (res is not None):
@@ -39,6 +31,14 @@ def submit_score(score_obj: Score, clean_code_check_func: Callable[[Score], Unio
     res = clean_code_check_func(score_obj)
     if (res is not None):
         return res
+
+    # Check for older submissions from this user in this category
+    prev_submissions = Score.objects.filter(
+        leaderboard__name=score_obj.leaderboard, player=score_obj.player)
+
+    for submission in prev_submissions:
+        if submission.score >= score_obj.score:
+            return HIGHER_SCORE_MESSAGE
 
     # Code is valid! Instantly approve!
     approve_score(score_obj, prev_submissions)
@@ -198,7 +198,7 @@ def infinite_recharge_clean_code_check(score_obj: Score) -> Union[str, None]:
 
 
 def rapid_react_clean_code_check(score_obj: Score) -> Union[str, None]:
-    return clean_code_check(score_obj, check_rapid_react_game_settings, check_score)
+    return clean_code_check(score_obj, check_rapid_react_game_settings, check_rapid_react_score)
 
 
 def charged_up_clean_code_check(score_obj: Score) -> Union[str, None]:
@@ -317,8 +317,7 @@ def check_charged_up_game_settings(game_options: list, restart_option: str, game
     """
     if (game_index != '13'):
         return 'Wrong game! This form is for Charged Up.'
-    # TODO: Find game option index of power-up setting
-    if (game_options[5] != '0'):
+    if (game_options[4] != '0'):
         return 'You may not use power-ups for high score submissions.'
 
     return None  # No error
@@ -386,11 +385,13 @@ def check_score(score_obj: Score, blue_score: str, red_score: str) -> Union[str,
         return 'You must specify a robot position.'
 
     if score_obj.robot_position.startswith('Blue'):
-        if (blue_score != str(score_obj.score)):
-            return 'Double-check the score that you entered!'
+        score_obj.score = int(blue_score)
+        # if (blue_score != str(score_obj.score)):
+        #     return 'Double-check the score that you entered!'
     else:
-        if (red_score != str(score_obj.score)):
-            return 'Double-check the score that you entered!'
+        score_obj.score = int(red_score)
+        # if (red_score != str(score_obj.score)):
+        #     return 'Double-check the score that you entered!'
 
     return None  # No error
 
@@ -401,8 +402,9 @@ def check_skills_challenge_score(score_obj: Score, blue_score: str, red_score: s
     :return: None if the score is valid, or a response with an error message if it is not.
     """
     score = int(blue_score) + int(red_score)
-    if (score != score_obj.score):
-        return 'Double-check the score that you entered! For Skills Challenge, your score is the sum of both alliances\' scores.'
+    score_obj.score = score
+    # if (score != score_obj.score):
+    #     return 'Double-check the score that you entered! For Skills Challenge, your score is the sum of both alliances\' scores.'
 
     return None  # No error
 
@@ -417,12 +419,14 @@ def check_rapid_react_score(score_obj: Score, blue_score: str, red_score: str) -
 
     if score_obj.robot_position.startswith('Blue'):
         score = int(blue_score) - int(red_score)
-        if (score != score_obj.score):
-            return 'Double-check the score that you entered! For Rapid React, your calculated score is your score minus the opponent\'s score.'
+        score_obj.score = score
+        # if (score != score_obj.score):
+        #     return 'Double-check the score that you entered! For Rapid React, your calculated score is your score minus the opponent\'s score.'
     else:
         score = int(red_score) - int(blue_score)
-        if (score != score_obj.score):
-            return 'Double-check the score that you entered! For Rapid React, your calculated score is your score minus the opponent\'s score.'
+        score_obj.score = score
+        # if (score != score_obj.score):
+        #     return 'Double-check the score that you entered! For Rapid React, your calculated score is your score minus the opponent\'s score.'
 
     return None  # No error
 
