@@ -16,7 +16,7 @@
     {% if leaderboards|length > 1 %}
     <a
         href="/highscores/{{ leaderboards.copy.pop.game_slug }}/combined/"
-        class="btn btn-outline-light"
+        class="btn btn-outline-info"
         >Combined Leaderboard</a
     >
     <br /><br />
@@ -27,12 +27,6 @@
         >{{ leaderboard.name }}</a
     >
     {% endfor %}
-    <br /><br />
-    <a
-        href="/highscores/{{ leaderboards.copy.pop.game_slug }}/submit/"
-        class="btn btn-outline-success"
-        >Submit your score</a
-    >
 </div>
 
 {% endfor %} {% endblock %}
