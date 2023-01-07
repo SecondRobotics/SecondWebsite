@@ -2,9 +2,9 @@
 <div class="row">
     <div class="col-2">
         <img
-            src="{{user.avatar}}"
+            src="{% if '/None.webp' in user.avatar %}https://avatars.dicebear.com/api/bottts/{{user.username}}.svg{% else %}{{user.avatar}}{% endif %}"
             class="shadowy m-md-3 responsive img-profile rounded-circle img-fluid"
-            alt="User profile picture"
+            alt=""
         />
     </div>
     <div class="col-10">
