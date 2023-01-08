@@ -439,6 +439,10 @@ def search_for_reused_code(score_obj: Score) -> Union[str, None]:
         clean_code=score_obj.clean_code)
 
     if clean_code_search.exists():
+        if clean_code_search[0].player == score_obj.player:
+            # This is the same player, so it's okay.
+            return 'That clean code has already been submitted by you (maybe you submitted it twice?).'
+
         # Uh oh, this user submitted a clean code that has already been used.
         # Report this via email.
 
