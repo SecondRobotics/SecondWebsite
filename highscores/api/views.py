@@ -171,7 +171,7 @@ def submit(request: Request) -> Response:
     score = data.get('score', None)  # type: int | None
     robot = data.get('robot', None)  # type: str | None
     game = data.get('game', None)  # type: str | None
-    source = data.get('source', 'https://i.imgur.com/bUUfB8c.png')  # type: str
+    source = data.get('img_url', '')  # type: str
     clean_code = data.get('clean_code', None)  # type: str | None
 
     if score is None:
@@ -180,6 +180,9 @@ def submit(request: Request) -> Response:
         return Response({'success': False, 'message': 'Missing robot.'})
     if game is None:
         return Response({'success': False, 'message': 'Missing game.'})
+    if source is None or source is '':
+        # Default image. TODO: At some point we can retire this.
+        source = 'https://i.imgur.com/bUUfB8c.png'
     if clean_code is None:
         return Response({'success': False, 'message': 'Missing clean code.'})
 
