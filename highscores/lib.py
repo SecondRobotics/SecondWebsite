@@ -263,8 +263,7 @@ def check_generic_game_settings(score_obj: Score, auto_or_teleop: str) -> Union[
     """ Checks if the universal game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
-    if (not score_obj.client_version or float(score_obj.client_version[1:5]) < 10.0
-            or score_obj.client_version[5] == 'a' or score_obj.client_version[5] == 'b'):
+    if (not score_obj.client_version or float(score_obj.client_version[1:5]) < 10.1):
         return WRONG_VERSION_MESSAGE
     if "_p" in score_obj.client_version:
         return PRERELEASE_MESSAGE
