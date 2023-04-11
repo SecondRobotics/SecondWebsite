@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django.db.models import Max
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import api_view
@@ -14,7 +15,11 @@ def ranked_api(request: Request) -> Response:
     """
     Gets a list of all the available game modes for ranked play.
     """
-    game_modes = GameMode.objects.all()
+
+    # Sort the game modes by the recency of their last match.
+    game_modes = GameMode.objects.annotate(
+        last_match=Max('match__match_number')).order_by('-last_match')
+
     game_mode_serializer = GameModeSerializer(game_modes, many=True)
     return Response(game_mode_serializer.data)
 
@@ -175,8 +180,8 @@ def post_match_result(request: Request, game_mode_code: str) -> Response:
     red_score = body['red_score']
     blue_score = body['blue_score']
 
-    res, red_players, blue_players, red_player_elos, blue_player_elos = \
-        get_match_player_info(red_alliance, blue_alliance, game_mode)
+    res, red_players, blue_players, red_player_elos, blue_player_elos = get_match_player_info(
+        red_alliance, blue_alliance, game_mode)
     if res:
         return res
 
