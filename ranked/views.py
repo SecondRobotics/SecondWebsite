@@ -1,6 +1,9 @@
 from django.shortcuts import render
 from django.http.response import HttpResponseRedirect
 from django.db.models import Max, F
+from django.db.models import Q, Count
+from django.utils import timezone
+from datetime import timedelta
 
 from .models import EloHistory, GameMode, PlayerElo, Match
 
@@ -8,16 +11,21 @@ from .models import EloHistory, GameMode, PlayerElo, Match
 
 
 def ranked_home(request):
-    gamemodes = GameMode.objects.all()
+    game_modes = GameMode.objects.annotate(
+        match_count=Count(
+            'match',
+            filter=Q(match__time__gte=timezone.now() - timedelta(days=7))
+        )
+    ).order_by('-match_count')
 
-    # Create a dictionary mapping game name to array of gamemodes
-    gamemode_dict = {}
-    for gamemode in gamemodes:
-        if gamemode.game not in gamemode_dict:
-            gamemode_dict[gamemode.game] = []
-        gamemode_dict[gamemode.game].append(gamemode)
+    # Create a dictionary mapping game name to array of game modes
+    game_dict = {}
+    for game_mode in game_modes:
+        if game_mode.game not in game_dict:
+            game_dict[game_mode.game] = []
+        game_dict[game_mode.game].append(game_mode)
 
-    context = {'games': gamemode_dict}
+    context = {'games': game_dict}
     return render(request, 'ranked/ranked_home.html', context)
 
 
