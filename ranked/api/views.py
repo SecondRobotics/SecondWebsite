@@ -1,5 +1,6 @@
+from datetime import timedelta
 from django.utils import timezone
-from django.db.models import Max
+from django.db.models import Count, Q
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import api_view
@@ -16,9 +17,13 @@ def ranked_api(request: Request) -> Response:
     Gets a list of all the available game modes for ranked play.
     """
 
-    # Sort the game modes by the recency of their last match.
+    # Sort the game modes by the number of matches played within the last week
     game_modes = GameMode.objects.annotate(
-        last_match=Max('match__match_number')).order_by('-last_match')
+        match_count=Count(
+            'match',
+            filter=Q(match__time__gte=timezone.now() - timedelta(days=7))
+        )
+    ).order_by('-match_count')
 
     game_mode_serializer = GameModeSerializer(game_modes, many=True)
     return Response(game_mode_serializer.data)
