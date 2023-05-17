@@ -8,7 +8,7 @@ from rest_framework.authtoken.models import Token
 from discordoauth2.models import User
 from .serializers import UserSerializer, ScoreWithLeaderboardSerializer, ScoreWithPlayerSerializer, LeaderboardSerializer
 from ..models import Score, Leaderboard
-from ..lib import game_to_submit_func
+from ..lib import game_to_submit_func, get_client_ip
 
 
 @api_view(['GET'])
@@ -171,7 +171,7 @@ def submit(request: Request) -> Response:
     score = data.get('score', None)  # type: int | None
     robot = data.get('robot', None)  # type: str | None
     game = data.get('game', None)  # type: str | None
-    source = data.get('img_url', '')  # type: str
+    source = data.get('img_url', None)  # type: str | None
     clean_code = data.get('clean_code', None)  # type: str | None
 
     if score is None:
@@ -180,9 +180,8 @@ def submit(request: Request) -> Response:
         return Response({'success': False, 'message': 'Missing robot.'})
     if game is None:
         return Response({'success': False, 'message': 'Missing game.'})
-    if source is None or source is '':
-        # Default image. TODO: At some point we can retire this.
-        source = 'https://i.imgur.com/bUUfB8c.png'
+    if source is None:
+        return Response({'success': False, 'message': 'Missing img_url.'})
     if clean_code is None:
         return Response({'success': False, 'message': 'Missing clean code.'})
 
@@ -204,6 +203,7 @@ def submit(request: Request) -> Response:
     score_obj.score = score
     score_obj.source = source
     score_obj.clean_code = clean_code
+    score_obj.ip = get_client_ip(request)
 
     # Submit the score.
     res = submit_score(score_obj)

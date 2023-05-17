@@ -3,7 +3,7 @@ from django.core.mail import send_mail
 
 from .models import Score, CleanCodeSubmission
 from .forms import ScoreForm
-from SRCweb.settings import NEW_AES_KEY, DEBUG, ADMINS, EMAIL_HOST_USER
+from SRCweb.settings import NEW_AES_KEY, DEBUG, ADMIN_EMAILS, EMAIL_HOST_USER
 
 from typing import Callable, Union
 from Crypto.Cipher import AES
@@ -74,6 +74,32 @@ def submit_spin_up(score_obj: Score) -> Union[str, None]:
     return submit_score(score_obj, spin_up_clean_code_check)
 
 
+def decode_time_data(in_string: str) -> str:
+    out_bytes = ""
+
+    for i in range(1, len(in_string), 2):
+        out_bytes += in_string[i]
+
+    j = len(in_string)-1
+    if len(in_string) % 2 == 0:
+        j -= 1
+
+    while j >= 0:
+        out_bytes += in_string[j]
+        j -= 2
+
+    return out_bytes
+
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip  # type: ignore
+
+
 def extract_form_data(form: ScoreForm, request: HttpRequest) -> Score:
     score_obj = Score()
     score_obj.leaderboard = form.cleaned_data['leaderboard']
@@ -82,6 +108,7 @@ def extract_form_data(form: ScoreForm, request: HttpRequest) -> Score:
     score_obj.approved = False
     score_obj.source = form.cleaned_data['source']
     score_obj.clean_code = form.cleaned_data['clean_code']
+    score_obj.ip = get_client_ip(request)
 
     return score_obj
 
@@ -99,6 +126,7 @@ def approve_score(score_obj: Score, prev_submissions):
     code_obj.player = score_obj.player
     code_obj.score = score_obj.score
     code_obj.leaderboard = score_obj.leaderboard
+    code_obj.ip = score_obj.ip
     code_obj.save()
 
 
@@ -180,6 +208,9 @@ def clean_code_check(score_obj: Score, settings_callback: Callable[[list[str], s
         if (res is not None):
             return res
 
+        # Check if time data has been tampered with
+        search_for_violating_time_data(score_obj)
+
         # Search for code in database to ensure it is unique
         res = search_for_reused_code(score_obj)
         if (res is not None):
@@ -241,6 +272,13 @@ def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str,
     auto_or_teleop = dataset[7].strip()
     restart_option = dataset[8].strip()
     game_options = dataset[9].strip().split(':')
+    timer_left = dataset[10].strip()
+
+    time_data = ""
+    for i in range(11, len(dataset)):
+        time_data += decode_time_data(dataset[i].strip()) + "\n"
+    score_obj.time_data = time_data[:-1]
+
     return restart_option, game_options, robot_model, blue_score, red_score, game_index, auto_or_teleop
 
 
@@ -263,7 +301,9 @@ def check_generic_game_settings(score_obj: Score, auto_or_teleop: str) -> Union[
     """ Checks if the universal game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
-    if (not score_obj.client_version or float(score_obj.client_version[1:5]) < 10.2):
+    if (not score_obj.client_version or float(score_obj.client_version[1:5]) < 10.4
+        or score_obj.client_version == 'v10.4a' or score_obj.client_version == 'v10.4b'
+            or score_obj.client_version == 'v10.4c'):
         return WRONG_VERSION_MESSAGE
     if "_p" in score_obj.client_version:
         return PRERELEASE_MESSAGE
@@ -446,15 +486,74 @@ def search_for_reused_code(score_obj: Score) -> Union[str, None]:
         # Uh oh, this user submitted a clean code that has already been used.
         # Report this via email.
 
-        message = f"{score_obj.player} attempted (and failed) to submit a score: [{score_obj.score}] - {score_obj.leaderboard}\n\n This score was already submitted by {clean_code_search[0].player}\n\n {score_obj.source}\n\nhttps://secondrobotics.org/admin/highscores/score/"
+        message = f"{score_obj.player} ({score_obj.ip}) attempted (and failed) to submit a score: [{score_obj.score}] - {score_obj.leaderboard}\n\n This score was already submitted by {clean_code_search[0].player} ({clean_code_search[0].ip})\n\n {score_obj.source}\n\nhttps://secondrobotics.org/admin/highscores/score/"
         try:
             if (not DEBUG):
-                send_mail(f"Possible cheating attempt from {score_obj.player}",
-                          message, EMAIL_HOST_USER, ADMINS, fail_silently=False)
+                send_mail(f"Duplicate clean code usage from {score_obj.player}",
+                          message, EMAIL_HOST_USER, ADMIN_EMAILS, fail_silently=False)
         except Exception as ex:
             print(ex)
 
         return 'That clean code has already been submitted by another player.'
+
+    # same ip but different player
+    ip_search = CleanCodeSubmission.objects.filter(
+        ip=score_obj.ip).exclude(player=score_obj.player)
+
+    if ip_search.exists():
+        # Uh oh, there are multiple users submitting from the same IP.
+        # Report this via email.
+
+        message = f"{score_obj.player} ({score_obj.ip}) submitted a score (successfully): [{score_obj.score}] - {score_obj.leaderboard}\n\n This IP has also been used by {ip_search[0].player} ({ip_search[0].ip})\n\n {score_obj.source}\n\nhttps://secondrobotics.org/admin/highscores/score/"
+        try:
+            if (not DEBUG):
+                send_mail(f"Duplicate IP usage from {score_obj.player}",
+                          message, EMAIL_HOST_USER, ADMIN_EMAILS, fail_silently=False)
+        except Exception as ex:
+            print(ex)
+
+        # Still allow the score to be submitted.
+
+    return None  # No error
+
+
+def search_for_violating_time_data(score_obj: Score) -> None:
+    res = check_time_data(score_obj)
+    if res:
+        # Uh oh, there are possible indicators of cheating in the time data.
+        # Report this via email.
+
+        print(res)
+        message = f"{score_obj.player} ({score_obj.ip}) submitted a score (successfully) with concerning time data: [{score_obj.score}] - {score_obj.leaderboard}\n{res}\n{score_obj.time_data}\n\nhttps://secondrobotics.org/admin/highscores/score/"
+        try:
+            if (not DEBUG):
+                send_mail(f"Concerning time data from {score_obj.player}",
+                          message, EMAIL_HOST_USER, ADMIN_EMAILS, fail_silently=False)
+        except Exception as ex:
+            print(ex)
+
+
+def check_time_data(score_obj: Score) -> Union[str, None]:
+    """ Checks the time data for indicators of cheating.
+    :return: None if the time data is valid, or a response with an error message if it is not.
+    """
+    if not score_obj.time_data:
+        return 'No time data was submitted.'
+
+    time_data = score_obj.time_data.split('\n')
+
+    last_time = 0
+    for i in range(len(time_data)):
+        step = time_data[i].split('|')
+
+        if len(step) < 7:
+            return f'Invalid length of time data array at step {i+1} (should be 7).'
+        if float(step[0]) - last_time > 12:
+            return f'Too long of a gap between steps {i} and {i+1} (should be 10 seconds apart).'
+        if float(step[0]) - last_time < 8:
+            return f'Too short of a gap between steps {i} and {i+1} (should be 10 seconds apart).'
+
+        last_time = float(step[0])
 
     return None  # No error
 
