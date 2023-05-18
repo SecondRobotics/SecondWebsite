@@ -550,7 +550,7 @@ def check_time_data(score_obj: Score) -> Union[str, None]:
             return f'Invalid length of time data array at step {i+1} (should be 7).'
         if float(step[0]) - last_time > 12:
             return f'Too long of a gap between steps {i} and {i+1} (should be 10 seconds apart).'
-        if float(step[0]) - last_time < 8:
+        if float(step[0]) - last_time < 8 and last_time != 0:
             return f'Too short of a gap between steps {i} and {i+1} (should be 10 seconds apart).'
 
         last_time = float(step[0])
