@@ -555,6 +555,9 @@ def check_time_data(score_obj: Score) -> Union[str, None]:
 
         last_time = float(step[0])
 
+    if len(time_data) < 6:
+        return 'Not enough time data was submitted (should be at least 6 steps).'
+
     return None  # No error
 
 
