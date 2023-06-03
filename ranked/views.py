@@ -2,8 +2,11 @@ from django.shortcuts import render
 from django.http.response import HttpResponseRedirect
 from django.db.models import Max, F
 from django.db.models import Q, Count
+from django.db.models import IntegerField, ExpressionWrapper, FloatField
+from django.db.models.functions import ExtractHour
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, datetime, tzinfo
+import math
 
 from .models import EloHistory, GameMode, PlayerElo, Match
 
@@ -39,15 +42,11 @@ def leaderboard(request, name):
 
     players = PlayerElo.objects.filter(game_mode=gamemode)
 
-    max_matches_played = players.aggregate(Max('matches_played'))[
-        'matches_played__max']
+    players = players.annotate(time_delta=ExpressionWrapper(datetime.now(timezone.utc) - F('last_match_played_time'), output_field=FloatField()) / 3600000000)
 
-    most_recent_match = Match.objects.filter(game_mode=gamemode).aggregate(
-        Max('match_number'))['match_number__max']
-
-    # players = players.annotate(mmr=F('elo') - ((most_recent_match - F('last_match_played_number')) * 1.15) + (30 * (F('matches_played') / max_matches_played)))
-    players = players.annotate(mmr=F('elo') - ((most_recent_match - F(
-        'last_match_played_number')) * 1.15) + (30 * (F('matches_played') / max_matches_played)))
+    # players = players.annotate(mmr=F('elo') * 2 / ((1 + pow(math.e, 1/168 * pow(F('time_delta'), 0.63))) * 
+    #             (1 + pow(math.e, -0.33 * F('matches_played')))))
+    players = players.annotate(mmr=mmr_calc(F('elo'), F('matches_played'), F('time_delta')))
 
     players = players.order_by('-mmr')
 
@@ -69,16 +68,7 @@ def player_info(request, name, player_id):
 
     player = player_info[0]
 
-    all_players = PlayerElo.objects.filter(game_mode=player.game_mode)
-
-    max_matches_played = all_players.aggregate(Max('matches_played'))[
-        'matches_played__max']
-
-    most_recent_match = Match.objects.filter(game_mode=player.game_mode).aggregate(
-        Max('match_number'))['match_number__max']
-
-    mmr = round(player.elo - ((most_recent_match - player.last_match_played_number)
-                * 1.15) + (30 * (player.matches_played / max_matches_played)), 1)
+    mmr = round(mmr_calc(player.elo, player.matches_played, (datetime.now(timezone.utc) - player.last_match_played_time).total_seconds()/3600), 1)
 
     elo_history = EloHistory.objects.filter(player_elo=player)
     match_labels = [eh.match_number for eh in elo_history]
@@ -87,3 +77,6 @@ def player_info(request, name, player_id):
     context = {'player': player, 'mmr': mmr,
                'elo_history': elo_history, 'match_labels': match_labels}
     return render(request, 'ranked/player_info.html', context)
+
+def mmr_calc(elo, matches_played, delta_hours):
+    return elo * 2 / ((1 + pow(math.e, 1/168 * pow(delta_hours, 0.63))) * (1 + pow(math.e, -0.33 * matches_played)))
