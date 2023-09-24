@@ -598,5 +598,5 @@ game_to_submit_func = {
     "Power Play": submit_power_play,
     "Tipping Point": submit_tipping_point,
     "Spin Up": submit_spin_up,
-    "Centerstage": submit_centerstage,
+    "CENTERSTAGE": submit_centerstage,
 }
