@@ -74,6 +74,10 @@ def submit_spin_up(score_obj: Score) -> Union[str, None]:
     return submit_score(score_obj, spin_up_clean_code_check)
 
 
+def submit_centerstage(score_obj: Score) -> Union[str, None]:
+    return submit_score(score_obj, centerstage_clean_code_check)
+
+
 def decode_time_data(in_string: str) -> str:
     out_bytes = ""
 
@@ -252,6 +256,10 @@ def spin_up_clean_code_check(score_obj: Score) -> Union[str, None]:
     return clean_code_check(score_obj, check_spin_up_game_settings, check_skills_challenge_score)
 
 
+def centerstage_clean_code_check(score_obj: Score) -> Union[str, None]:
+    return clean_code_check(score_obj, check_centerstage_game_settings, check_score)
+
+
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str]:
     """ Extracts the relevant information from the clean code.
     :param score_obj: Score object to extract from
@@ -407,6 +415,16 @@ def check_spin_up_game_settings(game_options: list, restart_option: str, game_in
     return None  # No error
 
 
+def check_centerstage_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
+    """ Checks if the Center Stage game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if (game_index != '15'):
+        return 'Wrong game! This form is for Centerstage.'
+
+    return None  # No error
+
+
 def check_robot_type(score_obj: Score, robot_model: str) -> Union[str, None]:
     """ Checks if the robot model is valid.
     :return: None if the robot model is valid, or a response with an error message if it is not.
@@ -548,9 +566,9 @@ def check_time_data(score_obj: Score) -> Union[str, None]:
 
         if len(step) < 7:
             return f'Invalid length of time data array at step {i+1} (should be 7).'
-        if float(step[0]) - last_time > 12:
+        if float(step[0]) - last_time > 20:
             return f'Too long of a gap between steps {i} and {i+1} (should be 10 seconds apart).'
-        if float(step[0]) - last_time < 8 and last_time != 0:
+        if float(step[0]) - last_time < 5 and last_time != 0:
             return f'Too short of a gap between steps {i} and {i+1} (should be 10 seconds apart).'
 
         last_time = float(step[0])
@@ -569,6 +587,7 @@ game_slug_to_submit_func = {
     "pp": submit_power_play,
     "tp": submit_tipping_point,
     "su": submit_spin_up,
+    "cs": submit_centerstage,
 }
 
 game_to_submit_func = {
@@ -579,4 +598,5 @@ game_to_submit_func = {
     "Power Play": submit_power_play,
     "Tipping Point": submit_tipping_point,
     "Spin Up": submit_spin_up,
+    "Centerstage": submit_centerstage,
 }
