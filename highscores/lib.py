@@ -78,6 +78,10 @@ def submit_centerstage(score_obj: Score) -> Union[str, None]:
     return submit_score(score_obj, centerstage_clean_code_check)
 
 
+def submit_over_under(score_obj: Score) -> Union[str, None]:
+    return submit_score(score_obj, over_under_clean_code_check)
+
+
 def decode_time_data(in_string: str) -> str:
     out_bytes = ""
 
@@ -260,6 +264,10 @@ def centerstage_clean_code_check(score_obj: Score) -> Union[str, None]:
     return clean_code_check(score_obj, check_centerstage_game_settings, check_score)
 
 
+def over_under_clean_code_check(score_obj: Score) -> Union[str, None]:
+    return clean_code_check(score_obj, check_over_under_game_settings, check_skills_challenge_score)
+
+
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str]:
     """ Extracts the relevant information from the clean code.
     :param score_obj: Score object to extract from
@@ -420,6 +428,18 @@ def check_centerstage_game_settings(game_options: list, restart_option: str, gam
     """
     if (game_index != '15'):
         return 'Wrong game! This form is for Centerstage.'
+
+    return None  # No error
+
+
+def check_over_under_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
+    """ Checks if the Over Under game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if (game_index != '14'):
+        return 'Wrong game! This form is for Over Under.'
+    if (restart_option != '2'):
+        return 'You must use restart option 2 (skills challenge) for Over Under high score submissions.'
 
     return None  # No error
 
@@ -587,6 +607,7 @@ game_slug_to_submit_func = {
     "tp": submit_tipping_point,
     "su": submit_spin_up,
     "cs": submit_centerstage,
+    "ou": submit_over_under,
 }
 
 game_to_submit_func = {
@@ -598,4 +619,5 @@ game_to_submit_func = {
     "Tipping Point": submit_tipping_point,
     "Spin Up": submit_spin_up,
     "CENTERSTAGE": submit_centerstage,
+    "Over Under": submit_over_under,
 }
