@@ -135,3 +135,4 @@ dmypy.json
 migrations/
 
 .vscode/
+.DS_Store

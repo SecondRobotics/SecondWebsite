@@ -82,6 +82,10 @@ def submit_over_under(score_obj: Score) -> Union[str, None]:
     return submit_score(score_obj, over_under_clean_code_check)
 
 
+def submit_crescendo(score_obj: Score) -> Union[str, None]:
+    return submit_score(score_obj, crescendo_clean_code_check)
+
+
 def decode_time_data(in_string: str) -> str:
     out_bytes = ""
 
@@ -237,7 +241,7 @@ def infinite_recharge_clean_code_check(score_obj: Score) -> Union[str, None]:
 
 
 def rapid_react_clean_code_check(score_obj: Score) -> Union[str, None]:
-    return clean_code_check(score_obj, check_rapid_react_game_settings, check_rapid_react_score)
+    return clean_code_check(score_obj, check_rapid_react_game_settings, check_subtraction_score)
 
 
 def charged_up_clean_code_check(score_obj: Score) -> Union[str, None]:
@@ -266,6 +270,10 @@ def centerstage_clean_code_check(score_obj: Score) -> Union[str, None]:
 
 def over_under_clean_code_check(score_obj: Score) -> Union[str, None]:
     return clean_code_check(score_obj, check_over_under_game_settings, check_score)
+
+
+def crescendo_clean_code_check(score_obj: Score) -> Union[str, None]:
+    return clean_code_check(score_obj, check_crescendo_game_settings, check_subtraction_score)
 
 
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str]:
@@ -444,6 +452,20 @@ def check_over_under_game_settings(game_options: list, restart_option: str, game
     return None  # No error
 
 
+def check_crescendo_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
+    """ Checks if the Crescendo game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if (game_index != '16'):
+        return 'Wrong game! This form is for Crescendo.'
+    if (game_options[2] != '1'):
+        return 'You must set setting 3 to "1" for high score submissions.'
+    if (game_options[3] != '4'):
+        return 'You must set setting 4 to "4" for high score submissions.'
+
+    return None  # No error
+
+
 def check_robot_type(score_obj: Score, robot_model: str) -> Union[str, None]:
     """ Checks if the robot model is valid.
     :return: None if the robot model is valid, or a response with an error message if it is not.
@@ -486,9 +508,9 @@ def check_skills_challenge_score(score_obj: Score, blue_score: str, red_score: s
     return None  # No error
 
 
-def check_rapid_react_score(score_obj: Score, blue_score: str, red_score: str) -> Union[str, None]:
+def check_subtraction_score(score_obj: Score, blue_score: str, red_score: str) -> Union[str, None]:
     """ Checks if the true score matches the reported score.
-    In Rapid React single player, your calculated score is your score minus the opponent's score.
+    Your calculated score is your score minus the opponent's score.
     :return: None if the score is valid, or a response with an error message if it is not.
     """
     if not score_obj.robot_position:
@@ -608,6 +630,7 @@ game_slug_to_submit_func = {
     "su": submit_spin_up,
     "cs": submit_centerstage,
     "ou": submit_over_under,
+    "cr": submit_crescendo,
 }
 
 game_to_submit_func = {
@@ -620,4 +643,5 @@ game_to_submit_func = {
     "Spin Up": submit_spin_up,
     "CENTERSTAGE": submit_centerstage,
     "Over Under": submit_over_under,
+    "Crescendo": submit_crescendo,
 }
