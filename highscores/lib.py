@@ -326,7 +326,7 @@ def check_generic_game_settings(score_obj: Score, auto_or_teleop: str) -> Union[
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
     if (not score_obj.client_version or float(score_obj.client_version[1:5]) < 13.1):
-        # or score_obj.client_version == 'v10.4a' or score_obj.client_version == 'v10.4b'
+        # or score_obj.client_version == 'v13.1a'):
         return WRONG_VERSION_MESSAGE
     if "_p" in score_obj.client_version:
         return PRERELEASE_MESSAGE
@@ -459,9 +459,9 @@ def check_crescendo_game_settings(game_options: list, restart_option: str, game_
     if (game_index != '16'):
         return 'Wrong game! This form is for Crescendo.'
     if (game_options[2] != '1'):
-        return 'You must set setting 3 to "1" for high score submissions.'
-    if (game_options[3] != '4'):
-        return 'You must set setting 4 to "4" for high score submissions.'
+        return 'You must have possession limit enabled for high score submissions.'
+    if (game_options[6] != '0'):
+        return 'You may not use power-ups for high score submissions.'
 
     return None  # No error
 
