@@ -11,7 +11,7 @@ class GameMode(models.Model):
     game = models.CharField(max_length=25)
     players_per_alliance = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(3)])
-    short_code = models.CharField(max_length=7, unique=True)
+    short_code = models.CharField(max_length=10, unique=True)
 
     def __str__(self):
         return self.name
