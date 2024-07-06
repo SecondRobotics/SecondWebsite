@@ -112,26 +112,31 @@ def update_player_elos(match: Match, red_player_elos: List[PlayerElo], blue_play
 
         if player in red_player_elos:
             score_diff = match.red_score - match.blue_score
+            relative_score_diff = abs(score_diff) / (match.red_score + match.blue_score)
             odds = red_odds
             player.total_score += match.red_score
         else:
             score_diff = match.blue_score - match.red_score
+            relative_score_diff = abs(score_diff) / (match.red_score + match.blue_score)
             odds = blue_odds
             player.total_score += match.blue_score
 
-        if (score_diff > 0):
+        if score_diff > 0:
             odds_diff = 1 - odds
             player.matches_won += 1
-        elif (score_diff == 0):
+        elif score_diff == 0:
             odds_diff = 0.5 - odds
             player.matches_drawn += 1
         else:
             odds_diff = 0 - odds
             player.matches_lost += 1
 
+        # Introduce a new factor to increase the importance of the score difference
+        importance_factor = 1.5
+
         elo_change = ((
             K / (1 + 0) + 2 * math.log(math.fabs(score_diff) + 1, 8)) * (
-            odds_diff)) * (((B - 1) / (A ** num_played)) + 1)
+            odds_diff * importance_factor * relative_score_diff)) * (((B - 1) / (A ** num_played)) + 1)
 
         elo_changes.append(elo_change)
         player.elo += elo_change
