@@ -281,7 +281,7 @@ def crescendo_clean_code_check(score_obj: Score) -> Union[str, None]:
 
 
 def high_stakes_clean_code_check(score_obj: Score) -> Union[str, None]:
-    return clean_code_check(score_obj, check_high_stakes_game_settings, check_score)
+    return clean_code_check(score_obj, check_high_stakes_game_settings, check_skills_challenge_score)
 
 
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str]:
