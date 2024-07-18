@@ -81,6 +81,10 @@ def login_page(request):
         return redirect('/oauth2/login')
 
 
+def login_error(request):
+    return render(request, "home/login_error.html", {})
+
+
 def logout_user(request):
     logout(request)
     return redirect('/')

@@ -1,3 +1,4 @@
+from typing import Union
 from django.http import JsonResponse, HttpRequest
 from django.shortcuts import redirect, render
 from django.contrib.auth import authenticate, login
@@ -36,7 +37,11 @@ def discord_api_login(request: HttpRequest):
 
 def discord_login_redirect(request: HttpRequest):
     user = exchange_code(request.GET.get('code'))
+    if user is None:
+        return redirect('/login-error/')
     discord_user = authenticate(request, user=user)
+    if discord_user is None:
+        return redirect('/login-error/')
     login(request, discord_user)
     return redirect('/')
 
@@ -44,12 +49,16 @@ def discord_login_redirect(request: HttpRequest):
 def discord_api_login_redirect(request: HttpRequest):
     user = exchange_code(request.GET.get(
         'code'), redirect_uri=DISCORD_API_REDIRECT_URI)
+    if user is None:
+        return redirect('/login-error/')
     discord_user = authenticate(request, user=user)
+    if discord_user is None:
+        return redirect('/login-error/')
     login(request, discord_user)
     return redirect('/api/highscores/auth/')
 
 
-def exchange_code(code: str, redirect_uri: str = DISCORD_REDIRECT_URI) -> requests.Response:
+def exchange_code(code: str, redirect_uri: str = DISCORD_REDIRECT_URI) -> Union[requests.Response, None]:
     data = {
         'client_id': DISCORD_CLIENT_ID,
         'client_secret': DISCORD_CLIENT_SECRET,
@@ -64,7 +73,8 @@ def exchange_code(code: str, redirect_uri: str = DISCORD_REDIRECT_URI) -> reques
 
     response = requests.post('%s/oauth2/token' %
                              DISCORD_API_ENDPOINT, data=data, headers=headers)
-    response.raise_for_status()
+    if response.status_code != 200:
+        return None
 
     response = requests.get('%s/users/@me' % DISCORD_API_ENDPOINT, headers={
         'Authorization': 'Bearer %s' % response.json()['access_token']
