@@ -1,26 +1,33 @@
-{% extends 'home/base.html' %} {% block content %}
+{% extends 'home/base.html' %}
 
-<div class="position-relative overflow-hidden text-center bg-primary">
-    <div class="p-lg-4 mx-auto">
-        <h1 style="color: white" class="display-4 fw-normal">
-            Ranked Leaderboards
-        </h1>
+{% block content %}
+<!-- Hero Section -->
+<div class="position-relative overflow-hidden text-center bg-primary py-5">
+    <div class="container">
+        <h1 class="display-4 fw-bold text-white">Ranked Leaderboards</h1>
     </div>
 </div>
 
-{% for game, gamemodes in games.items %}
-
-<div
-    class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-dark"
->
-    <h2 style="color: white" class="display-10 fw-normal">{{ game }}</h2>
-    <br /><br />
-
-    {% for gamemode in gamemodes %}
-    <a href="/ranked/{{ gamemode.short_code }}/" class="btn btn-outline-light"
-        >{{ gamemode.name }}</a
-    >
+<!-- Game Modes Section -->
+<div class="container my-5">
+    {% for game, gamemodes in games.items %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="text-white text-center mb-3">{{ game }}</h2>
+        </div>
+        {% for gamemode in gamemodes %}
+        <div class="col-12 col-md-4 mb-4">
+            <div class="card bg-dark text-white shadow-lg h-100">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ gamemode.name }}</h3>
+                    <a href="/ranked/{{ gamemode.short_code }}/" class="btn btn-outline-light mt-3">
+                        View Leaderboard
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
     {% endfor %}
 </div>
-
-{% endfor %} {% endblock %}
+{% endblock %}
