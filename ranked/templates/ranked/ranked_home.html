@@ -10,24 +10,23 @@
 
 <!-- Game Modes Section -->
 <div class="container my-5">
-    {% for game, gamemodes in games.items %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="text-white text-center mb-3">{{ game }}</h2>
-        </div>
-        {% for gamemode in gamemodes %}
+    <div class="row">
+        {% for game, gamemodes in games.items %}
         <div class="col-12 col-md-4 mb-4">
             <div class="card bg-dark text-white shadow-lg h-100">
                 <div class="card-body text-center">
-                    <h3 class="card-title">{{ gamemode.name }}</h3>
-                    <a href="/ranked/{{ gamemode.short_code }}/" class="btn btn-outline-light mt-3">
-                        View Leaderboard
-                    </a>
+                    <h3 class="card-title">{{ game }}</h3>
+                    <div class="mt-4">
+                        {% for gamemode in gamemodes %}
+                        <a href="/ranked/{{ gamemode.short_code }}/" class="btn btn-outline-light mb-2">
+                            {{ gamemode.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
-    {% endfor %}
 </div>
 {% endblock %}
