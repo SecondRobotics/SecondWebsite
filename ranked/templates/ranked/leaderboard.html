@@ -1,4 +1,7 @@
-{% extends 'home/base.html' %} {% block content %} {% load rank_filter %}
+{% extends 'home/base.html' %}
+{% block content %}
+{% load rank_filter %}
+{% load color_rank_filters %}
 
 <div class="position-relative overflow-hidden text-center bg-primary">
     <div class="p-lg-4 mx-auto">
@@ -8,40 +11,43 @@
     </div>
 </div>
 
-<table
-    class="table table-dark table-striped table-hover table-sm"
-    style="text-align: center"
->
+<table class="table table-dark table-striped table-hover table-sm" style="text-align: center">
     <thead>
-        <td>#</td>
-        <td>Player</td>
-        <td>ELO</td>
-        <td>MMR</td>
-        <td>Rank</td>
-        <td># Played</td>
-        <td>Win %</td>
-        <td>Wins</td>
-        <td>Losses</td>
-        <td>Ties</td>
+        <tr>
+            <th>#</th>
+            <th>Player</th>
+            <th>ELO</th>
+            <th>MMR</th>
+            <th>Rank</th>
+            <th># Played</th>
+            <th>Win %</th>
+            <th>Wins</th>
+            <th>Losses</th>
+            <th>Ties</th>
+        </tr>
     </thead>
-    {% for player in players %}
-    <tr>
-        <td>{{forloop.counter}}</td>
-        <td>
-            <a href="/ranked/{{leaderboard_code}}/{{player.player.id}}"
-                >{{player.player}}</a
-            >
-        </td>
-        <td>{{ player.elo|floatformat:1 }}</td>
-        <td>{{ player.mmr|floatformat:1 }}</td>
-        <td>{{player.mmr|get_rank}}</td>
-        <td>{{player.matches_played}}</td>
-        <td>{{ player.win_rate|floatformat:2 }}%</td>
-        <td>{{player.matches_won}}</td>
-        <td>{{player.matches_lost}}</td>
-        <td>{{player.matches_drawn}}</td>
-    </tr>
-    {% endfor %}
+    <tbody>
+        {% for player in players %}
+        {% with player.mmr|get_rank as rank %}
+        {% with rank|rank_css_class as rank_class %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>
+                <a href="/ranked/{{ leaderboard_code }}/{{ player.player.id }}">{{ player.player }}</a>
+            </td>
+            <td>{{ player.elo|floatformat:1 }}</td>
+            <td>{{ player.mmr|floatformat:1 }}</td>
+            <td class="{{ rank_class }}">{{ rank }}</td>
+            <td>{{ player.matches_played }}</td>
+            <td>{{ player.win_rate|floatformat:2 }}%</td>
+            <td>{{ player.matches_won }}</td>
+            <td>{{ player.matches_lost }}</td>
+            <td>{{ player.matches_drawn }}</td>
+        </tr>
+        {% endwith %}
+        {% endwith %}
+        {% endfor %}
+    </tbody>
 </table>
 
 {% endblock %}
