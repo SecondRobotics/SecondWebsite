@@ -183,14 +183,42 @@
                             >
                         </li>
 
-                        <!-- Nav Item - Scores stuff -->
-                        <li class="nav-item">
+                        <!-- Nav Item - Highscores -->
+                        <li class="nav-item dropdown">
                             <a
-                                class="nav-link"
-                                aria-current="page"
-                                href="/highscores"
-                                >Highscores</a
+                                class="nav-link dropdown-toggle"
+                                href="#"
+                                id="highscoresDropdown"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
                             >
+                                Highscores
+                            </a>
+                            <ul
+                                class="dropdown-menu"
+                                aria-labelledby="highscoresDropdown"
+                            >
+                                <li>
+                                    <a class="dropdown-item" href="/highscores"
+                                        >Leaderboards</a
+                                    >
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="/highscores/world-records/"
+                                        >World Records</a
+                                    >
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="/highscores/overall/"
+                                        >Overall Leaderboard</a
+                                    >
+                                </li>
+                            </ul>
                         </li>
 
                         <li class="nav-item">
