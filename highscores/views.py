@@ -14,6 +14,7 @@ COMBINED_LEADERBOARD_PAGE = "highscores/combined_leaderboard.html"
 SUBMIT_PAGE = "highscores/submit.html"
 SUBMIT_ACCEPTED_PAGE = "highscores/submit_accepted.html"
 SUBMIT_ERROR_PAGE = "highscores/submit_error.html"
+WR_PAGE = "highscores/world_records.html"
 
 
 def home(request: HttpRequest) -> HttpResponse:
@@ -49,6 +50,22 @@ def leaderboard_robot(request: HttpRequest, game_slug: str, name: str) -> HttpRe
         i += 1
 
     return render(request, "highscores/leaderboard_ranks.html", {"ls": context, "robot_name": name})
+
+def world_records(request: HttpRequest) -> HttpResponse:
+    # Get all leaderboards
+    leaderboards = Leaderboard.objects.all()
+
+    # Collect the highest scores for each leaderboard
+    world_records = []
+    for leaderboard in leaderboards:
+        highest_score = Score.objects.filter(leaderboard=leaderboard, approved=True).order_by('-score', 'time_set').first()
+        if highest_score:
+            world_records.append(highest_score)
+
+    # Sort the world records by the date they were set
+    world_records.sort(key=lambda x: x.time_set)
+
+    return render(request, WR_PAGE, {"world_records": world_records})
 
 
 def leaderboard_combined(request: HttpRequest, game_slug: str) -> HttpResponse:

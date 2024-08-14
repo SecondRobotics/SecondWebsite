@@ -9,4 +9,5 @@ urlpatterns = [
          name="game leaderboard"),
     path("<str:game_slug>/<str:name>/",
          views.leaderboard_robot, name="robot leaderboard"),
+     path('world-records/', views.world_records, name='world-records'),
 ]

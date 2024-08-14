@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>World Records</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <h1>World Records</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Score</th>
+                <th>Game</th>
+                <th>Time Set</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in world_records %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ record.player.username }}</td>
+                <td>{{ record.score }}</td>
+                <td>{{ record.leaderboard.game }}</td>
+                <td>{{ record.time_set }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
