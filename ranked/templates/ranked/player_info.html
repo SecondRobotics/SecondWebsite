@@ -37,7 +37,7 @@
         <div
             class="position-relative overflow-hidden p-3 p-md-4 shadowy m-md-3 text-center bg-dark"
         >
-            {% mmr_to_rank player.mmr highest_mmr lowest_mmr as rank rank_color %}
+            {% mmr_to_rank player.mmr highest_mmr lowest_mmr as rank %}
             <h1 class="display-4 fw-normal">{{ rank }}</h1>
             <h2 class="display-6 fw-normal">
                 {{ player.elo|floatformat:1 }} ELO<br />{{ player.mmr|floatformat:1 }} MMR
