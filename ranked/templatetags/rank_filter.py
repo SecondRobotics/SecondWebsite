@@ -2,26 +2,32 @@ from django import template
 
 register = template.Library()
 
-def mmr_to_rank(mmr):
-    if mmr > 1600:
+@register.simple_tag
+def mmr_to_rank(mmr, highest_mmr, lowest_mmr):
+    if highest_mmr == lowest_mmr:
+        return 'Stone'  # All players have the same MMR, edge case
+
+    # Calculate the percentile
+    percentile = (highest_mmr - mmr) / (highest_mmr - lowest_mmr)
+    
+    # Determine rank based on percentile
+    if percentile <= 0.1:
         return 'Challenger'
-    elif mmr > 1500:
+    elif percentile <= 0.2:
         return 'Grandmaster'
-    elif mmr > 1400:
+    elif percentile <= 0.3:
         return 'Master'
-    elif mmr > 1300:
+    elif percentile <= 0.4:
         return 'Diamond'
-    elif mmr > 1200:
+    elif percentile <= 0.5:
         return 'Platinum'
-    elif mmr > 1100:
+    elif percentile <= 0.6:
         return 'Gold'
-    elif mmr > 1000:
+    elif percentile <= 0.7:
         return 'Silver'
-    elif mmr > 900:
+    elif percentile <= 0.8:
         return 'Bronze'
-    elif mmr > 800:
+    elif percentile <= 0.9:
         return 'Iron'
     else:
         return 'Stone'
-
-register.filter('get_rank', mmr_to_rank)

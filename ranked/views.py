@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http.response import HttpResponseRedirect
-from django.db.models import Max, F
+from django.db.models import Max, Min, F
 from django.db.models import Q, Count
 from django.db.models import IntegerField, ExpressionWrapper, FloatField
 from django.db.models.functions import ExtractHour
@@ -44,14 +44,22 @@ def leaderboard(request, name):
 
     players = players.annotate(time_delta=ExpressionWrapper(datetime.now(timezone.utc) - F('last_match_played_time'), output_field=FloatField()) / 3600000000)
 
-    # players = players.annotate(mmr=F('elo') * 2 / ((1 + pow(math.e, 1/168 * pow(F('time_delta'), 0.63))) * 
-    #             (1 + pow(math.e, -0.33 * F('matches_played')))))
+    # Calculate MMR
     players = players.annotate(mmr=mmr_calc(F('elo'), F('matches_played'), F('time_delta')))
+
+    # Get highest and lowest MMR values
+    highest_mmr = players.aggregate(Max('mmr'))['mmr__max']
+    lowest_mmr = players.aggregate(Min('mmr'))['mmr__min']
 
     players = players.order_by('-mmr')
 
-    context = {'leaderboard_code': gamemode.short_code,
-               'leaderboard_name': gamemode.name, 'players': players}
+    context = {
+        'leaderboard_code': gamemode.short_code,
+        'leaderboard_name': gamemode.name,
+        'players': players,
+        'highest_mmr': highest_mmr,
+        'lowest_mmr': lowest_mmr
+    }
 
     return render(request, "ranked/leaderboard.html", context)
 

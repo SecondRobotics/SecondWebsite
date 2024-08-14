@@ -1,4 +1,6 @@
-{% extends 'home/base.html' %} {% block content %} {% load rank_filter %}
+{% extends 'home/base.html' %} 
+{% block content %} 
+{% load rank_filter %}
 
 <div class="position-relative overflow-hidden text-center bg-primary">
     <div class="p-lg-4 mx-auto">
@@ -34,7 +36,7 @@
         </td>
         <td>{{ player.elo|floatformat:1 }}</td>
         <td>{{ player.mmr|floatformat:1 }}</td>
-        <td>{{player.mmr|get_rank}}</td>
+        <td>{% mmr_to_rank player.mmr highest_mmr lowest_mmr %}</td>
         <td>{{player.matches_played}}</td>
         <td>{{ player.win_rate|floatformat:2 }}%</td>
         <td>{{player.matches_won}}</td>
