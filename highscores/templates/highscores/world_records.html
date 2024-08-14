@@ -8,13 +8,33 @@
         </h1>
     </div>
 </div>
+
+<h2 class="text-center">World Records Count Per Player</h2>
+<table class="table table-dark table-striped table-hover table-sm">
+    <thead>
+        <tr>
+            <th>Player Name</th>
+            <th style="text-align: center">Number of Records</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for player, count in player_counts %}
+        <tr>
+            <td>{{ player }}</td>
+            <td style="text-align: center">{{ count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2 class="text-center">Individual World Records</h2>
 <table class="table table-dark table-striped table-hover table-sm">
     <thead>
         <tr>
             <th style="text-align: center">Rank</th>
             <th>Player Name</th>
             <th style="text-align: center">Score</th>
-            <th style="text-align: center">Game</th>
+            <th style="text-align: center">Leaderboard</th>
             <th style="text-align: center">Time Set</th>
             <th style="text-align: center">Active For</th>
         </tr>
@@ -27,7 +47,7 @@
                 <a href="/user/{{ record.player.id }}" style="color: #fff">{{ record.player.username }}</a>
             </td>
             <td style="text-align: center">{{ record.score }}</td>
-            <td style="text-align: center">{{ record.leaderboard.game }}</td>
+            <td style="text-align: center">{{ record.leaderboard.game }} - {{ record.robot_name }}</td>
             <td style="text-align: center">{{ record.time_set }}</td>
             <td style="text-align: center">{{ record.active_for }}</td>
         </tr>

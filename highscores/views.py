@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Max
 from django.utils.timezone import make_aware
 from datetime import datetime
+from collections import Counter
 
 from .lib import extract_form_data, game_slug_to_submit_func
 from .models import Leaderboard, Score
@@ -62,24 +63,29 @@ def world_records(request: HttpRequest) -> HttpResponse:
     for leaderboard in leaderboards:
         highest_score = Score.objects.filter(leaderboard=leaderboard, approved=True).order_by('-score', 'time_set').first()
         if highest_score:
+            highest_score.robot_name = leaderboard.name  # Include robot name
             world_records.append(highest_score)
 
     # Sort the world records by the date they were set
     world_records.sort(key=lambda x: x.time_set)
 
     # Calculate how long each record has been active
+    now = make_aware(datetime.now())
     for record in world_records:
-        now = make_aware(datetime.now())
         time_set = record.time_set
         active_duration = now - time_set
-        
+
         years, remainder = divmod(active_duration.total_seconds(), 31536000)  # 60*60*24*365
         months, remainder = divmod(remainder, 2592000)  # 60*60*24*30
         days, _ = divmod(remainder, 86400)  # 60*60*24
-        
+
         record.active_for = f"{int(years)} years, {int(months)} months, {int(days)} days"
 
-    return render(request, WR_PAGE, {"world_records": world_records})
+    # Count the number of records per player
+    player_counts = Counter(record.player.username for record in world_records)
+    player_counts = sorted(player_counts.items(), key=lambda x: x[1], reverse=True)
+
+    return render(request, WR_PAGE, {"world_records": world_records, "player_counts": player_counts})
 
 
 def leaderboard_combined(request: HttpRequest, game_slug: str) -> HttpResponse:
