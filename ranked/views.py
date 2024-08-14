@@ -67,6 +67,9 @@ def leaderboard(request, name):
             'color': color,
         })
 
+    # Sort players_with_rank by MMR in descending order
+    players_with_rank = sorted(players_with_rank, key=lambda x: x['player'].mmr, reverse=True)
+
     context = {
         'leaderboard_code': gamemode.short_code,
         'leaderboard_name': gamemode.name,
