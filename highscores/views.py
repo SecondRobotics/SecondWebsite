@@ -8,6 +8,7 @@ from django.db.models import Sum, Max
 from django.utils.timezone import make_aware
 from datetime import datetime
 from collections import Counter
+from django.db.models import Avg, F
 
 from .lib import extract_form_data, game_slug_to_submit_func
 from .models import Leaderboard, Score
@@ -101,18 +102,34 @@ def leaderboard_combined(request: HttpRequest, game_slug: str) -> HttpResponse:
 
     game_name = Leaderboard.objects.filter(game_slug=game_slug)[0].game
 
-    scores = Score.objects.filter(leaderboard__game_slug=game_slug, approved=True).values(
-        'player').annotate(time_set=Max('time_set')).annotate(score=Sum('score'))
-    sorted_board = scores.order_by('-score', 'time_set')
-
-    i = 1
+    leaderboards = Leaderboard.objects.filter(game_slug=game_slug)
+    
+    player_percentiles = {}
+    
+    for leaderboard in leaderboards:
+        scores = Score.objects.filter(leaderboard=leaderboard, approved=True).order_by('-score', 'time_set')
+        if not scores.exists():
+            continue
+        highest_score = scores.first().score
+        
+        for score in scores:
+            percentile = (score.score / highest_score) * 100
+            if score.player.id not in player_percentiles:
+                player_percentiles[score.player.id] = []
+            player_percentiles[score.player.id].append(percentile)
+    
+    average_percentiles = {player_id: sum(percentiles)/len(percentiles) for player_id, percentiles in player_percentiles.items()}
+    sorted_average_percentiles = sorted(average_percentiles.items(), key=lambda x: x[1], reverse=True)
+    
     context = []
-    # Create ranking numbers and append them to sorted values
-    for item in sorted_board:
-        item['player'] = User.objects.filter(id=item['player'])[0]
-        context.append([i, item])
+    i = 1
+    for player_id, avg_percentile in sorted_average_percentiles:
+        player = User.objects.get(id=player_id)
+        total_score = Score.objects.filter(player=player, leaderboard__game_slug=game_slug, approved=True).aggregate(total_score=Sum('score'))['total_score']
+        last_time_set = Score.objects.filter(player=player, leaderboard__game_slug=game_slug, approved=True).aggregate(last_time_set=Max('time_set'))['last_time_set']
+        context.append([i, {'player': player, 'average_percentile': avg_percentile, 'score': total_score, 'time_set': last_time_set}])
         i += 1
-
+    
     return render(request, COMBINED_LEADERBOARD_PAGE, {"ls": context, "game_name": game_name})
 
 

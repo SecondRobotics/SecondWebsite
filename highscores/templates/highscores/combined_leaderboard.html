@@ -1,8 +1,10 @@
-{% extends 'home/base.html' %} {% block content %}
+{% extends 'home/base.html' %}
+
+{% block content %}
 <div class="position-relative overflow-hidden text-center bg-warning">
     <div class="col-md-4 p-lg-4 mx-auto">
         <h1 style="color: black" class="display-4 fw-normal">
-            {{game_name}} Combined Leaderboard
+            {{ game_name }} Combined Leaderboard
         </h1>
     </div>
 </div>
@@ -13,19 +15,19 @@
             <th>Player Name</th>
             <th style="text-align: center">Score</th>
             <th style="text-align: center">Last Submitted</th>
+            <th style="text-align: center">Average Percentile</th>
         </tr>
     </thead>
     <tbody>
         {% for item in ls %}
         <tr>
-            <td style="text-align: center"><b>{{item.0}}</b></td>
+            <td style="text-align: center"><b>{{ item.0 }}</b></td>
             <td>
-                <a href="/user/{{item.1.player.id}}" style="color: #fff"
-                    >{{item.1.player}}</a
-                >
+                <a href="/user/{{ item.1.player.id }}" style="color: #fff">{{ item.1.player.username }}</a>
             </td>
-            <td style="text-align: center">{{item.1.score}}</td>
-            <td style="text-align: center">{{item.1.time_set}}</td>
+            <td style="text-align: center">{{ item.1.score }}</td>
+            <td style="text-align: center">{{ item.1.time_set }}</td>
+            <td style="text-align: center">{{ item.1.average_percentile|floatformat:2 }}%</td>
         </tr>
         {% endfor %}
     </tbody>
