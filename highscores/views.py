@@ -142,40 +142,6 @@ def leaderboard_combined(request: HttpRequest, game_slug: str) -> HttpResponse:
         i += 1
     
     return render(request, COMBINED_LEADERBOARD_PAGE, {"ls": context, "game_name": game_name})
-    if not Leaderboard.objects.filter(game_slug=game_slug).exists():
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
-
-    game_name = Leaderboard.objects.filter(game_slug=game_slug)[0].game
-
-    leaderboards = Leaderboard.objects.filter(game_slug=game_slug)
-    
-    player_percentiles = {}
-    
-    for leaderboard in leaderboards:
-        scores = Score.objects.filter(leaderboard=leaderboard, approved=True).order_by('-score', 'time_set')
-        if not scores.exists():
-            continue
-        highest_score = scores.first().score
-        
-        for score in scores:
-            percentile = (score.score / highest_score) * 100
-            if score.player.id not in player_percentiles:
-                player_percentiles[score.player.id] = []
-            player_percentiles[score.player.id].append(percentile)
-    
-    average_percentiles = {player_id: sum(percentiles)/len(percentiles) for player_id, percentiles in player_percentiles.items()}
-    sorted_average_percentiles = sorted(average_percentiles.items(), key=lambda x: x[1], reverse=True)
-    
-    context = []
-    i = 1
-    for player_id, avg_percentile in sorted_average_percentiles:
-        player = User.objects.get(id=player_id)
-        total_score = Score.objects.filter(player=player, leaderboard__game_slug=game_slug, approved=True).aggregate(total_score=Sum('score'))['total_score']
-        last_time_set = Score.objects.filter(player=player, leaderboard__game_slug=game_slug, approved=True).aggregate(last_time_set=Max('time_set'))['last_time_set']
-        context.append([i, {'player': player, 'average_percentile': avg_percentile, 'score': total_score, 'time_set': last_time_set}])
-        i += 1
-    
-    return render(request, COMBINED_LEADERBOARD_PAGE, {"ls": context, "game_name": game_name})
 
 
 def submit_form_view(request: HttpRequest, form_class: Type[ScoreForm], submit_func: Callable[[Score], Optional[str]]) -> HttpResponse:
