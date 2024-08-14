@@ -40,7 +40,7 @@
             <td>{{ player.elo|floatformat:1 }}</td>
             <td>{{ player.mmr|floatformat:1 }}</td>
             {% with rank, color = mmr_to_rank player.mmr highest_mmr lowest_mmr %}
-            <td style="color: {{ color }}">{{ rank }}</td>
+            <td style="color: #ebce75">{{ rank }}</td>
             {% endwith %}
             <td>{{player.matches_played}}</td>
             <td>{{ player.win_rate|floatformat:2 }}%</td>
