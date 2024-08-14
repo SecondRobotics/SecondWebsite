@@ -8,7 +8,7 @@ from django.db.models import Sum, Max
 from django.utils.timezone import make_aware
 from datetime import datetime
 from collections import Counter
-from django.db.models import Avg, F
+from django.db.models import Sum, Max, F, Count
 from django.db.models.functions import Coalesce
 
 from .lib import extract_form_data, game_slug_to_submit_func
@@ -101,15 +101,15 @@ def leaderboard_combined(request: HttpRequest, game_slug: str) -> HttpResponse:
     if not Leaderboard.objects.filter(game_slug=game_slug).exists():
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
-    game_name = Leaderboard.objects.filter(game_slug=game_slug)[0].game
+    game_name = Leaderboard.objects.filter(game_slug=game_slug).first().game
 
-    leaderboards = Leaderboard.objects.filter(game_slug=game_slug)
-    
+    leaderboards = Leaderboard.objects.filter(game_slug=game_slug).prefetch_related('score_set')
+
     player_percentiles = {}
     all_players = set()
 
     for leaderboard in leaderboards:
-        scores = Score.objects.filter(leaderboard=leaderboard, approved=True).order_by('-score', 'time_set')
+        scores = leaderboard.score_set.filter(approved=True).order_by('-score', 'time_set')
         if not scores.exists():
             continue
         highest_score = scores.first().score
@@ -117,25 +117,26 @@ def leaderboard_combined(request: HttpRequest, game_slug: str) -> HttpResponse:
         for score in scores:
             percentile = (score.score / highest_score) * 100
             if score.player.id not in player_percentiles:
-                player_percentiles[score.player.id] = {}
-            player_percentiles[score.player.id][leaderboard.id] = percentile
+                player_percentiles[score.player.id] = []
+            player_percentiles[score.player.id].append(percentile)
             all_players.add(score.player.id)
     
     # Ensure every player has a score for each leaderboard (0% if missing)
     for player_id in all_players:
         if player_id not in player_percentiles:
-            player_percentiles[player_id] = {}
+            player_percentiles[player_id] = []
         for leaderboard in leaderboards:
-            if leaderboard.id not in player_percentiles[player_id]:
-                player_percentiles[player_id][leaderboard.id] = 0.0
+            if len(player_percentiles[player_id]) < leaderboards.count():
+                player_percentiles[player_id].append(0.0)
     
-    average_percentiles = {player_id: sum(percentiles.values())/len(percentiles) for player_id, percentiles in player_percentiles.items()}
+    average_percentiles = {player_id: sum(percentiles)/len(percentiles) for player_id, percentiles in player_percentiles.items()}
     sorted_average_percentiles = sorted(average_percentiles.items(), key=lambda x: x[1], reverse=True)
     
     context = []
     i = 1
+    player_objects = User.objects.filter(id__in=all_players).in_bulk()
     for player_id, avg_percentile in sorted_average_percentiles:
-        player = User.objects.get(id=player_id)
+        player = player_objects[player_id]
         total_score = Score.objects.filter(player=player, leaderboard__game_slug=game_slug, approved=True).aggregate(total_score=Sum('score'))['total_score']
         last_time_set = Score.objects.filter(player=player, leaderboard__game_slug=game_slug, approved=True).aggregate(last_time_set=Max('time_set'))['last_time_set']
         context.append([i, {'player': player, 'average_percentile': avg_percentile, 'score': total_score, 'time_set': last_time_set}])
@@ -162,13 +163,13 @@ def submit_form_view(request: HttpRequest, form_class: Type[ScoreForm], submit_f
     return render(request, SUBMIT_ACCEPTED_PAGE, {})
 
 def overall_singleplayer_leaderboard(request: HttpRequest) -> HttpResponse:
-    leaderboards = Leaderboard.objects.all()
+    leaderboards = Leaderboard.objects.all().prefetch_related('score_set')
     
     player_percentiles = {}
     all_players = set()
 
     for leaderboard in leaderboards:
-        scores = Score.objects.filter(leaderboard=leaderboard, approved=True).order_by('-score', 'time_set')
+        scores = leaderboard.score_set.filter(approved=True).order_by('-score', 'time_set')
         if not scores.exists():
             continue
         highest_score = scores.first().score
@@ -176,31 +177,33 @@ def overall_singleplayer_leaderboard(request: HttpRequest) -> HttpResponse:
         for score in scores:
             percentile = (score.score / highest_score) * 100
             if score.player.id not in player_percentiles:
-                player_percentiles[score.player.id] = {}
-            player_percentiles[score.player.id][leaderboard.id] = percentile
+                player_percentiles[score.player.id] = []
+            player_percentiles[score.player.id].append(percentile)
             all_players.add(score.player.id)
     
     # Ensure every player has a score for each leaderboard (0% if missing)
     for player_id in all_players:
         if player_id not in player_percentiles:
-            player_percentiles[player_id] = {}
+            player_percentiles[player_id] = []
         for leaderboard in leaderboards:
-            if leaderboard.id not in player_percentiles[player_id]:
-                player_percentiles[player_id][leaderboard.id] = 0.0
+            if len(player_percentiles[player_id]) < leaderboards.count():
+                player_percentiles[player_id].append(0.0)
     
-    average_percentiles = {player_id: sum(percentiles.values())/len(percentiles) for player_id, percentiles in player_percentiles.items()}
+    average_percentiles = {player_id: sum(percentiles)/len(percentiles) for player_id, percentiles in player_percentiles.items()}
     sorted_average_percentiles = sorted(average_percentiles.items(), key=lambda x: x[1], reverse=True)
     
     context = []
     i = 1
+    player_objects = User.objects.filter(id__in=all_players).in_bulk()
     for player_id, avg_percentile in sorted_average_percentiles:
-        player = User.objects.get(id=player_id)
+        player = player_objects[player_id]
         total_score = Score.objects.filter(player=player, approved=True).aggregate(total_score=Sum('score'))['total_score']
         last_time_set = Score.objects.filter(player=player, approved=True).aggregate(last_time_set=Max('time_set'))['last_time_set']
         context.append([i, {'player': player, 'average_percentile': avg_percentile, 'score': total_score, 'time_set': last_time_set}])
         i += 1
     
     return render(request, "highscores/overall_singleplayer_leaderboard.html", {"ls": context})
+
 
 
 
