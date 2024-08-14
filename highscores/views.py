@@ -161,6 +161,48 @@ def submit_form_view(request: HttpRequest, form_class: Type[ScoreForm], submit_f
 
     return render(request, SUBMIT_ACCEPTED_PAGE, {})
 
+def overall_singleplayer_leaderboard(request: HttpRequest) -> HttpResponse:
+    leaderboards = Leaderboard.objects.all()
+    
+    player_percentiles = {}
+    all_players = set()
+
+    for leaderboard in leaderboards:
+        scores = Score.objects.filter(leaderboard=leaderboard, approved=True).order_by('-score', 'time_set')
+        if not scores.exists():
+            continue
+        highest_score = scores.first().score
+        
+        for score in scores:
+            percentile = (score.score / highest_score) * 100
+            if score.player.id not in player_percentiles:
+                player_percentiles[score.player.id] = {}
+            player_percentiles[score.player.id][leaderboard.id] = percentile
+            all_players.add(score.player.id)
+    
+    # Ensure every player has a score for each leaderboard (0% if missing)
+    for player_id in all_players:
+        if player_id not in player_percentiles:
+            player_percentiles[player_id] = {}
+        for leaderboard in leaderboards:
+            if leaderboard.id not in player_percentiles[player_id]:
+                player_percentiles[player_id][leaderboard.id] = 0.0
+    
+    average_percentiles = {player_id: sum(percentiles.values())/len(percentiles) for player_id, percentiles in player_percentiles.items()}
+    sorted_average_percentiles = sorted(average_percentiles.items(), key=lambda x: x[1], reverse=True)
+    
+    context = []
+    i = 1
+    for player_id, avg_percentile in sorted_average_percentiles:
+        player = User.objects.get(id=player_id)
+        total_score = Score.objects.filter(player=player, approved=True).aggregate(total_score=Sum('score'))['total_score']
+        last_time_set = Score.objects.filter(player=player, approved=True).aggregate(last_time_set=Max('time_set'))['last_time_set']
+        context.append([i, {'player': player, 'average_percentile': avg_percentile, 'score': total_score, 'time_set': last_time_set}])
+        i += 1
+    
+    return render(request, "highscores/overall_singleplayer_leaderboard.html", {"ls": context})
+
+
 
 @login_required(login_url='/login')
 def submit_form(request: HttpRequest, game_slug: str) -> HttpResponse:

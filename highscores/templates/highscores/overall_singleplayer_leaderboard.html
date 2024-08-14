@@ -1,0 +1,35 @@
+{% extends 'home/base.html' %}
+
+{% block content %}
+<div class="position-relative overflow-hidden text-center bg-info">
+    <div class="col-md-4 p-lg-4 mx-auto">
+        <h1 style="color: white" class="display-4 fw-normal">
+            Overall Singleplayer Leaderboard
+        </h1>
+    </div>
+</div>
+<table class="table table-dark table-striped table-hover table-sm">
+    <thead>
+        <tr>
+            <th style="text-align: center">Rank</th>
+            <th>Player Name</th>
+            <th style="text-align: center">Total Score</th>
+            <th style="text-align: center">Last Submitted</th>
+            <th style="text-align: center">Average Percentile</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in ls %}
+        <tr>
+            <td style="text-align: center"><b>{{ item.0 }}</b></td>
+            <td>
+                <a href="/user/{{ item.1.player.id }}" style="color: #fff">{{ item.1.player }}</a>
+            </td>
+            <td style="text-align: center">{{ item.1.score }}</td>
+            <td style="text-align: center">{{ item.1.time_set }}</td>
+            <td style="text-align: center">{{ item.1.average_percentile|floatformat:2 }}%</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
