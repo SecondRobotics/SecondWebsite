@@ -10,5 +10,5 @@ urlpatterns = [
     path("<str:game_slug>/<str:name>/",
          views.leaderboard_robot, name="robot leaderboard"),
      path('world-records/', views.world_records, name='world-records'),
-     path('highscores/overall-singleplayer/', views.overall_singleplayer_leaderboard, name='overall-singleplayer-leaderboard'),
+     path('overall/', views.overall_singleplayer_leaderboard, name='overall-singleplayer-leaderboard'),
 ]
