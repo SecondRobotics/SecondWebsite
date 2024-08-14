@@ -8,7 +8,7 @@ from django.db.models import Sum, Max
 from django.utils.timezone import make_aware
 from datetime import datetime
 from collections import Counter
-from django.db.models import Sum, Max, F, Count
+from django.db.models import Sum, Max, F, Count, Prefetch
 from django.db.models.functions import Coalesce
 from django.core.cache import cache
 
@@ -108,13 +108,17 @@ def leaderboard_combined(request: HttpRequest, game_slug: str) -> HttpResponse:
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
     game_name = Leaderboard.objects.filter(game_slug=game_slug).first().game
-    leaderboards = Leaderboard.objects.filter(game_slug=game_slug).prefetch_related('scores__player')
+    leaderboards = Leaderboard.objects.filter(game_slug=game_slug)
+
+    # Prefetch related scores for all leaderboards
+    scores_prefetch = Prefetch('score_set', queryset=Score.objects.filter(approved=True).select_related('player'))
+    leaderboards = leaderboards.prefetch_related(scores_prefetch)
 
     player_percentiles = {}
     all_players = set()
 
     for leaderboard in leaderboards:
-        scores = leaderboard.scores.filter(approved=True).order_by('-score', 'time_set')
+        scores = leaderboard.score_set.all().order_by('-score', 'time_set')
         if not scores.exists():
             continue
         highest_score = scores.first().score
@@ -174,13 +178,17 @@ def overall_singleplayer_leaderboard(request: HttpRequest) -> HttpResponse:
     if context:
         return render(request, "highscores/overall_singleplayer_leaderboard.html", context)
 
-    leaderboards = Leaderboard.objects.all().prefetch_related('scores__player')
+    leaderboards = Leaderboard.objects.all()
+
+    # Prefetch related scores for all leaderboards
+    scores_prefetch = Prefetch('score_set', queryset=Score.objects.filter(approved=True).select_related('player'))
+    leaderboards = leaderboards.prefetch_related(scores_prefetch)
 
     player_percentiles = {}
     all_players = set()
 
     for leaderboard in leaderboards:
-        scores = leaderboard.scores.filter(approved=True).order_by('-score', 'time_set')
+        scores = leaderboard.score_set.all().order_by('-score', 'time_set')
         if not scores.exists():
             continue
         highest_score = scores.first().score
@@ -215,7 +223,6 @@ def overall_singleplayer_leaderboard(request: HttpRequest) -> HttpResponse:
 
     cache.set(cache_key, {"ls": context}, 300)  # Cache for 5 minutes
     return render(request, "highscores/overall_singleplayer_leaderboard.html", {"ls": context})
-
 
 
 
