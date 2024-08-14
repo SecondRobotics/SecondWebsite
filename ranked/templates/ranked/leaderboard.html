@@ -15,35 +15,40 @@
     style="text-align: center"
 >
     <thead>
-        <td>#</td>
-        <td>Player</td>
-        <td>ELO</td>
-        <td>MMR</td>
-        <td>Rank</td>
-        <td># Played</td>
-        <td>Win %</td>
-        <td>Wins</td>
-        <td>Losses</td>
-        <td>Ties</td>
+        <tr>
+            <th>#</th>
+            <th>Player</th>
+            <th>ELO</th>
+            <th>MMR</th>
+            <th>Rank</th>
+            <th># Played</th>
+            <th>Win %</th>
+            <th>Wins</th>
+            <th>Losses</th>
+            <th>Ties</th>
+        </tr>
     </thead>
-    {% for player in players %}
-    <tr>
-        <td>{{forloop.counter}}</td>
-        <td>
-            <a href="/ranked/{{leaderboard_code}}/{{player.player.id}}"
-                >{{player.player}}</a
-            >
-        </td>
-        <td>{{ player.elo|floatformat:1 }}</td>
-        <td>{{ player.mmr|floatformat:1 }}</td>
-        <td>{% mmr_to_rank player.mmr highest_mmr lowest_mmr %}</td>
-        <td>{{player.matches_played}}</td>
-        <td>{{ player.win_rate|floatformat:2 }}%</td>
-        <td>{{player.matches_won}}</td>
-        <td>{{player.matches_lost}}</td>
-        <td>{{player.matches_drawn}}</td>
-    </tr>
-    {% endfor %}
+    <tbody>
+        {% for player in players %}
+        <tr>
+            <td>{{forloop.counter}}</td>
+            <td>
+                <a href="/ranked/{{leaderboard_code}}/{{player.player.id}}"
+                    >{{player.player}}</a
+                >
+            </td>
+            <td>{{ player.elo|floatformat:1 }}</td>
+            <td>{{ player.mmr|floatformat:1 }}</td>
+            {% mmr_to_rank player.mmr highest_mmr lowest_mmr as rank color %}
+            <td style="color: {{ color }}">{{ rank }}</td>
+            <td>{{player.matches_played}}</td>
+            <td>{{ player.win_rate|floatformat:2 }}%</td>
+            <td>{{player.matches_won}}</td>
+            <td>{{player.matches_lost}}</td>
+            <td>{{player.matches_drawn}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
 
 {% endblock %}
