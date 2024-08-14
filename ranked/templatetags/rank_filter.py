@@ -5,11 +5,11 @@ register = template.Library()
 @register.simple_tag
 def mmr_to_rank(mmr, highest_mmr, lowest_mmr):
     if highest_mmr == lowest_mmr:
-        return 'Stone', '#ffffff'  # All players have the same MMR, edge case
+        return 'Stone', '#ffffff'
 
     # Calculate the percentile
     percentile = (highest_mmr - mmr) / (highest_mmr - lowest_mmr)
-    
+
     # Determine rank based on percentile
     if percentile <= 0.1:
         return 'Challenger', '#ffffff'
