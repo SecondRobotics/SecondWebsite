@@ -45,14 +45,22 @@ def leaderboard_robot(request: HttpRequest, game_slug: str, name: str) -> HttpRe
     sorted_board = Score.objects.filter(
         leaderboard__game_slug=game_slug, leaderboard__name=name, approved=True).order_by('-score', 'time_set')
 
+    # Find the highest score (world record)
+    if sorted_board.exists():
+        highest_score = sorted_board.first().score
+    else:
+        highest_score = 1  # Avoid division by zero
+
     i = 1
     context = []
-    # Create ranking numbers and append them to sorted values
+    # Create ranking numbers, calculate percentiles, and append them to sorted values
     for item in sorted_board:
-        context.append([i, item])
+        percentile = (item.score / highest_score) * 100
+        context.append([i, item, percentile])
         i += 1
 
     return render(request, "highscores/leaderboard_ranks.html", {"ls": context, "robot_name": name})
+
 
 def world_records(request: HttpRequest) -> HttpResponse:
     # Get all leaderboards
