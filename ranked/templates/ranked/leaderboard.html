@@ -1,5 +1,5 @@
-{% extends 'home/base.html' %} 
-{% block content %} 
+{% extends 'home/base.html' %}
+{% block content %}
 {% load rank_filter %}
 
 <div class="position-relative overflow-hidden text-center bg-primary">
@@ -39,8 +39,9 @@
             </td>
             <td>{{ player.elo|floatformat:1 }}</td>
             <td>{{ player.mmr|floatformat:1 }}</td>
-            {% mmr_to_rank player.mmr highest_mmr lowest_mmr as rank %}
-            <td>{{ rank }}</td>
+            {% with rank, color = mmr_to_rank player.mmr highest_mmr lowest_mmr %}
+            <td style="color: {{ color }}">{{ rank }}</td>
+            {% endwith %}
             <td>{{player.matches_played}}</td>
             <td>{{ player.win_rate|floatformat:2 }}%</td>
             <td>{{player.matches_won}}</td>
