@@ -10,10 +10,7 @@
     </div>
 </div>
 
-<table
-    class="table table-dark table-striped table-hover table-sm"
-    style="text-align: center"
->
+<table class="table table-dark table-striped table-hover table-sm" style="text-align: center">
     <thead>
         <tr>
             <th>#</th>
@@ -31,21 +28,20 @@
     <tbody>
         {% for player in players %}
         <tr>
-            <td>{{forloop.counter}}</td>
+            <td>{{ forloop.counter }}</td>
             <td>
-                <a href="/ranked/{{leaderboard_code}}/{{player.player.id}}"
-                    >{{player.player}}</a
-                >
+                <a href="/ranked/{{ leaderboard_code }}/{{ player.player.id }}">{{ player.player }}</a>
             </td>
             <td>{{ player.elo|floatformat:1 }}</td>
             <td>{{ player.mmr|floatformat:1 }}</td>
-            {% mmr_to_rank player.mmr highest_mmr lowest_mmr as rank color %}
-            <td style="color: {{ color }}">{{ rank }}</td>
-            <td>{{player.matches_played}}</td>
+            {% with rank, color = mmr_to_rank player.mmr highest_mmr lowest_mmr %}
+            <td style="color: {{ color|safe }}">{{ rank }}</td>
+            {% endwith %}
+            <td>{{ player.matches_played }}</td>
             <td>{{ player.win_rate|floatformat:2 }}%</td>
-            <td>{{player.matches_won}}</td>
-            <td>{{player.matches_lost}}</td>
-            <td>{{player.matches_drawn}}</td>
+            <td>{{ player.matches_won }}</td>
+            <td>{{ player.matches_lost }}</td>
+            <td>{{ player.matches_drawn }}</td>
         </tr>
         {% endfor %}
     </tbody>
