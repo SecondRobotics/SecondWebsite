@@ -1,17 +1,13 @@
-from django.shortcuts import render
-from django.http.response import HttpResponseRedirect
-from django.db.models import Max, Min, F
-from django.db.models import Q, Count
-from django.db.models import IntegerField, ExpressionWrapper, FloatField
-from django.db.models.functions import ExtractHour
+from django.shortcuts import render, HttpResponseRedirect
+from django.db.models import Max, Min, F, Q, Count, ExpressionWrapper, FloatField
 from django.utils import timezone
-from datetime import timedelta, datetime, tzinfo
+from datetime import datetime, timedelta
 import math
 
-from .models import EloHistory, GameMode, PlayerElo, Match
+from .models import EloHistory, GameMode, PlayerElo
+from .templatetags.rank_filter import mmr_to_rank
 
 # Create your views here.
-
 
 def ranked_home(request):
     game_modes = GameMode.objects.annotate(
@@ -31,7 +27,6 @@ def ranked_home(request):
     context = {'games': game_dict}
     return render(request, 'ranked/ranked_home.html', context)
 
-
 def leaderboard(request, name):
     gamemode = GameMode.objects.filter(short_code=name)
 
@@ -41,28 +36,44 @@ def leaderboard(request, name):
     gamemode = gamemode[0]
 
     players = PlayerElo.objects.filter(game_mode=gamemode)
-
-    players = players.annotate(time_delta=ExpressionWrapper(datetime.now(timezone.utc) - F('last_match_played_time'), output_field=FloatField()) / 3600000000)
+    players = players.annotate(
+        time_delta=ExpressionWrapper(
+            datetime.now(timezone.utc) - F('last_match_played_time'),
+            output_field=FloatField()
+        ) / 3600000000
+    )
 
     # Calculate MMR
-    players = players.annotate(mmr=mmr_calc(F('elo'), F('matches_played'), F('time_delta')))
+    players = players.annotate(
+        mmr=ExpressionWrapper(
+            F('elo') * 2 / (
+                (1 + pow(math.e, 1/168 * pow(F('time_delta'), 0.63))) *
+                (1 + pow(math.e, -0.33 * F('matches_played')))
+            ),
+            output_field=FloatField()
+        )
+    )
 
     # Get highest and lowest MMR values
     highest_mmr = players.aggregate(Max('mmr'))['mmr__max']
     lowest_mmr = players.aggregate(Min('mmr'))['mmr__min']
 
-    players = players.order_by('-mmr')
+    players_with_rank = []
+    for player in players:
+        rank, color = mmr_to_rank(player.mmr, highest_mmr, lowest_mmr)
+        players_with_rank.append({
+            'player': player,
+            'rank': rank,
+            'color': color,
+        })
 
     context = {
         'leaderboard_code': gamemode.short_code,
         'leaderboard_name': gamemode.name,
-        'players': players,
-        'highest_mmr': highest_mmr,
-        'lowest_mmr': lowest_mmr
+        'players_with_rank': players_with_rank,
     }
 
     return render(request, "ranked/leaderboard.html", context)
-
 
 def player_info(request, name, player_id):
     if not player_id.isdigit():
