@@ -1,10 +1,19 @@
-{% extends 'home/base.html' %} {% block content %}
+{% extends 'home/base.html' %} 
+
+{% block content %}
 <div
     class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-primary"
 >
     <h1 style="color: white" class="display-4 fw-normal">
         xRC Sim Official Highscores
     </h1>
+</div>
+
+<div
+    class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-dark"
+>
+    <h2 style="color: white" class="display-10 fw-normal">World Records</h2>
+    <a href="/highscores/world-records/" class="btn btn-outline-info">View World Records</a>
 </div>
 
 {% for game, leaderboards in games.items %}
@@ -20,13 +29,14 @@
         >Combined Leaderboard</a
     >
     <br /><br />
-    {% endif %} {% for leaderboard in leaderboards %}
+    {% endif %} 
+    {% for leaderboard in leaderboards %}
     <a
         href="/highscores/{{ leaderboard.game_slug }}/{{ leaderboard.name }}/"
         class="btn btn-outline-light"
-        >{{ leaderboard.name }}</a
-    >
+        >{{ leaderboard.name }}</a>
     {% endfor %}
 </div>
 
-{% endfor %} {% endblock %}
+{% endfor %} 
+{% endblock %}

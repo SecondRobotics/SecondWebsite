@@ -87,7 +87,6 @@ def world_records(request: HttpRequest) -> HttpResponse:
 
     return render(request, WR_PAGE, {"world_records": world_records, "player_counts": player_counts})
 
-
 def leaderboard_combined(request: HttpRequest, game_slug: str) -> HttpResponse:
     if not Leaderboard.objects.filter(game_slug=game_slug).exists():
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
