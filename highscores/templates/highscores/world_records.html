@@ -1,34 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>World Records</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
-</head>
-<body>
-    <h1>World Records</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Rank</th>
-                <th>Player</th>
-                <th>Score</th>
-                <th>Game</th>
-                <th>Time Set</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for record in world_records %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ record.player.username }}</td>
-                <td>{{ record.score }}</td>
-                <td>{{ record.leaderboard.game }}</td>
-                <td>{{ record.time_set }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
-</html>
+{% extends 'home/base.html' %}
+
+{% block content %}
+<div class="position-relative overflow-hidden text-center bg-danger">
+    <div class="p-lg-4 mx-auto">
+        <h1 style="color: white" class="display-4 fw-normal">
+            World Records
+        </h1>
+    </div>
+</div>
+<table class="table table-dark table-striped table-hover table-sm">
+    <thead>
+        <tr>
+            <th style="text-align: center">Rank</th>
+            <th>Player Name</th>
+            <th style="text-align: center">Score</th>
+            <th style="text-align: center">Game</th>
+            <th style="text-align: center">Time Set</th>
+            <th style="text-align: center">Active For</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for record in world_records %}
+        <tr>
+            <td style="text-align: center"><b>{{ forloop.counter }}</b></td>
+            <td>
+                <a href="/user/{{ record.player.id }}" style="color: #fff">{{ record.player.username }}</a>
+            </td>
+            <td style="text-align: center">{{ record.score }}</td>
+            <td style="text-align: center">{{ record.leaderboard.game }}</td>
+            <td style="text-align: center">{{ record.time_set }}</td>
+            <td style="text-align: center">{{ record.active_for }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
