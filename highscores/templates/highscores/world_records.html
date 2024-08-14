@@ -16,7 +16,7 @@
     <tbody>
         {% for player, count in player_counts %}
         <tr>
-            <td>{{ player.id }}</td>
+            <td>{{ player }}</td>
             <td style="text-align: center">{{ count }}</td>
         </tr>
         {% endfor %}
@@ -40,7 +40,7 @@
         <tr>
             <td style="text-align: center"><b>{{ forloop.counter }}</b></td>
             <td>
-                <a href="/user/{{ record.player.id }}" style="color: #fff">{{ record.player.id }}</a>
+                <a href="/user/{{ record.player.id }}" style="color: #fff">{{ record.player }}</a>
             </td>
             <td style="text-align: center">{{ record.score }}</td>
             <td style="text-align: center">{{ record.leaderboard.game }} - {{ record.robot_name }}</td>
