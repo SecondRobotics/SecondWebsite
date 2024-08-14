@@ -77,7 +77,7 @@ def world_records(request: HttpRequest) -> HttpResponse:
 
         years, remainder = divmod(active_duration.total_seconds(), 31536000)  # 60*60*24*365
         months, remainder = divmod(remainder, 2592000)  # 60*60*24*30
-        days, _ = divmod(remainder, 86400)  # 60*60*24
+        days = remainder / 86400  # 60*60*24
 
         record.active_for = f"{int(years)} years, {int(months)} months, {days:.1f} days"
 
