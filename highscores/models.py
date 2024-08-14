@@ -36,6 +36,13 @@ class Score(models.Model):
     time_data = models.TextField(null=True, blank=True)
     ip = models.CharField(max_length=20, null=True, blank=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['leaderboard']),
+            models.Index(fields=['player']),
+            models.Index(fields=['approved']),
+        ]
+
     def __str__(self):
         return f"{self.player} - {self.leaderboard} [{self.score}]"
 
@@ -50,3 +57,4 @@ class CleanCodeSubmission(models.Model):
 
     def __str__(self):
         return self.clean_code
+

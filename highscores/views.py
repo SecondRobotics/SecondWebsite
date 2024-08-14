@@ -10,6 +10,7 @@ from datetime import datetime
 from collections import Counter
 from django.db.models import Sum, Max, F, Count
 from django.db.models.functions import Coalesce
+from django.core.cache import cache
 
 from .lib import extract_form_data, game_slug_to_submit_func
 from .models import Leaderboard, Score
@@ -98,29 +99,33 @@ def world_records(request: HttpRequest) -> HttpResponse:
     return render(request, WR_PAGE, {"world_records": world_records, "player_counts": player_counts})
 
 def leaderboard_combined(request: HttpRequest, game_slug: str) -> HttpResponse:
+    cache_key = f'leaderboard_combined_{game_slug}'
+    context = cache.get(cache_key)
+    if context:
+        return render(request, COMBINED_LEADERBOARD_PAGE, context)
+
     if not Leaderboard.objects.filter(game_slug=game_slug).exists():
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
     game_name = Leaderboard.objects.filter(game_slug=game_slug).first().game
-
-    leaderboards = Leaderboard.objects.filter(game_slug=game_slug).prefetch_related('score_set')
+    leaderboards = Leaderboard.objects.filter(game_slug=game_slug).prefetch_related('scores__player')
 
     player_percentiles = {}
     all_players = set()
 
     for leaderboard in leaderboards:
-        scores = leaderboard.score_set.filter(approved=True).order_by('-score', 'time_set')
+        scores = leaderboard.scores.filter(approved=True).order_by('-score', 'time_set')
         if not scores.exists():
             continue
         highest_score = scores.first().score
-        
+
         for score in scores:
             percentile = (score.score / highest_score) * 100
             if score.player.id not in player_percentiles:
                 player_percentiles[score.player.id] = []
             player_percentiles[score.player.id].append(percentile)
             all_players.add(score.player.id)
-    
+
     # Ensure every player has a score for each leaderboard (0% if missing)
     for player_id in all_players:
         if player_id not in player_percentiles:
@@ -128,10 +133,10 @@ def leaderboard_combined(request: HttpRequest, game_slug: str) -> HttpResponse:
         for leaderboard in leaderboards:
             if len(player_percentiles[player_id]) < leaderboards.count():
                 player_percentiles[player_id].append(0.0)
-    
-    average_percentiles = {player_id: sum(percentiles)/len(percentiles) for player_id, percentiles in player_percentiles.items()}
+
+    average_percentiles = {player_id: sum(percentiles) / len(percentiles) for player_id, percentiles in player_percentiles.items()}
     sorted_average_percentiles = sorted(average_percentiles.items(), key=lambda x: x[1], reverse=True)
-    
+
     context = []
     i = 1
     player_objects = User.objects.filter(id__in=all_players).in_bulk()
@@ -141,7 +146,8 @@ def leaderboard_combined(request: HttpRequest, game_slug: str) -> HttpResponse:
         last_time_set = Score.objects.filter(player=player, leaderboard__game_slug=game_slug, approved=True).aggregate(last_time_set=Max('time_set'))['last_time_set']
         context.append([i, {'player': player, 'average_percentile': avg_percentile, 'score': total_score, 'time_set': last_time_set}])
         i += 1
-    
+
+    cache.set(cache_key, {"ls": context, "game_name": game_name}, 300)  # Cache for 5 minutes
     return render(request, COMBINED_LEADERBOARD_PAGE, {"ls": context, "game_name": game_name})
 
 
@@ -163,24 +169,29 @@ def submit_form_view(request: HttpRequest, form_class: Type[ScoreForm], submit_f
     return render(request, SUBMIT_ACCEPTED_PAGE, {})
 
 def overall_singleplayer_leaderboard(request: HttpRequest) -> HttpResponse:
-    leaderboards = Leaderboard.objects.all().prefetch_related('score_set')
-    
+    cache_key = 'overall_singleplayer_leaderboard'
+    context = cache.get(cache_key)
+    if context:
+        return render(request, "highscores/overall_singleplayer_leaderboard.html", context)
+
+    leaderboards = Leaderboard.objects.all().prefetch_related('scores__player')
+
     player_percentiles = {}
     all_players = set()
 
     for leaderboard in leaderboards:
-        scores = leaderboard.score_set.filter(approved=True).order_by('-score', 'time_set')
+        scores = leaderboard.scores.filter(approved=True).order_by('-score', 'time_set')
         if not scores.exists():
             continue
         highest_score = scores.first().score
-        
+
         for score in scores:
             percentile = (score.score / highest_score) * 100
             if score.player.id not in player_percentiles:
                 player_percentiles[score.player.id] = []
             player_percentiles[score.player.id].append(percentile)
             all_players.add(score.player.id)
-    
+
     # Ensure every player has a score for each leaderboard (0% if missing)
     for player_id in all_players:
         if player_id not in player_percentiles:
@@ -188,10 +199,10 @@ def overall_singleplayer_leaderboard(request: HttpRequest) -> HttpResponse:
         for leaderboard in leaderboards:
             if len(player_percentiles[player_id]) < leaderboards.count():
                 player_percentiles[player_id].append(0.0)
-    
-    average_percentiles = {player_id: sum(percentiles)/len(percentiles) for player_id, percentiles in player_percentiles.items()}
+
+    average_percentiles = {player_id: sum(percentiles) / len(percentiles) for player_id, percentiles in player_percentiles.items()}
     sorted_average_percentiles = sorted(average_percentiles.items(), key=lambda x: x[1], reverse=True)
-    
+
     context = []
     i = 1
     player_objects = User.objects.filter(id__in=all_players).in_bulk()
@@ -201,7 +212,8 @@ def overall_singleplayer_leaderboard(request: HttpRequest) -> HttpResponse:
         last_time_set = Score.objects.filter(player=player, approved=True).aggregate(last_time_set=Max('time_set'))['last_time_set']
         context.append([i, {'player': player, 'average_percentile': avg_percentile, 'score': total_score, 'time_set': last_time_set}])
         i += 1
-    
+
+    cache.set(cache_key, {"ls": context}, 300)  # Cache for 5 minutes
     return render(request, "highscores/overall_singleplayer_leaderboard.html", {"ls": context})
 
 
