@@ -498,7 +498,7 @@ def check_high_stakes_game_settings(game_options: list, restart_option: str, gam
     return None  # No error
 
 
-def check_ultimate_goal_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
+def check_ultimate_goal_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
     """ Checks if the High Stakes game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
