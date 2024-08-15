@@ -10,6 +10,11 @@ from .lib import revert_player_elos, update_player_elos, validate_patch_match_re
 from ranked.api.serializers import EloHistorySerializer, GameModeSerializer, MatchSerializer, PlayerEloSerializer
 from ranked.models import EloHistory, GameMode, Match, PlayerElo
 
+from django.db.models import Max, Min, F, FloatField
+from datetime import datetime, timezone
+from .templatetags.rank_filter import mmr_to_rank
+from .serializers import LeaderboardSerializer
+
 
 @api_view(['GET'])
 def ranked_api(request: Request) -> Response:
@@ -28,6 +33,50 @@ def ranked_api(request: Request) -> Response:
     game_mode_serializer = GameModeSerializer(game_modes, many=True)
     return Response(game_mode_serializer.data)
 
+
+@api_view(['GET'])
+def get_leaderboard(request: Request, game_mode_code: str) -> Response:
+    """
+    Gets the leaderboard for a particular game mode.
+    """
+    try:
+        game_mode = GameMode.objects.get(short_code=game_mode_code)
+    except GameMode.DoesNotExist:
+        return Response(status=404, data={'error': f'Game mode {game_mode_code} does not exist.'})
+
+    players = PlayerElo.objects.filter(game_mode=game_mode)
+    players = players.annotate(
+        time_delta=ExpressionWrapper(
+            datetime.now(timezone.utc) - F('last_match_played_time'),
+            output_field=FloatField()
+        ) / 3600000000
+    )
+
+    players = players.annotate(
+        mmr=ExpressionWrapper(
+            F('elo') * 2 / (
+                (1 + pow(math.e, 1/168 * pow(F('time_delta'), 0.63))) *
+                (1 + pow(math.e, -0.33 * F('matches_played')))
+            ),
+            output_field=FloatField()
+        )
+    )
+
+    highest_mmr = players.aggregate(Max('mmr'))['mmr__max']
+    lowest_mmr = players.aggregate(Min('mmr'))['mmr__min']
+
+    players_with_rank = []
+    for player in players:
+        rank, color = mmr_to_rank(player.mmr, highest_mmr, lowest_mmr)
+        players_with_rank.append({
+            'player_id': player.player.id,
+            'rank_number': player.mmr,
+            'rank_name': rank,
+        })
+
+    players_with_rank = sorted(players_with_rank, key=lambda x: x['rank_number'], reverse=True)
+
+    return Response(players_with_rank)
 
 @api_view(['GET'])
 def get_game_mode(request: Request, game_mode_code: str) -> Response:

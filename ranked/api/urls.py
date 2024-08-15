@@ -16,4 +16,5 @@ urlpatterns = [
          views.post_match_result, name='post_match_result'),
     path('<str:game_mode_code>/match/edit/',
          views.edit_match_result, name='edit_match_result'),
+     path('leaderboard/<str:game_mode_code>/', views.get_leaderboard, name='get_leaderboard'),
 ]
