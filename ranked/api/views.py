@@ -12,7 +12,7 @@ from ranked.models import EloHistory, GameMode, Match, PlayerElo
 
 from django.db.models import Max, Min, F, FloatField
 from datetime import datetime, timezone
-from .templatetags.rank_filter import mmr_to_rank
+from ranked.templatetags.rank_filter import mmr_to_rank
 from .serializers import LeaderboardSerializer
 
 
