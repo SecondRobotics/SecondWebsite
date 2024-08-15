@@ -90,6 +90,10 @@ def submit_high_stakes(score_obj: Score) -> Union[str, None]:
     return submit_score(score_obj, high_stakes_clean_code_check)
 
 
+def submit_ultimate_goal(score_obj: Score) -> Union[str, None]:
+    return submit_score(score_obj, ultimate_goal_clean_code_check)
+
+
 def decode_time_data(in_string: str) -> str:
     out_bytes = ""
 
@@ -284,6 +288,10 @@ def high_stakes_clean_code_check(score_obj: Score) -> Union[str, None]:
     return clean_code_check(score_obj, check_high_stakes_game_settings, check_skills_challenge_score)
 
 
+def ultimate_goal_clean_code_check(score_obj: Score) -> Union[str, None]:
+    return clean_code_check(score_obj, check_ultimate_goal_game_settings, check_score)
+
+
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str]:
     """ Extracts the relevant information from the clean code.
     :param score_obj: Score object to extract from
@@ -400,8 +408,8 @@ def check_freight_frenzy_game_settings(game_options: list, restart_option: str, 
     """
     if (game_index != '9'):
         return 'Wrong game! This form is for Freight Frenzy.'
-    if (game_options[3] != '1'):
-        return 'You must enable possession limit for high score submissions.'
+    if (game_options[0] != '30'):
+        return 'Major Penalties must be worth 30 points.'
 
     return None  # No error
 
@@ -484,6 +492,18 @@ def check_high_stakes_game_settings(game_options: list, restart_option: str, gam
         return 'You must use restart option 2 (skills challenge) for High Stakes high score submissions.'
     if (game_options[0] != '1'):
         return 'You must have auto wall enabled for high score submissions.'
+
+    return None  # No error
+
+
+def check_ultimate_goal_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
+    """ Checks if the High Stakes game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if (game_index != '7'):
+        return 'Wrong game! This form is for Ultimate Goal.'
+    if (game_options[0] != '30'):
+        return 'Major Penalties must be worth 30 points.'
 
     return None  # No error
 
@@ -654,6 +674,7 @@ game_slug_to_submit_func = {
     "ou": submit_over_under,
     "cr": submit_crescendo,
     "hs": submit_high_stakes,
+    "ug": submit_ultimate_goal,
 }
 
 game_to_submit_func = {
@@ -668,4 +689,5 @@ game_to_submit_func = {
     "Over Under": submit_over_under,
     "Crescendo": submit_crescendo,
     "High Stakes": submit_high_stakes,
+    "Ultimate Goal": submit_ultimate_goal,
 }
