@@ -1,6 +1,6 @@
 from datetime import timedelta
 from django.utils import timezone
-from django.db.models import Count, Q, ExpressionWrapper
+from django.db.models import Count, Q, ExpressionWrapper, F, FloatField, Max, Min
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import api_view
@@ -10,12 +10,8 @@ from discordoauth2.models import User
 from .lib import revert_player_elos, update_player_elos, validate_patch_match_req_body, validate_post_match_req_body, get_match_player_info
 from ranked.api.serializers import EloHistorySerializer, GameModeSerializer, MatchSerializer, PlayerEloSerializer
 from ranked.models import EloHistory, GameMode, Match, PlayerElo
-
-from django.db.models import Max, Min, F, FloatField
-from datetime import datetime, timezone
 from ranked.templatetags.rank_filter import mmr_to_rank
 from .serializers import LeaderboardSerializer
-
 
 @api_view(['GET'])
 def ranked_api(request: Request) -> Response:
@@ -48,7 +44,7 @@ def get_leaderboard(request: Request, game_mode_code: str) -> Response:
     players = PlayerElo.objects.filter(game_mode=game_mode)
     players = players.annotate(
         time_delta=ExpressionWrapper(
-            datetime.now(timezone.utc) - F('last_match_played_time'),
+            timezone.now() - F('last_match_played_time'),
             output_field=FloatField()
         ) / 3600000000
     )
