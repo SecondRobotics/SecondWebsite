@@ -410,8 +410,6 @@ def check_freight_frenzy_game_settings(game_options: list, restart_option: str, 
         return 'Wrong game! This form is for Freight Frenzy.'
     if (game_options[3] != '1'):
         return 'You must enable possession limit for high score submissions.'
-    if (game_options[0] != '30'):
-        return 'Major Penalties must be worth 30 points.'
 
     return None  # No error
 
