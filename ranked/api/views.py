@@ -12,6 +12,7 @@ from ranked.api.serializers import EloHistorySerializer, GameModeSerializer, Mat
 from ranked.models import EloHistory, GameMode, Match, PlayerElo
 from ranked.templatetags.rank_filter import mmr_to_rank
 from .serializers import LeaderboardSerializer
+from django.db.models.functions import Exp
 
 @api_view(['GET'])
 def ranked_api(request: Request) -> Response:
@@ -52,18 +53,23 @@ def get_leaderboard(request: Request, game_mode_code: str) -> Response:
     players = players.annotate(
         mmr = ExpressionWrapper(
         Case(
+            # When time_delta > 168
             When(
-                F('time_delta') > 168,
-                then=150 * pow(math.e, -0.00175 * (F('time_delta') - 168)) + F('elo') - 150
+                time_delta__gt=168,
+                then=ExpressionWrapper(
+                    150 * Exp(-0.00175 * (F('time_delta') - Value(168))) + F('elo') - 150,
+                    output_field=FloatField()
+                )
             ),
+            # When time_delta <= 168
             When(
-                F('time_delta') <= 168,
+                time_delta__lte=168,
                 then=F('elo')
             ),
             output_field=FloatField()
         ),
         output_field=FloatField()
-        )
+    )
     )
 
     highest_mmr = players.aggregate(Max('mmr'))['mmr__max']

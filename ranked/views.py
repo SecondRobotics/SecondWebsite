@@ -6,6 +6,7 @@ import math
 
 from .models import EloHistory, GameMode, PlayerElo
 from .templatetags.rank_filter import mmr_to_rank
+from django.db.models.functions import Exp
 
 # Create your views here.
 
@@ -45,19 +46,24 @@ def leaderboard(request, name):
 
     players = players.annotate(
         mmr = ExpressionWrapper(
-            Case(
-                When(
-                    F('time_delta') > 168,
-                    then=150 * pow(math.e, -0.00175 * (F('time_delta') - 168)) + F('elo') - 150
-                ),
-                When(
-                    F('time_delta') <= 168,
-                    then=F('elo')
-                ),
-                output_field=FloatField()
+        Case(
+            # When time_delta > 168
+            When(
+                time_delta__gt=168,
+                then=ExpressionWrapper(
+                    150 * Exp(-0.00175 * (F('time_delta') - Value(168))) + F('elo') - 150,
+                    output_field=FloatField()
+                )
+            ),
+            # When time_delta <= 168
+            When(
+                time_delta__lte=168,
+                then=F('elo')
             ),
             output_field=FloatField()
-            )
+        ),
+        output_field=FloatField()
+    )
     )
 
 
