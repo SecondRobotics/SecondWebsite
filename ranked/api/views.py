@@ -50,14 +50,15 @@ def get_leaderboard(request: Request, game_mode_code: str) -> Response:
     )
 
     players = players.annotate(
-    mmr=ExpressionWrapper(
-        Case(
-            When(F('time_delta') > Value(168),
-                then=(150 * pow(math.e, -0.00175 * (F('time_delta') - 168)) + F('elo') - 150) / 
-                     (1 + pow(math.e, -0.33 * F('matches_played')))),
-            default=F('elo') * (1 + pow(math.e, -0.33 * F('matches_played'))),
-        ),
-        output_field=FloatField()
+        mmr=ExpressionWrapper(
+            Case(
+                When(F('time_delta') > Value(168),
+                    then=(150 * pow(math.e, -0.00175 * (F('time_delta') - 168)) + F('elo') - 150) / 
+                        (1 + pow(math.e, -0.33 * F('matches_played')))),
+                default=F('elo') * (1 + pow(math.e, -0.33 * F('matches_played'))),
+            ),
+            output_field=FloatField()
+        )
     )
 
     highest_mmr = players.aggregate(Max('mmr'))['mmr__max']
