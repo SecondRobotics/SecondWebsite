@@ -46,10 +46,7 @@ def leaderboard(request, name):
     # Calculate MMR
     players = players.annotate(
         mmr=ExpressionWrapper(
-            F('elo') * 2 / (
-                (1 + pow(math.e, 1/168 * pow(F('time_delta'), 0.63))) *
-                (1 + pow(math.e, -0.33 * F('matches_played')))
-            ),
+            pow(150 , -0.00175 * (F('time_delta') - 168)) + F('elo') - 150 if F('time_delta') > 168 else F('elo'),
             output_field=FloatField()
         )
     )
