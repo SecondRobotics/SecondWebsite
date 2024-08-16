@@ -1,6 +1,6 @@
 from datetime import timedelta
 from django.utils import timezone
-from django.db.models import Count, Q, ExpressionWrapper, F, FloatField, Max, Min
+from django.db.models import Count, Q, ExpressionWrapper, F, FloatField, Max, Min, Case, When, Value
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import api_view
@@ -50,10 +50,14 @@ def get_leaderboard(request: Request, game_mode_code: str) -> Response:
     )
 
     players = players.annotate(
-        mmr=ExpressionWrapper(
-            pow(150 , -0.00175 * (F('time_delta') - 168)) + F('elo') - 150 if F('time_delta') > 168 else F('elo'),
-            output_field=FloatField()
-        )
+    mmr=ExpressionWrapper(
+        Case(
+            When(F('time_delta') > Value(168),
+                then=(150 * pow(math.e, -0.00175 * (F('time_delta') - 168)) + F('elo') - 150) / 
+                     (1 + pow(math.e, -0.33 * F('matches_played')))),
+            default=F('elo') * (1 + pow(math.e, -0.33 * F('matches_played'))),
+        ),
+        output_field=FloatField()
     )
 
     highest_mmr = players.aggregate(Max('mmr'))['mmr__max']

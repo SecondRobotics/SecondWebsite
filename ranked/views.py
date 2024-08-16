@@ -1,5 +1,5 @@
 from django.shortcuts import render, HttpResponseRedirect
-from django.db.models import Max, Min, F, Q, Count, ExpressionWrapper, FloatField
+from django.db.models import Max, Min, F, Q, Count, ExpressionWrapper, FloatField, Case, When, Value
 from django.utils import timezone
 from datetime import datetime, timedelta
 import math
@@ -43,13 +43,17 @@ def leaderboard(request, name):
         ) / 3600000000
     )
 
-    # Calculate MMR
     players = players.annotate(
-        mmr=ExpressionWrapper(
-            pow(150 , -0.00175 * (F('time_delta') - 168)) + F('elo') - 150 if F('time_delta') > 168 else F('elo'),
-            output_field=FloatField()
-        )
+    mmr=ExpressionWrapper(
+        Case(
+            When(F('time_delta') > Value(168),
+                then=(150 * pow(math.e, -0.00175 * (F('time_delta') - 168)) + F('elo') - 150) / 
+                     (1 + pow(math.e, -0.33 * F('matches_played')))),
+            default=F('elo') * (1 + pow(math.e, -0.33 * F('matches_played'))),
+        ),
+        output_field=FloatField()
     )
+)
 
     # Get highest and lowest MMR values
     highest_mmr = players.aggregate(Max('mmr'))['mmr__max']
