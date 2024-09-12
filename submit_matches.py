@@ -10,30 +10,29 @@ from prompt_toolkit.validation import Validator, ValidationError
 load_dotenv()
 
 API_KEY = os.getenv('SRC_API_TOKEN')
-print(API_KEY)
 API_BASE_URL = 'https://secondrobotics.org'
 
-def get_valid_players(game_mode_code):
-    url = f"{API_BASE_URL}/api/ranked/{game_mode_code}/players/"
-    headers = {'X-API-KEY': API_KEY}
-    
-    response = requests.get(url, headers=headers)
+def get_all_users():
+    url = f"{API_BASE_URL}/api/ranked/all-users/"
+    response = requests.get(url)
     if response.status_code == 200:
-        return response.json()
+        users = response.json()
+        # Filter out users with incorrect ID length
+        return [user for user in users if len(str(user['id'])) == 18]
     else:
-        print(f"Failed to fetch valid players: {response.status_code}")
+        print(f"Failed to fetch users: {response.status_code}")
         return None
 
-def find_closest_match(name, valid_players):
+def find_closest_match(name, all_users):
     best_match = None
     best_ratio = 0
-    for player in valid_players:
-        ratio_display = fuzz.ratio(name.lower(), player['display_name'].lower())
-        ratio_username = fuzz.ratio(name.lower(), player['username'].lower())
+    for user in all_users:
+        ratio_display = fuzz.ratio(name.lower(), user['display_name'].lower())
+        ratio_username = fuzz.ratio(name.lower(), user['username'].lower())
         max_ratio = max(ratio_display, ratio_username)
         if max_ratio > best_ratio:
             best_ratio = max_ratio
-            best_match = player
+            best_match = user
     return best_match, best_ratio
 
 def validate_player_id(text):
@@ -47,9 +46,10 @@ class PlayerIdValidator(Validator):
         if not validate_player_id(text):
             raise ValidationError(message='Please enter a valid 18-digit Discord ID')
 
-def process_csv(file_path, valid_players):
+def process_csv(file_path, all_users):
     player_mappings = {}
     matches = []
+    dummy_id = "000000000000000000"  # Dummy player ID
 
     with open(file_path, 'r') as csvfile:
         reader = csv.reader(csvfile)
@@ -65,17 +65,21 @@ def process_csv(file_path, valid_players):
                     match.append(int(player))
                     player_mappings[player] = int(player)
                 else:
-                    closest_match, ratio = find_closest_match(player, valid_players)
+                    closest_match, ratio = find_closest_match(player, all_users)
                     if ratio == 100:
                         match.append(int(closest_match['id']))
                         player_mappings[player] = int(closest_match['id'])
                     else:
                         print(f"\nNo exact match found for '{player}'.")
                         print(f"Closest match: {closest_match['display_name']} (ID: {closest_match['id']})")
-                        confirmation = prompt(f"Accept this match? (y/n): ").lower()
+                        confirmation = prompt(f"Accept this match? (y/n/i for ignore): ").lower()
                         if confirmation == 'y':
                             match.append(int(closest_match['id']))
                             player_mappings[player] = int(closest_match['id'])
+                        elif confirmation == 'i':
+                            print(f"Ignoring player '{player}' and using dummy player.")
+                            match.append(dummy_id)
+                            player_mappings[player] = dummy_id
                         else:
                             manual_id = prompt("Enter the correct Discord ID: ", validator=PlayerIdValidator())
                             match.append(int(manual_id))
@@ -111,14 +115,14 @@ if __name__ == "__main__":
     csv_file_path = "matches.csv"  # Replace with your CSV file path
     game_mode_code = "CR3v3"  # Replace with the appropriate game mode code
     
-    valid_players = get_valid_players(game_mode_code)
-    if not valid_players:
-        print("Failed to fetch valid players. Exiting.")
+    all_users = get_all_users()
+    if not all_users:
+        print("Failed to fetch users. Exiting.")
         exit(1)
     
-    print(f"Fetched {len(valid_players)} valid players")
+    print(f"Fetched {len(all_users)} valid users")
     
-    matches = process_csv(csv_file_path, valid_players)
+    matches = process_csv(csv_file_path, all_users)
     
     print("\nAll players processed. Ready to submit matches.")
     confirmation = prompt("Do you want to submit these matches? (y/n): ").lower()

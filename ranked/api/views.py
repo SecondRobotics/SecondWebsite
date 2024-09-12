@@ -401,3 +401,82 @@ def get_all_users(request: Request) -> Response:
     } for user in users]
 
     return Response(users_data)
+
+@api_view(['POST'])
+def change_match_game_modes(request: Request) -> Response:
+    """
+    Changes the game mode of the most recent match for each specified game mode.
+    """
+    if request.META.get('HTTP_X_API_KEY') != API_KEY:
+        return Response(status=401, data={
+            'error': 'Invalid API key.'
+        })
+
+    if 'matches' not in request.data or not isinstance(request.data['matches'], list):
+        return Response(status=400, data={'error': 'Invalid request format. Expected a list of matches.'})
+
+    results = []
+    for match_data in request.data['matches']:
+        if 'old_game_mode' not in match_data or 'new_game_mode' not in match_data:
+            results.append({'error': 'Invalid match data format. Expected old_game_mode and new_game_mode.'})
+            continue
+
+        try:
+            old_game_mode = GameMode.objects.get(short_code=match_data['old_game_mode'])
+        except GameMode.DoesNotExist:
+            results.append({'error': f"Game mode {match_data['old_game_mode']} does not exist."})
+            continue
+
+        try:
+            new_game_mode = GameMode.objects.get(short_code=match_data['new_game_mode'])
+        except GameMode.DoesNotExist:
+            results.append({'error': f"Game mode {match_data['new_game_mode']} does not exist."})
+            continue
+
+        match = Match.objects.filter(game_mode=old_game_mode).order_by('-match_number').first()
+        if not match:
+            results.append({'error': f"No matches found for {old_game_mode.short_code}."})
+            continue
+
+        red_players = match.red_alliance.all()
+        blue_players = match.blue_alliance.all()
+        red_player_elos = PlayerElo.objects.filter(player__in=red_players, game_mode=old_game_mode)
+        blue_player_elos = PlayerElo.objects.filter(player__in=blue_players, game_mode=old_game_mode)
+
+        red_elo_history = EloHistory.objects.filter(
+            match_number=match.match_number, player_elo__in=red_player_elos)
+        blue_elo_history = EloHistory.objects.filter(
+            match_number=match.match_number, player_elo__in=blue_player_elos)
+
+        revert_player_elos(match, red_elo_history, blue_elo_history)
+
+        match.game_mode = new_game_mode
+        match.time = timezone.now()
+        match.save()
+
+        red_player_elos = PlayerElo.objects.filter(player__in=red_players, game_mode=new_game_mode)
+        blue_player_elos = PlayerElo.objects.filter(player__in=blue_players, game_mode=new_game_mode)
+
+        red_elo_changes, blue_elo_changes = update_player_elos(
+            match, list(red_player_elos), list(blue_player_elos))
+
+        match_serializer = MatchSerializer(match)
+        red_player_elos_serializer = PlayerEloSerializer(red_player_elos, many=True)
+        blue_player_elos_serializer = PlayerEloSerializer(blue_player_elos, many=True)
+        red_display_names = [str(player) for player in red_players]
+        blue_display_names = [str(player) for player in blue_players]
+
+        results.append({
+            'match': match_serializer.data,
+            'red_player_elos': red_player_elos_serializer.data,
+            'blue_player_elos': blue_player_elos_serializer.data,
+            'red_display_names': red_display_names,
+            'blue_display_names': blue_display_names,
+            'red_elo_changes': red_elo_changes,
+            'blue_elo_changes': blue_elo_changes,
+            'old_game_mode': old_game_mode.short_code,
+            'new_game_mode': new_game_mode.short_code,
+            'status': 'success'
+        })
+
+    return Response(results)
