@@ -364,3 +364,25 @@ def edit_match_result(request: Request, game_mode_code: str) -> Response:
         'red_elo_changes': red_elo_changes,
         'blue_elo_changes': blue_elo_changes,
     })
+
+@api_view(['GET'])
+def get_valid_players(request: Request, game_mode_code: str) -> Response:
+    """
+    Gets a list of all valid players for a particular game mode.
+    """
+    try:
+        game_mode = GameMode.objects.get(short_code=game_mode_code)
+    except GameMode.DoesNotExist:
+        return Response(status=404, data={'error': f'Game mode {game_mode_code} does not exist.'})
+
+    valid_players = PlayerElo.objects.filter(game_mode=game_mode).select_related('player')
+    
+    players_data = [{
+        'id': player_elo.player.id,
+        'display_name': str(player_elo.player),
+        'username': player_elo.player.username,
+        'avatar': player_elo.player.avatar,
+        'elo': player_elo.elo
+    } for player_elo in valid_players]
+
+    return Response(players_data)
