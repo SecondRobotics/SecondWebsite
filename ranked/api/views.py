@@ -386,3 +386,18 @@ def get_valid_players(request: Request, game_mode_code: str) -> Response:
     } for player_elo in valid_players]
 
     return Response(players_data)
+
+@api_view(['GET'])
+def get_all_users(request: Request) -> Response:
+    """
+    Gets a list of all registered users.
+    """
+    users = User.objects.all()
+    users_data = [{
+        'id': user.id,
+        'display_name': str(user),
+        'username': user.username,
+        'avatar': user.avatar,
+    } for user in users]
+
+    return Response(users_data)
