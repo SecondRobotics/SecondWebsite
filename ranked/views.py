@@ -125,13 +125,13 @@ def player_info(request, name, player_id):
     players_with_stats = []
     for played_with in players_with:
         matches_together = matches.filter(
-            (Q(red_alliance=player.player) & Q(red_alliance=played_with)) |
-            (Q(blue_alliance=player.player) & Q(blue_alliance=played_with))
+            Q(red_alliance=player.player, red_alliance=played_with) |
+            Q(blue_alliance=player.player, blue_alliance=played_with)
         )
         total_matches = matches_together.count()
         wins = matches_together.filter(
-            (Q(red_alliance=player.player) & Q(red_alliance=played_with) & Q(winner='red')) |
-            (Q(blue_alliance=player.player) & Q(blue_alliance=played_with) & Q(winner='blue'))
+            Q(red_alliance=player.player, red_alliance=played_with, winner='red') |
+            Q(blue_alliance=player.player, blue_alliance=played_with, winner='blue')
         ).count()
         win_rate = (wins / total_matches * 100) if total_matches > 0 else 0
         players_with_stats.append({
@@ -151,13 +151,13 @@ def player_info(request, name, player_id):
     players_against_stats = []
     for played_against in players_against:
         matches_against = matches.filter(
-            (Q(red_alliance=player.player) & Q(blue_alliance=played_against)) |
-            (Q(blue_alliance=player.player) & Q(red_alliance=played_against))
+            Q(red_alliance=player.player, blue_alliance=played_against) |
+            Q(blue_alliance=player.player, red_alliance=played_against)
         )
         total_matches = matches_against.count()
         wins = matches_against.filter(
-            (Q(red_alliance=player.player) & Q(winner='red')) |
-            (Q(blue_alliance=player.player) & Q(winner='blue'))
+            Q(red_alliance=player.player, winner='red') |
+            Q(blue_alliance=player.player, winner='blue')
         ).count()
         win_rate = (wins / total_matches * 100) if total_matches > 0 else 0
         players_against_stats.append({
