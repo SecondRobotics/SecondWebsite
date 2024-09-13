@@ -41,19 +41,6 @@ class Match(models.Model):
         return f"{self.match_number} - {self.game_mode} - {self.time}"
 
 
-class MatchPlayer(models.Model):
-    match = models.ForeignKey(Match, on_delete=models.CASCADE)
-    player = models.ForeignKey(User, on_delete=models.CASCADE)
-    team = models.CharField(max_length=10)  # 'red' or 'blue'
-    score = models.IntegerField(default=0)
-
-    class Meta:
-        unique_together = ('match', 'player')
-
-    def __str__(self):
-        return f"{self.player} - {self.match} - {self.team}"
-
-
 class PlayerElo(models.Model):
     player = models.ForeignKey(User, on_delete=models.CASCADE)
     game_mode = models.ForeignKey(GameMode, on_delete=models.CASCADE)
