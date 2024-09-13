@@ -402,7 +402,7 @@ def get_all_users(request: Request) -> Response:
 
     return Response(users_data)
 
-@api_view(['POST'])
+@api_view(['PATCH'])
 def change_match_game_modes(request: Request) -> Response:
     """
     Changes the game mode of the most recent match for each specified game mode.

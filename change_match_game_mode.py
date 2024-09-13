@@ -34,7 +34,7 @@ def change_match_game_modes(matches):
     }
     payload = {"matches": matches}
     
-    response = requests.post(url, json=payload, headers=headers)
+    response = requests.patch(url, json=payload, headers=headers)
     if response.status_code == 200:
         return response.json()
     else:
@@ -43,15 +43,14 @@ def change_match_game_modes(matches):
         return None
 
 if __name__ == "__main__":
-    old_mode = prompt("Enter the old game mode: ", validator=GameModeValidator())
     new_mode = prompt("Enter the new game mode: ", validator=GameModeValidator())
     match_range = prompt("Enter the range of matches to change (e.g., 1-5): ", validator=MatchRangeValidator())
     
     start_match, end_match = map(int, match_range.split('-'))
-    matches = [{"old_game_mode": old_mode, "new_game_mode": new_mode, "match_number": i} for i in range(start_match, end_match + 1)]
+    matches = [{"new_game_mode": new_mode, "match_number": i} for i in range(start_match, end_match + 1)]
     
     print("\nReady to change game modes for matches.")
-    print(f"Changing matches {start_match} to {end_match} from {old_mode} to {new_mode}")
+    print(f"Changing matches {start_match} to {end_match} to {new_mode}")
     confirmation = prompt("Do you want to proceed with these changes? (y/n): ").lower()
     
     if confirmation == 'y':
@@ -61,7 +60,7 @@ if __name__ == "__main__":
                 if 'error' in result:
                     print(f"Failed to update match: {result['error']}")
                 else:
-                    print(f"Successfully updated match {result['match_number']} from {old_mode} to {new_mode}")
+                    print(f"Successfully updated match {result['match_number']} to {new_mode}")
         else:
             print("Failed to change match game modes. Please check the error message above.")
     else:
