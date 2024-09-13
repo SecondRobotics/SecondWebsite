@@ -91,16 +91,14 @@
                             <tr>
                                 <th>Player</th>
                                 <th>Win Rate</th>
-                                <th>W-T-L</th>
                                 <th>Total Matches</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for player_with in players_with %}
                             <tr>
-                                <td>{{ player_with.username }}</td>
+                                <td>{{ player_with.player__username }}</td>
                                 <td>{{ player_with.win_rate|floatformat:2 }}%</td>
-                                <td>{{ player_with.wins }}-{{ player_with.ties }}-{{ player_with.losses }}</td>
                                 <td>{{ player_with.total_matches }}</td>
                             </tr>
                             {% endfor %}
@@ -126,16 +124,14 @@
                             <tr>
                                 <th>Player</th>
                                 <th>Win Rate</th>
-                                <th>W-T-L</th>
                                 <th>Total Matches</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for player_against in players_against %}
                             <tr>
-                                <td>{{ player_against.username }}</td>
+                                <td>{{ player_against.player__username }}</td>
                                 <td>{{ player_against.win_rate|floatformat:2 }}%</td>
-                                <td>{{ player_against.wins }}-{{ player_against.ties }}-{{ player_against.losses }}</td>
                                 <td>{{ player_against.total_matches }}</td>
                             </tr>
                             {% endfor %}

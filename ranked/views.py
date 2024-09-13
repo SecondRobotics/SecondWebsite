@@ -1,5 +1,5 @@
 from django.shortcuts import render, HttpResponseRedirect
-from django.db.models import Max, Min, F, Q, Count, ExpressionWrapper, FloatField, Case, When, Value, IntegerField, Sum
+from django.db.models import Max, Min, F, Q, Count, ExpressionWrapper, FloatField, Case, When, Value
 from django.utils import timezone
 from datetime import datetime, timedelta
 import math
@@ -122,22 +122,23 @@ def player_info(request, name, player_id):
         Q(blue_alliance__in=matches.filter(blue_alliance=player.player))
     ).exclude(id=player.player.id).distinct()
 
-    players_with_stats = players_with.annotate(
-        total_matches=Count('red_alliance', filter=Q(red_alliance__in=matches)) + 
-                      Count('blue_alliance', filter=Q(blue_alliance__in=matches)),
-        wins=Count(Case(
-            When(Q(red_alliance__in=matches.filter(red_alliance=player.player), red_score__gt=F('blue_score')), then=1),
-            When(Q(blue_alliance__in=matches.filter(blue_alliance=player.player), blue_score__gt=F('red_score')), then=1),
-            output_field=IntegerField(),
-        )),
-        ties=Count(Case(
-            When(Q(red_alliance__in=matches) | Q(blue_alliance__in=matches), red_score=F('blue_score'), then=1),
-            output_field=IntegerField(),
-        )),
-    ).annotate(
-        losses=F('total_matches') - F('wins') - F('ties'),
-        win_rate=(F('wins') * 2 + F('ties')) * 100.0 / (F('total_matches') * 2)
-    ).values('username', 'total_matches', 'wins', 'ties', 'losses', 'win_rate')
+    players_with_stats = []
+    for played_with in players_with:
+        matches_together = matches.filter(
+            (Q(red_alliance=player.player) & Q(red_alliance=played_with)) |
+            (Q(blue_alliance=player.player) & Q(blue_alliance=played_with))
+        )
+        total_matches = matches_together.count()
+        wins = matches_together.filter(
+            (Q(red_alliance=player.player) & Q(red_alliance=played_with) & Q(red_score__gt=F('blue_score'))) |
+            (Q(blue_alliance=player.player) & Q(blue_alliance=played_with) & Q(blue_score__gt=F('red_score')))
+        ).count()
+        win_rate = (wins / total_matches * 100) if total_matches > 0 else 0
+        players_with_stats.append({
+            'player__username': played_with.username,
+            'total_matches': total_matches,
+            'win_rate': win_rate
+        })
 
     players_with_stats = sorted(players_with_stats, key=lambda x: (-x['win_rate'], -x['total_matches']))
 
@@ -147,22 +148,23 @@ def player_info(request, name, player_id):
         Q(blue_alliance__in=matches.filter(red_alliance=player.player))
     ).distinct()
 
-    players_against_stats = players_against.annotate(
-        total_matches=Count('red_alliance', filter=Q(red_alliance__in=matches)) + 
-                      Count('blue_alliance', filter=Q(blue_alliance__in=matches)),
-        wins=Count(Case(
-            When(Q(red_alliance__in=matches.filter(blue_alliance=player.player), red_score__gt=F('blue_score')), then=1),
-            When(Q(blue_alliance__in=matches.filter(red_alliance=player.player), blue_score__gt=F('red_score')), then=1),
-            output_field=IntegerField(),
-        )),
-        ties=Count(Case(
-            When(Q(red_alliance__in=matches) | Q(blue_alliance__in=matches), red_score=F('blue_score'), then=1),
-            output_field=IntegerField(),
-        )),
-    ).annotate(
-        losses=F('total_matches') - F('wins') - F('ties'),
-        win_rate=(F('wins') * 2 + F('ties')) * 100.0 / (F('total_matches') * 2)
-    ).values('username', 'total_matches', 'wins', 'ties', 'losses', 'win_rate')
+    players_against_stats = []
+    for played_against in players_against:
+        matches_against = matches.filter(
+            (Q(red_alliance=player.player) & Q(blue_alliance=played_against)) |
+            (Q(blue_alliance=player.player) & Q(red_alliance=played_against))
+        )
+        total_matches = matches_against.count()
+        wins = matches_against.filter(
+            (Q(red_alliance=player.player) & Q(red_score__gt=F('blue_score'))) |
+            (Q(blue_alliance=player.player) & Q(blue_score__gt=F('red_score')))
+        ).count()
+        win_rate = (wins / total_matches * 100) if total_matches > 0 else 0
+        players_against_stats.append({
+            'player__username': played_against.username,
+            'total_matches': total_matches,
+            'win_rate': win_rate
+        })
 
     players_against_stats = sorted(players_against_stats, key=lambda x: (-x['win_rate'], -x['total_matches']))
 
