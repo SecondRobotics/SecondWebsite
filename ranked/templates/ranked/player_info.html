@@ -168,23 +168,23 @@
             }]
         },
         options: {
-            maintainAspectRatio: false
-        }
+            maintainAspectRatio: false,
+        },
     });
     const eloHistoryChart = new Chart(document.getElementById('chart-elo-history').getContext('2d'), {
         type: 'line',
         data: {
-            labels: JSON.parse("{{ match_labels|safe }}"),
+            labels: JSON.parse("{{ match_labels }}"),
             datasets: [{
                 label: 'ELO',
-                data: JSON.parse("{{ elo_history|safe }}"),
+                data: JSON.parse("{{ elo_history }}"),
                 backgroundColor: '#ffc107',
-                borderColor: '#ffc107'
+                borderColor: '#ffc107',
             }]
         },
         options: {
-            maintainAspectRatio: false
-        }
+            maintainAspectRatio: false,
+        },
     });
 </script>
 
