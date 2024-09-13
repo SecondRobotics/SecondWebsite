@@ -31,8 +31,6 @@ class Match(models.Model):
     red_starting_elo = models.FloatField()
     blue_starting_elo = models.FloatField()
 
-    winner = models.CharField(max_length=10, choices=[('red', 'Red'), ('blue', 'Blue'), ('draw', 'Draw')])
-
     def get_red_players(self):
         return self.red_alliance.all()
 
