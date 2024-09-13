@@ -4,7 +4,7 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 import math
 
-from .models import EloHistory, GameMode, PlayerElo, Match, MatchPlayer
+from .models import EloHistory, GameMode, PlayerElo
 from .templatetags.rank_filter import mmr_to_rank
 from django.db.models.functions import Exp
 
@@ -109,39 +109,8 @@ def player_info(request, name, player_id):
     match_labels = [eh.match_number for eh in elo_history]
     elo_history = [eh.elo for eh in elo_history]
 
-    # Get all matches for the player
-    matches = Match.objects.filter(matchplayer__player=player.player, game_mode=player.game_mode)
-
-    # Players Played With
-    players_with = MatchPlayer.objects.filter(match__in=matches, team=F('match__matchplayer__team'))
-    players_with = players_with.exclude(player=player.player)
-    players_with = players_with.values('player__id', 'player__username')
-    players_with = players_with.annotate(
-        total_matches=Count('id'),
-        wins=Count('match', filter=Q(match__winner=F('team'))),
-        win_rate=ExpressionWrapper(F('wins') * 100.0 / F('total_matches'), output_field=FloatField())
-    )
-    players_with = sorted(players_with, key=lambda x: (-x['win_rate'], -x['total_matches']))
-
-    # Players Played Against
-    players_against = MatchPlayer.objects.filter(match__in=matches).exclude(team=F('match__matchplayer__team'))
-    players_against = players_against.exclude(player=player.player)
-    players_against = players_against.values('player__id', 'player__username')
-    players_against = players_against.annotate(
-        total_matches=Count('id'),
-        wins=Count('match', filter=Q(match__winner=F('team'))),
-        win_rate=ExpressionWrapper(F('wins') * 100.0 / F('total_matches'), output_field=FloatField())
-    )
-    players_against = sorted(players_against, key=lambda x: (-x['win_rate'], -x['total_matches']))
-
-    context = {
-        'player': player,
-        'mmr': mmr,
-        'elo_history': elo_history,
-        'match_labels': match_labels,
-        'players_with': players_with,
-        'players_against': players_against,
-    }
+    context = {'player': player, 'mmr': mmr,
+               'elo_history': elo_history, 'match_labels': match_labels}
     return render(request, 'ranked/player_info.html', context)
 
 def mmr_calc(elo, matches_played, delta_hours):
