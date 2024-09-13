@@ -34,14 +34,14 @@ def change_match_game_modes(matches):
     }
     payload = {"matches": matches}
     
-    response = requests.patch(url, json=payload, headers=headers)
+    response = requests.post(url, json=payload, headers=headers)
     if response.status_code == 200:
         return response.json()
     else:
         print(f"Error changing match game modes: Status code {response.status_code}")
         print(f"Response content: {response.text}")
         return None
-
+    
 if __name__ == "__main__":
     new_mode = prompt("Enter the new game mode: ", validator=GameModeValidator())
     match_range = prompt("Enter the range of matches to change (e.g., 1-5): ", validator=MatchRangeValidator())

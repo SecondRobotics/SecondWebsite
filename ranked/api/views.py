@@ -402,10 +402,10 @@ def get_all_users(request: Request) -> Response:
 
     return Response(users_data)
 
-@api_view(['PATCH'])
+@api_view(['POST'])
 def change_match_game_modes(request: Request) -> Response:
     """
-    Changes the game mode of the most recent match for each specified game mode.
+    Changes the game mode of specified matches.
     """
     if request.META.get('HTTP_X_API_KEY') != API_KEY:
         return Response(status=401, data={
@@ -417,14 +417,14 @@ def change_match_game_modes(request: Request) -> Response:
 
     results = []
     for match_data in request.data['matches']:
-        if 'old_game_mode' not in match_data or 'new_game_mode' not in match_data:
-            results.append({'error': 'Invalid match data format. Expected old_game_mode and new_game_mode.'})
+        if 'new_game_mode' not in match_data or 'match_number' not in match_data:
+            results.append({'error': 'Invalid match data format. Expected new_game_mode and match_number.'})
             continue
 
         try:
-            old_game_mode = GameMode.objects.get(short_code=match_data['old_game_mode'])
-        except GameMode.DoesNotExist:
-            results.append({'error': f"Game mode {match_data['old_game_mode']} does not exist."})
+            match = Match.objects.get(match_number=match_data['match_number'])
+        except Match.DoesNotExist:
+            results.append({'error': f"Match {match_data['match_number']} does not exist."})
             continue
 
         try:
