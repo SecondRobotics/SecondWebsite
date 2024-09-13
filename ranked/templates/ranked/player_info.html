@@ -154,9 +154,9 @@
             labels: ['Wins', 'Losses', 'Draws'],
             datasets: [{
                 data: [
-                    {{player.matches_won}},
-                    {{player.matches_lost}},
-                    {{player.matches_drawn}}
+                    {{ player.matches_won }},
+                    {{ player.matches_lost }},
+                    {{ player.matches_drawn }}
                 ],
                 backgroundColor: [
                     '#28a745',
@@ -178,10 +178,10 @@
     const eloHistoryChart = new Chart(document.getElementById('chart-elo-history').getContext('2d'), {
         type: 'line',
         data: {
-            labels: JSON.parse("{{ match_labels|safe }}"),
+            labels: {{ match_labels|safe }},
             datasets: [{
                 label: 'ELO',
-                data: JSON.parse("{{ elo_history|safe }}"),
+                data: {{ elo_history|safe }},
                 backgroundColor: '#ffc107',
                 borderColor: '#ffc107'
             }]

@@ -126,12 +126,15 @@ def player_info(request, name, player_id):
         total_matches=Count('red_alliance', filter=Q(red_alliance__in=matches)) + 
                       Count('blue_alliance', filter=Q(blue_alliance__in=matches)),
         wins=Count(Case(
-            When(Q(red_alliance__in=matches.filter(red_alliance=player.player), red_score__gt=F('blue_score')), then=1),
-            When(Q(blue_alliance__in=matches.filter(blue_alliance=player.player), blue_score__gt=F('red_score')), then=1),
+            When(Q(red_alliance__in=matches.filter(red_alliance=player.player)) & 
+                 Q(red_alliance__red_score__gt=F('red_alliance__blue_score')), then=1),
+            When(Q(blue_alliance__in=matches.filter(blue_alliance=player.player)) & 
+                 Q(blue_alliance__blue_score__gt=F('blue_alliance__red_score')), then=1),
             output_field=IntegerField(),
         )),
         ties=Count(Case(
-            When(Q(red_alliance__in=matches) | Q(blue_alliance__in=matches), red_score=F('blue_score'), then=1),
+            When(Q(red_alliance__in=matches) | Q(blue_alliance__in=matches), 
+                 red_alliance__red_score=F('red_alliance__blue_score'), then=1),
             output_field=IntegerField(),
         )),
     ).annotate(
@@ -151,12 +154,15 @@ def player_info(request, name, player_id):
         total_matches=Count('red_alliance', filter=Q(red_alliance__in=matches)) + 
                       Count('blue_alliance', filter=Q(blue_alliance__in=matches)),
         wins=Count(Case(
-            When(Q(red_alliance__in=matches.filter(blue_alliance=player.player), red_score__gt=F('blue_score')), then=1),
-            When(Q(blue_alliance__in=matches.filter(red_alliance=player.player), blue_score__gt=F('red_score')), then=1),
+            When(Q(red_alliance__in=matches.filter(blue_alliance=player.player)) & 
+                 Q(red_alliance__red_score__gt=F('red_alliance__blue_score')), then=1),
+            When(Q(blue_alliance__in=matches.filter(red_alliance=player.player)) & 
+                 Q(blue_alliance__blue_score__gt=F('blue_alliance__red_score')), then=1),
             output_field=IntegerField(),
         )),
         ties=Count(Case(
-            When(Q(red_alliance__in=matches) | Q(blue_alliance__in=matches), red_score=F('blue_score'), then=1),
+            When(Q(red_alliance__in=matches) | Q(blue_alliance__in=matches), 
+                 red_alliance__red_score=F('red_alliance__blue_score'), then=1),
             output_field=IntegerField(),
         )),
     ).annotate(
