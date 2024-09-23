@@ -159,14 +159,19 @@ def global_leaderboard(request):
                 game_type not in game_type_dict or
                 match_count > game_type_dict[game_type]['match_count']
             ):
-                game_type_dict[game_type] = {'mode': mode, 'match_count': match_count}
+                # Include the player's elo in the game_type_dict
+                game_type_dict[game_type] = {
+                    'mode': mode,
+                    'match_count': match_count,
+                    'elo': player_game_elo.elo  # Added 'elo' here
+                }
 
         # Calculate weighted Elo based on scaling factors
         total_weight = 0
         weighted_elo = 0
         for game_type, data in game_type_dict.items():
             scaling_factor = scaling_factors.get(game_type, 1/3)  # Default to minimum weight
-            weighted_elo += data['mode'].elo * scaling_factor
+            weighted_elo += data['elo'] * scaling_factor
             total_weight += scaling_factor
 
         if total_weight > 0:
