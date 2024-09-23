@@ -117,39 +117,57 @@ def mmr_calc(elo, matches_played, delta_hours):
     return elo * 2 / ((1 + pow(math.e, 1/168 * pow(delta_hours, 0.63))) * (1 + pow(math.e, -0.33 * matches_played)))
 
 def global_leaderboard(request):
+    # Annotate each game type with the total number of matches across all players
+    total_matches_per_game = GameMode.objects.values('game').annotate(total_matches=Count('match'))
+    game_to_total_matches = {item['game']: item['total_matches'] for item in total_matches_per_game}
+
+    if not game_to_total_matches:
+        context = {
+            'leaderboard_code': 'global',
+            'leaderboard_name': 'Global Elo Leaderboard',
+            'players_with_rank': [],
+        }
+        return render(request, "ranked/global_leaderboard.html", context)
+
+    max_total_matches = max(game_to_total_matches.values())
+
+    # Calculate scaling factors based on total matches per game type
+    scaling_factors = {
+        game: (matches / max_total_matches) * (2/3) + (1/3)
+        for game, matches in game_to_total_matches.items()
+    }
+
     # Fetch all players
     players = PlayerElo.objects.all()
 
     global_scores = []
 
     for player in players:
-        # Fetch all game modes for the player
-        game_modes = GameMode.objects.filter(playerelo=player)
+        # Fetch PlayerElo instances for the player without time filtering
+        player_game_elos = PlayerElo.objects.filter(player=player).select_related('game_mode')
 
-        if not game_modes.exists():
+        if not player_game_elos.exists():
             continue
 
-        # Determine the most played game mode per game type
+        # Determine the most played game mode per game type for the player
         game_type_dict = {}
-        for mode in game_modes:
-            game_type = mode.game
-            match_count = mode.match_count  # Assuming 'match_count' exists
-            if game_type not in game_type_dict or match_count > game_type_dict[game_type]['match_count']:
+        for player_game_elo in player_game_elos:
+            game_type = player_game_elo.game_mode.game
+            match_count = player_game_elo.matches_played
+            mode = player_game_elo.game_mode
+            if (
+                game_type not in game_type_dict or
+                match_count > game_type_dict[game_type]['match_count']
+            ):
                 game_type_dict[game_type] = {'mode': mode, 'match_count': match_count}
 
-        # Calculate weighted Elo
+        # Calculate weighted Elo based on scaling factors
         total_weight = 0
         weighted_elo = 0
         for game_type, data in game_type_dict.items():
-            weight = data['match_count']  # Full weight for the most played game
-            weighted_elo += data['mode'].elo * weight
-            total_weight += weight
-
-        # Adjust weights for less played games (1/3 weight)
-        for game_type, data in game_type_dict.items():
-            if data['match_count'] < max(d['match_count'] for d in game_type_dict.values()):
-                weighted_elo += data['mode'].elo * (data['match_count'] / 3)
-                total_weight += data['match_count'] / 3
+            scaling_factor = scaling_factors.get(game_type, 1/3)  # Default to minimum weight
+            weighted_elo += data['mode'].elo * scaling_factor
+            total_weight += scaling_factor
 
         if total_weight > 0:
             global_elo = weighted_elo / total_weight
