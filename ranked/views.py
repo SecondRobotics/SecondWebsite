@@ -143,8 +143,8 @@ def global_leaderboard(request):
     global_scores = []
 
     for player in players:
-        # Corrected the filter to use the related User instance
-        player_game_elos = PlayerElo.objects.filter(player=player.player).select_related('game_mode')
+        # Fetch PlayerElo instances for the player without time filtering
+        player_game_elos = PlayerElo.objects.filter(player=player).select_related('game_mode')
 
         if not player_game_elos.exists():
             continue
