@@ -433,10 +433,13 @@ def change_match_game_modes(request: Request) -> Response:
             results.append({'error': f"Game mode {match_data['new_game_mode']} does not exist."})
             continue
 
-        match = Match.objects.filter(game_mode=old_game_mode).order_by('-match_number').first()
-        if not match:
-            results.append({'error': f"No matches found for {old_game_mode.short_code}."})
-            continue
+        # Define old_game_mode from the match instance
+        old_game_mode = match.game_mode
+
+        # Proceed with changing the game mode
+        match.game_mode = new_game_mode
+        match.time = timezone.now()
+        match.save()
 
         red_players = match.red_alliance.all()
         blue_players = match.blue_alliance.all()
@@ -449,10 +452,6 @@ def change_match_game_modes(request: Request) -> Response:
             match_number=match.match_number, player_elo__in=blue_player_elos)
 
         revert_player_elos(match, red_elo_history, blue_elo_history)
-
-        match.game_mode = new_game_mode
-        match.time = timezone.now()
-        match.save()
 
         red_player_elos = PlayerElo.objects.filter(player__in=red_players, game_mode=new_game_mode)
         blue_player_elos = PlayerElo.objects.filter(player__in=blue_players, game_mode=new_game_mode)
