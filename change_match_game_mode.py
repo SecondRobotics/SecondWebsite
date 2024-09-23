@@ -52,15 +52,23 @@ if __name__ == "__main__":
     print("\nReady to change game modes for matches.")
     print(f"Changing matches {start_match} to {end_match} to {new_mode}")
     confirmation = prompt("Do you want to proceed with these changes? (y/n): ").lower()
-    
+
     if confirmation == 'y':
         results = change_match_game_modes(matches)
         if results:
             for result in results:
+                # Add a print statement to inspect the result
+                print("Result:", result)
                 if 'error' in result:
                     print(f"Failed to update match: {result['error']}")
                 else:
-                    print(f"Successfully updated match {result['match_number']} to {new_mode}")
+                    # Modify this line
+                    # print(f"Successfully updated match {result['match_number']} to {new_mode}")
+                    match_number = result.get('match', {}).get('match_number')
+                    if match_number:
+                        print(f"Successfully updated match {match_number} to {new_mode}")
+                    else:
+                        print("match_number not found in the result.")
         else:
             print("Failed to change match game modes. Please check the error message above.")
     else:

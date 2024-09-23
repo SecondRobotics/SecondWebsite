@@ -18,4 +18,6 @@ urlpatterns = [
     path('<str:game_mode_code>/match/edit/', views.edit_match_result, name='edit_match_result'),
     path('leaderboard/<str:game_mode_code>/', views.get_leaderboard, name='get_leaderboard'),
     path('<str:game_mode_code>/players/', views.get_valid_players, name='get_valid_players'),
+    path('clear-leaderboard/', views.clear_leaderboard, name='clear_leaderboard'),
+    path('recalculate-elo/', views.recalculate_elo, name='recalculate_elo'),
 ]

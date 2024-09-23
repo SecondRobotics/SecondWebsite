@@ -132,7 +132,7 @@ def update_player_elos(match: Match, red_player_elos: List[PlayerElo], blue_play
             player.matches_lost += 1
 
         # Increase the importance of the score difference
-        importance_factor = 1.5
+        importance_factor = 3
         adjusted_score_diff = importance_factor * relative_score_diff
 
         elo_change = ((

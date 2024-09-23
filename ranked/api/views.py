@@ -479,3 +479,66 @@ def change_match_game_modes(request: Request) -> Response:
         })
 
     return Response(results)
+
+@api_view(['POST'])
+def clear_leaderboard(request: Request) -> Response:
+    """
+    Clears the leaderboard for a specific game mode.
+    """
+    if request.META.get('HTTP_X_API_KEY') != API_KEY:
+        return Response(status=401, data={'error': 'Invalid API key.'})
+
+    game_mode_code = request.data.get('game_mode')
+    if not game_mode_code:
+        return Response(status=400, data={'error': 'Game mode code is required.'})
+
+    try:
+        game_mode = GameMode.objects.get(short_code=game_mode_code)
+    except GameMode.DoesNotExist:
+        return Response(status=404, data={'error': f'Game mode {game_mode_code} does not exist.'})
+
+    PlayerElo.objects.filter(game_mode=game_mode).delete()
+    return Response(status=200, data={'message': 'Leaderboard cleared successfully.'})
+
+
+@api_view(['POST'])
+def recalculate_elo(request: Request) -> Response:
+    """
+    Recalculates the ELO for a specific game mode.
+    """
+    if request.META.get('HTTP_X_API_KEY') != API_KEY:
+        return Response(status=401, data={'error': 'Invalid API key.'})
+
+    game_mode_code = request.data.get('game_mode')
+    if not game_mode_code:
+        return Response(status=400, data={'error': 'Game mode code is required.'})
+
+    try:
+        game_mode = GameMode.objects.get(short_code=game_mode_code)
+    except GameMode.DoesNotExist:
+        return Response(status=404, data={'error': f'Game mode {game_mode_code} does not exist.'})
+
+    players = PlayerElo.objects.filter(game_mode=game_mode)
+    for player in players:
+        player.elo = 1200  # Reset ELO to a base value
+        player.save()
+
+    matches = Match.objects.filter(game_mode=game_mode).order_by('time')
+    for match in matches:
+        red_players = match.red_alliance.all()
+        blue_players = match.blue_alliance.all()
+        red_player_elos = PlayerElo.objects.filter(player__in=red_players, game_mode=game_mode)
+        blue_player_elos = PlayerElo.objects.filter(player__in=blue_players, game_mode=game_mode)
+
+        red_elo_changes, blue_elo_changes = update_player_elos(
+            match, list(red_player_elos), list(blue_player_elos))
+
+        for player_elo, elo_change in zip(red_player_elos, red_elo_changes):
+            player_elo.elo += elo_change
+            player_elo.save()
+
+        for player_elo, elo_change in zip(blue_player_elos, blue_elo_changes):
+            player_elo.elo += elo_change
+            player_elo.save()
+
+    return Response(status=200, data={'message': 'ELO recalculated successfully.'})
