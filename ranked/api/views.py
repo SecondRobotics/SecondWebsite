@@ -42,7 +42,7 @@ def get_leaderboard(request: Request, game_mode_code: str) -> Response:
     except GameMode.DoesNotExist:
         return Response(status=404, data={'error': f'Game mode {game_mode_code} does not exist.'})
 
-    players = PlayerElo.objects.filter(game_mode=game_mode)
+    players = PlayerElo.objects.filter(game_mode=game_mode, matches_played__gt=20)
     players = players.annotate(
         time_delta=ExpressionWrapper(
             timezone.now() - F('last_match_played_time'),
