@@ -12,15 +12,15 @@ load_dotenv()
 API_KEY = os.getenv('SRC_API_TOKEN')
 API_BASE_URL = 'https://secondrobotics.org'
 
-def get_all_users():
-    url = f"{API_BASE_URL}/api/ranked/all-users/"
-    response = requests.get(url)
+def get_valid_players(game_mode_code):
+    url = f"{API_BASE_URL}/api/ranked/{game_mode_code}/players/"
+    headers = {'X-API-KEY': API_KEY}
+    
+    response = requests.get(url, headers=headers)
     if response.status_code == 200:
-        users = response.json()
-        # Filter out users with incorrect ID length
-        return [user for user in users if len(str(user['id'])) == 18]
+        return response.json()
     else:
-        print(f"Failed to fetch users: {response.status_code}")
+        print(f"Failed to fetch valid players: {response.status_code}")
         return None
 
 def find_closest_match(name, all_users):
@@ -115,12 +115,12 @@ if __name__ == "__main__":
     csv_file_path = "matches.csv"  # Replace with your CSV file path
     game_mode_code = "CR3v3"  # Replace with the appropriate game mode code
     
-    all_users = get_all_users()
+    all_users = get_valid_players(game_mode_code)
     if not all_users:
-        print("Failed to fetch users. Exiting.")
+        print("Failed to fetch valid players. Exiting.")
         exit(1)
     
-    print(f"Fetched {len(all_users)} valid users")
+    print(f"Fetched {len(all_users)} valid players")
     
     matches = process_csv(csv_file_path, all_users)
     
