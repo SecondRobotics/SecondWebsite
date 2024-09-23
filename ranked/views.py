@@ -36,7 +36,7 @@ def leaderboard(request, name):
 
     gamemode = gamemode[0]
 
-    players = PlayerElo.objects.filter(game_mode=gamemode)
+    players = PlayerElo.objects.filter(game_mode=gamemode, matches_played__gt=20)
     players = players.annotate(
         time_delta=ExpressionWrapper(
             datetime.now(timezone.utc) - F('last_match_played_time'),
@@ -46,24 +46,24 @@ def leaderboard(request, name):
 
     players = players.annotate(
         mmr = ExpressionWrapper(
-        Case(
-            # When time_delta > 168
-            When(
-                time_delta__gt=168,
-                then=ExpressionWrapper(
-                    150 * Exp(-0.00175 * (F('time_delta') - Value(168))) + F('elo') - 150,
-                    output_field=FloatField()
-                )
-            ),
-            # When time_delta <= 168
-            When(
-                time_delta__lte=168,
-                then=F('elo')
+            Case(
+                # When time_delta > 168
+                When(
+                    time_delta__gt=168,
+                    then=ExpressionWrapper(
+                        150 * Exp(-0.00175 * (F('time_delta') - Value(168))) + F('elo') - 150,
+                        output_field=FloatField()
+                    )
+                ),
+                # When time_delta <= 168
+                When(
+                    time_delta__lte=168,
+                    then=F('elo')
+                ),
+                output_field=FloatField()
             ),
             output_field=FloatField()
-        ),
-        output_field=FloatField()
-    )
+        )
     )
 
 
