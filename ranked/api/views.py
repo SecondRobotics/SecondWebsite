@@ -545,7 +545,7 @@ def recalculate_elo(request: Request) -> Response:
         blue_player_elos = PlayerElo.objects.filter(player__in=blue_players, game_mode=game_mode)
 
         red_elo_changes, blue_elo_changes = update_player_elos(
-            match, list(red_player_elos), list(blue_player_elos), match=match.time)
+            match, list(red_player_elos), list(blue_player_elos))
 
         for player_elo, elo_change in zip(red_player_elos, red_elo_changes):
             player_elo.elo += elo_change

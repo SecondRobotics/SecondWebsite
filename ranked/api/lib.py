@@ -93,7 +93,8 @@ def get_match_player_info(red_alliance: List[User], blue_alliance: List[User], g
 
 
 
-def update_player_elos(match: Match, red_player_elos: List[PlayerElo], blue_player_elos: List[PlayerElo], match_time=None):
+
+def update_player_elos(match: Match, red_player_elos: List[PlayerElo], blue_player_elos: List[PlayerElo]):
     """
     Updates the ELO ratings for players in a match.
 
@@ -101,13 +102,10 @@ def update_player_elos(match: Match, red_player_elos: List[PlayerElo], blue_play
         match (Match): The match instance.
         red_player_elos (List[PlayerElo]): List of PlayerElo objects for the red alliance.
         blue_player_elos (List[PlayerElo]): List of PlayerElo objects for the blue alliance.
-        match_time (datetime, optional): The time of the match. Defaults to timezone.now().
 
     Returns:
         Tuple[List[float], List[float]]: ELO changes for red and blue alliances.
     """
-    if match_time is None:
-        match_time = timezone.now()
 
     red_elo = match.red_starting_elo
     blue_elo = match.blue_starting_elo
@@ -159,7 +157,7 @@ def update_player_elos(match: Match, red_player_elos: List[PlayerElo], blue_play
         player.elo += elo_change
 
         player.matches_played += 1
-        player.last_match_played_time = match_time  # Use match_time instead of timezone.now()
+        player.last_match_played_time = match.time  # Use match.time instead of timezone.now()
         player.last_match_played_number = match.match_number
 
         player.save()
