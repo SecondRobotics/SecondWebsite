@@ -518,12 +518,26 @@ def recalculate_elo(request: Request) -> Response:
     except GameMode.DoesNotExist:
         return Response(status=404, data={'error': f'Game mode {game_mode_code} does not exist.'})
 
+    # Ensure all players have PlayerElo objects
+    matches = Match.objects.filter(game_mode=game_mode).order_by('time')
+    all_players = set()
+    for match in matches:
+        all_players.update(match.red_alliance.all())
+        all_players.update(match.blue_alliance.all())
+
+    for player in all_players:
+        PlayerElo.objects.get_or_create(
+            player=player,
+            game_mode=game_mode,
+            defaults={'elo': 1200}
+        )
+
+    # Reset ELO to a base value
     players = PlayerElo.objects.filter(game_mode=game_mode)
     for player in players:
         player.elo = 1200  # Reset ELO to a base value
         player.save()
 
-    matches = Match.objects.filter(game_mode=game_mode).order_by('time')
     for match in matches:
         red_players = match.red_alliance.all()
         blue_players = match.blue_alliance.all()
