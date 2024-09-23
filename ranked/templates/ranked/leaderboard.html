@@ -33,9 +33,8 @@
                 <a href="/ranked/{{ leaderboard_code }}/{{ player_data.player.player.id }}">{{ player_data.player.player }}</a>
             </td>
             <td>{{ player_data.player.elo|floatformat:1 }}</td>
-            <td>{{ player_data.mmr|floatformat:1 }}</td>
-            <!-- Updated line to use CSS class instead of inline style -->
-            <td class="{{ player_data.color }}">{{ player_data.rank }}</td>
+            <td>{{ player_data.player.mmr|floatformat:1 }}</td>
+            <td style="color: {{ player_data.color }}">{{ player_data.rank }}</td>
             <td>{{ player_data.player.matches_played }}</td>
             <td>{{ player_data.player.win_rate|floatformat:2 }}%</td>
             <td>{{ player_data.player.matches_won }}</td>
