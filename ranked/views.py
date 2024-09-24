@@ -96,14 +96,23 @@ def player_info(request, name, player_id):
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/ranked'))
 
     player_info = PlayerElo.objects.filter(
-        game_mode__short_code=name, player__id=player_id)
+        game_mode__short_code=name, player__id=player_id
+    )
 
     if not player_info.exists():
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/ranked'))
 
-    player = player_info[0]
+    player = player_info.first()
 
-    mmr = round(mmr_calc(player.elo, player.matches_played, (datetime.now(timezone.utc) - player.last_match_played_time).total_seconds()/3600), 1)
+    # Handle cases where last_match_played_time is None
+    if player.last_match_played_time:
+        delta_hours = (timezone.now() - player.last_match_played_time).total_seconds() / 3600
+    else:
+        # Define a default value or handle as needed
+        # For example, setting delta_hours to 0 or a specific number
+        delta_hours = 0  # Or set to a default like 24 * 7 for a week
+
+    mmr = round(mmr_calc(player.elo, player.matches_played, delta_hours), 1)
 
     elo_history = EloHistory.objects.filter(player_elo=player)
     match_labels = [eh.match_number for eh in elo_history]
