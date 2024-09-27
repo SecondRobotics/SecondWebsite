@@ -94,6 +94,10 @@ def submit_ultimate_goal(score_obj: Score) -> Union[str, None]:
     return submit_score(score_obj, ultimate_goal_clean_code_check)
 
 
+def submit_into_the_deep(score_obj: Score) -> Union[str, None]:
+    return submit_score(score_obj, into_the_deep_clean_code_check)
+
+
 def decode_time_data(in_string: str) -> str:
     out_bytes = ""
 
@@ -290,6 +294,10 @@ def high_stakes_clean_code_check(score_obj: Score) -> Union[str, None]:
 
 def ultimate_goal_clean_code_check(score_obj: Score) -> Union[str, None]:
     return clean_code_check(score_obj, check_ultimate_goal_game_settings, check_score)
+
+
+def into_the_deep_clean_code_check(score_obj: Score) -> Union[str, None]:
+    return clean_code_check(score_obj, check_into_the_deep_game_settings, check_subtraction_score)
 
 
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str]:
@@ -508,6 +516,16 @@ def check_ultimate_goal_game_settings(game_options: list, restart_option: str, g
     return None  # No error
 
 
+def check_into_the_deep_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
+    """ Checks if the Into The Deep game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if (game_index != '18'):
+        return 'Wrong game! This form is for Into The Deep.'
+
+    return None  # No error
+
+
 def check_robot_type(score_obj: Score, robot_model: str) -> Union[str, None]:
     """ Checks if the robot model is valid.
     :return: None if the robot model is valid, or a response with an error message if it is not.
@@ -675,6 +693,7 @@ game_slug_to_submit_func = {
     "cr": submit_crescendo,
     "hs": submit_high_stakes,
     "ug": submit_ultimate_goal,
+    "id": submit_into_the_deep,
 }
 
 game_to_submit_func = {
@@ -690,4 +709,5 @@ game_to_submit_func = {
     "Crescendo": submit_crescendo,
     "High Stakes": submit_high_stakes,
     "Ultimate Goal": submit_ultimate_goal,
+    "INTO THE DEEP": submit_into_the_deep,
 }
