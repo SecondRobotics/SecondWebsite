@@ -273,7 +273,7 @@ def power_play_clean_code_check(score_obj: Score) -> Union[str, None]:
 
 
 def tipping_point_clean_code_check(score_obj: Score) -> Union[str, None]:
-    return clean_code_check(score_obj, check_tipping_point_game_settings, check_score)
+    return clean_code_check(score_obj, check_tipping_point_game_settings, check_skills_challenge_score)
 
 
 def spin_up_clean_code_check(score_obj: Score) -> Union[str, None]:
@@ -446,6 +446,8 @@ def check_tipping_point_game_settings(game_options: list, restart_option: str, g
     """
     if (game_index != '8'):
         return 'Wrong game! This form is for Tipping Point.'
+    if (restart_option != '2'):
+        return 'You must use restart option 2 (skills challenge) for Tipping Point high score submissions.'
 
     return None  # No error
 
