@@ -98,6 +98,10 @@ def submit_into_the_deep(score_obj: Score) -> Union[str, None]:
     return submit_score(score_obj, into_the_deep_clean_code_check)
 
 
+def submit_rover_ruckus(score_obj: Score) -> Union[str, None]:
+    return submit_score(score_obj, rover_ruckus_clean_code_check)
+
+
 def decode_time_data(in_string: str) -> str:
     out_bytes = ""
 
@@ -298,6 +302,10 @@ def ultimate_goal_clean_code_check(score_obj: Score) -> Union[str, None]:
 
 def into_the_deep_clean_code_check(score_obj: Score) -> Union[str, None]:
     return clean_code_check(score_obj, check_into_the_deep_game_settings, check_subtraction_score)
+
+
+def rover_ruckus_clean_code_check(score_obj: Score) -> Union[str, None]:
+    return clean_code_check(score_obj, check_rover_ruckus_game_settings, check_subtraction_score)
 
 
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str]:
@@ -526,6 +534,16 @@ def check_into_the_deep_game_settings(game_options: list, restart_option: str, g
     return None  # No error
 
 
+def check_rover_ruckus_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
+    """ Checks if the Rover Ruckus game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if (game_index != '2'):
+        return 'Wrong game! This form is for Rover Ruckus.'
+
+    return None  # No error
+
+
 def check_robot_type(score_obj: Score, robot_model: str) -> Union[str, None]:
     """ Checks if the robot model is valid.
     :return: None if the robot model is valid, or a response with an error message if it is not.
@@ -694,6 +712,7 @@ game_slug_to_submit_func = {
     "hs": submit_high_stakes,
     "ug": submit_ultimate_goal,
     "id": submit_into_the_deep,
+    "ro": submit_rover_ruckus,
 }
 
 game_to_submit_func = {
@@ -710,4 +729,5 @@ game_to_submit_func = {
     "High Stakes": submit_high_stakes,
     "Ultimate Goal": submit_ultimate_goal,
     "INTO THE DEEP": submit_into_the_deep,
+    "Rover Ruckus": submit_rover_ruckus,
 }
