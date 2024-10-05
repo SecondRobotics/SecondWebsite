@@ -1,20 +1,21 @@
-from typing import Callable, Optional, Type
-from discordoauth2.models import User
-from django.http.response import HttpResponseRedirect
-from django.http import HttpResponse, HttpRequest
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Max
-from django.utils.timezone import make_aware
-from datetime import datetime
 from collections import Counter
-from django.db.models import Sum, Max, F, Count, Prefetch
-from django.db.models.functions import Coalesce
-from django.core.cache import cache
+from datetime import datetime, timedelta
+from typing import Callable, Optional, Type
 
+from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
+from django.db.models import Count, F, Max, Prefetch, Q, Sum
+from django.db.models.functions import Coalesce
+from django.http import HttpRequest, HttpResponse
+from django.http.response import HttpResponseRedirect
+from django.shortcuts import render
+from django.utils import timezone
+
+from discordoauth2.models import User
+
+from .forms import ScoreForm, get_score_form
 from .lib import extract_form_data, game_slug_to_submit_func
 from .models import Leaderboard, Score
-from .forms import ScoreForm, get_score_form
 
 COMBINED_LEADERBOARD_PAGE = "highscores/combined_leaderboard.html"
 SUBMIT_PAGE = "highscores/submit.html"
@@ -24,7 +25,13 @@ WR_PAGE = "highscores/world_records.html"
 
 
 def home(request: HttpRequest) -> HttpResponse:
-    leaderboards = Leaderboard.objects.all().order_by('-id')
+    leaderboards = Leaderboard.objects.annotate(
+        score_count=Count(
+            'score',
+            filter=Q(score__approved=True) & Q(
+                score__time_set__gte=timezone.now() - timedelta(days=7))
+        )
+    ).order_by('-score_count')  # Order by most scores set in the last 7 days
 
     # Create a dictionary mapping game name to array of leaderboards
     leaderboards_dict = {}
@@ -72,7 +79,8 @@ def world_records(request: HttpRequest) -> HttpResponse:
     # Collect the highest scores for each leaderboard
     world_records = []
     for leaderboard in leaderboards:
-        highest_score = Score.objects.filter(leaderboard=leaderboard, approved=True).order_by('-score', 'time_set').first()
+        highest_score = Score.objects.filter(
+            leaderboard=leaderboard, approved=True).order_by('-score', 'time_set').first()
         if highest_score:
             highest_score.robot_name = leaderboard.name  # Include robot name
             world_records.append(highest_score)
@@ -81,12 +89,13 @@ def world_records(request: HttpRequest) -> HttpResponse:
     world_records.sort(key=lambda x: x.time_set)
 
     # Calculate how long each record has been active
-    now = make_aware(datetime.now())
+    now = timezone.now()
     for record in world_records:
         time_set = record.time_set
         active_duration = now - time_set
 
-        years, remainder = divmod(active_duration.total_seconds(), 31536000)  # 60*60*24*365
+        years, remainder = divmod(
+            active_duration.total_seconds(), 31536000)  # 60*60*24*365
         months, remainder = divmod(remainder, 2592000)  # 60*60*24*30
         days = remainder / 86400  # 60*60*24
 
@@ -94,9 +103,11 @@ def world_records(request: HttpRequest) -> HttpResponse:
 
     # Count the number of records per player
     player_counts = Counter(record.player.username for record in world_records)
-    player_counts = sorted(player_counts.items(), key=lambda x: x[1], reverse=True)
+    player_counts = sorted(player_counts.items(),
+                           key=lambda x: x[1], reverse=True)
 
     return render(request, WR_PAGE, {"world_records": world_records, "player_counts": player_counts})
+
 
 def leaderboard_combined(request: HttpRequest, game_slug: str) -> HttpResponse:
     cache_key = f'leaderboard_combined_{game_slug}'
@@ -111,7 +122,8 @@ def leaderboard_combined(request: HttpRequest, game_slug: str) -> HttpResponse:
     leaderboards = Leaderboard.objects.filter(game_slug=game_slug)
 
     # Prefetch related scores for all leaderboards
-    scores_prefetch = Prefetch('score_set', queryset=Score.objects.filter(approved=True).select_related('player'))
+    scores_prefetch = Prefetch('score_set', queryset=Score.objects.filter(
+        approved=True).select_related('player'))
     leaderboards = leaderboards.prefetch_related(scores_prefetch)
 
     player_percentiles = {}
@@ -138,20 +150,26 @@ def leaderboard_combined(request: HttpRequest, game_slug: str) -> HttpResponse:
             if len(player_percentiles[player_id]) < leaderboards.count():
                 player_percentiles[player_id].append(0.0)
 
-    average_percentiles = {player_id: sum(percentiles) / len(percentiles) for player_id, percentiles in player_percentiles.items()}
-    sorted_average_percentiles = sorted(average_percentiles.items(), key=lambda x: x[1], reverse=True)
+    average_percentiles = {player_id: sum(percentiles) / len(percentiles)
+                           for player_id, percentiles in player_percentiles.items()}
+    sorted_average_percentiles = sorted(
+        average_percentiles.items(), key=lambda x: x[1], reverse=True)
 
     context = []
     i = 1
     player_objects = User.objects.filter(id__in=all_players).in_bulk()
     for player_id, avg_percentile in sorted_average_percentiles:
         player = player_objects[player_id]
-        total_score = Score.objects.filter(player=player, leaderboard__game_slug=game_slug, approved=True).aggregate(total_score=Sum('score'))['total_score']
-        last_time_set = Score.objects.filter(player=player, leaderboard__game_slug=game_slug, approved=True).aggregate(last_time_set=Max('time_set'))['last_time_set']
-        context.append([i, {'player': player, 'average_percentile': avg_percentile, 'score': total_score, 'time_set': last_time_set}])
+        total_score = Score.objects.filter(player=player, leaderboard__game_slug=game_slug, approved=True).aggregate(
+            total_score=Sum('score'))['total_score']
+        last_time_set = Score.objects.filter(player=player, leaderboard__game_slug=game_slug, approved=True).aggregate(
+            last_time_set=Max('time_set'))['last_time_set']
+        context.append([i, {'player': player, 'average_percentile': avg_percentile,
+                       'score': total_score, 'time_set': last_time_set}])
         i += 1
 
-    cache.set(cache_key, {"ls": context, "game_name": game_name}, 300)  # Cache for 5 minutes
+    # Cache for 5 minutes
+    cache.set(cache_key, {"ls": context, "game_name": game_name}, 300)
     return render(request, COMBINED_LEADERBOARD_PAGE, {"ls": context, "game_name": game_name})
 
 
@@ -172,6 +190,7 @@ def submit_form_view(request: HttpRequest, form_class: Type[ScoreForm], submit_f
 
     return render(request, SUBMIT_ACCEPTED_PAGE, {})
 
+
 def overall_singleplayer_leaderboard(request: HttpRequest) -> HttpResponse:
     cache_key = 'overall_singleplayer_leaderboard'
     context = cache.get(cache_key)
@@ -181,7 +200,8 @@ def overall_singleplayer_leaderboard(request: HttpRequest) -> HttpResponse:
     leaderboards = Leaderboard.objects.all()
 
     # Prefetch related scores for all leaderboards
-    scores_prefetch = Prefetch('score_set', queryset=Score.objects.filter(approved=True).select_related('player'))
+    scores_prefetch = Prefetch('score_set', queryset=Score.objects.filter(
+        approved=True).select_related('player'))
     leaderboards = leaderboards.prefetch_related(scores_prefetch)
 
     player_percentiles = {}
@@ -208,22 +228,26 @@ def overall_singleplayer_leaderboard(request: HttpRequest) -> HttpResponse:
             if len(player_percentiles[player_id]) < leaderboards.count():
                 player_percentiles[player_id].append(0.0)
 
-    average_percentiles = {player_id: sum(percentiles) / len(percentiles) for player_id, percentiles in player_percentiles.items()}
-    sorted_average_percentiles = sorted(average_percentiles.items(), key=lambda x: x[1], reverse=True)
+    average_percentiles = {player_id: sum(percentiles) / len(percentiles)
+                           for player_id, percentiles in player_percentiles.items()}
+    sorted_average_percentiles = sorted(
+        average_percentiles.items(), key=lambda x: x[1], reverse=True)
 
     context = []
     i = 1
     player_objects = User.objects.filter(id__in=all_players).in_bulk()
     for player_id, avg_percentile in sorted_average_percentiles:
         player = player_objects[player_id]
-        total_score = Score.objects.filter(player=player, approved=True).aggregate(total_score=Sum('score'))['total_score']
-        last_time_set = Score.objects.filter(player=player, approved=True).aggregate(last_time_set=Max('time_set'))['last_time_set']
-        context.append([i, {'player': player, 'average_percentile': avg_percentile, 'score': total_score, 'time_set': last_time_set}])
+        total_score = Score.objects.filter(player=player, approved=True).aggregate(
+            total_score=Sum('score'))['total_score']
+        last_time_set = Score.objects.filter(player=player, approved=True).aggregate(
+            last_time_set=Max('time_set'))['last_time_set']
+        context.append([i, {'player': player, 'average_percentile': avg_percentile,
+                       'score': total_score, 'time_set': last_time_set}])
         i += 1
 
     cache.set(cache_key, {"ls": context}, 300)  # Cache for 5 minutes
     return render(request, "highscores/overall_singleplayer_leaderboard.html", {"ls": context})
-
 
 
 @login_required(login_url='/login')

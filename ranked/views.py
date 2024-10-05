@@ -1,14 +1,17 @@
-from django.shortcuts import render, HttpResponseRedirect
-from django.db.models import Max, Min, F, Q, Count, ExpressionWrapper, FloatField, Case, When, Value
-from django.utils import timezone
-from datetime import datetime, timedelta
 import math
+from datetime import datetime, timedelta
+
+from django.db.models import (Case, Count, ExpressionWrapper, F, FloatField,
+                              Max, Min, Q, Value, When)
+from django.db.models.functions import Exp
+from django.shortcuts import HttpResponseRedirect, render
+from django.utils import timezone
 
 from .models import EloHistory, GameMode, PlayerElo
 from .templatetags.rank_filter import mmr_to_rank
-from django.db.models.functions import Exp
 
 # Create your views here.
+
 
 def ranked_home(request):
     game_modes = GameMode.objects.annotate(
@@ -16,7 +19,7 @@ def ranked_home(request):
             'match',
             filter=Q(match__time__gte=timezone.now() - timedelta(days=7))
         )
-    ).order_by('-match_count')
+    ).order_by('-match_count')  # Order by most matches played in the last 7 days
 
     # Create a dictionary mapping game name to array of game modes
     game_dict = {}
@@ -28,6 +31,7 @@ def ranked_home(request):
     context = {'games': game_dict}
     return render(request, 'ranked/ranked_home.html', context)
 
+
 def leaderboard(request, name):
     gamemode = GameMode.objects.filter(short_code=name)
 
@@ -36,7 +40,8 @@ def leaderboard(request, name):
 
     gamemode = gamemode[0]
 
-    players = PlayerElo.objects.filter(game_mode=gamemode, matches_played__gt=20)
+    players = PlayerElo.objects.filter(
+        game_mode=gamemode, matches_played__gt=20)
     players = players.annotate(
         time_delta=ExpressionWrapper(
             datetime.now(timezone.utc) - F('last_match_played_time'),
@@ -45,13 +50,14 @@ def leaderboard(request, name):
     )
 
     players = players.annotate(
-        mmr = ExpressionWrapper(
+        mmr=ExpressionWrapper(
             Case(
                 # When time_delta > 168
                 When(
                     time_delta__gt=168,
                     then=ExpressionWrapper(
-                        150 * Exp(-0.00175 * (F('time_delta') - Value(168))) + F('elo') - 150,
+                        150 * Exp(-0.00175 * (F('time_delta') - \
+                                  Value(168))) + F('elo') - 150,
                         output_field=FloatField()
                     )
                 ),
@@ -65,7 +71,6 @@ def leaderboard(request, name):
             output_field=FloatField()
         )
     )
-
 
     # Get highest and lowest MMR values
     highest_mmr = players.aggregate(Max('mmr'))['mmr__max']
@@ -81,7 +86,8 @@ def leaderboard(request, name):
         })
 
     # Sort players_with_rank by MMR in descending order
-    players_with_rank = sorted(players_with_rank, key=lambda x: x['player'].mmr, reverse=True)
+    players_with_rank = sorted(
+        players_with_rank, key=lambda x: x['player'].mmr, reverse=True)
 
     context = {
         'leaderboard_code': gamemode.short_code,
@@ -90,6 +96,7 @@ def leaderboard(request, name):
     }
 
     return render(request, "ranked/leaderboard.html", context)
+
 
 def player_info(request, name, player_id):
     if not player_id.isdigit():
@@ -106,7 +113,8 @@ def player_info(request, name, player_id):
 
     # Handle cases where last_match_played_time is None
     if player.last_match_played_time:
-        delta_hours = (timezone.now() - player.last_match_played_time).total_seconds() / 3600
+        delta_hours = (timezone.now() -
+                       player.last_match_played_time).total_seconds() / 3600
     else:
         # Define a default value or handle as needed
         # For example, setting delta_hours to 0 or a specific number
@@ -121,6 +129,7 @@ def player_info(request, name, player_id):
     context = {'player': player, 'mmr': mmr,
                'elo_history': elo_history, 'match_labels': match_labels}
     return render(request, 'ranked/player_info.html', context)
+
 
 def mmr_calc(elo, matches_played, delta_hours):
     return elo * 2 / ((1 + pow(math.e, 1/168 * pow(delta_hours, 0.63))) * (1 + pow(math.e, -0.33 * matches_played)))
