@@ -7,31 +7,33 @@
     <h1 style="color: white" class="display-4 fw-normal">
         xRC Sim Official Highscores
     </h1>
-    <a href="/highscores/world-records/" class="btn btn-success">View World Records</a>
-    <a href="/highscores/overall/" class="btn btn-success">View Overall Leaderboard</a>
 </div>
 
-{% for game, leaderboards in games.items %}
-
-<div
-    class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-dark"
->
-    <h2 style="color: white" class="display-10 fw-normal">{{ game }}</h2>
-    {% if leaderboards|length > 1 %}
-    <a
-        href="/highscores/{{ leaderboards.copy.pop.game_slug }}/combined/"
-        class="btn btn-outline-info"
-        >Combined Leaderboard</a
-    >
-    <br /><br />
-    {% endif %} 
-    {% for leaderboard in leaderboards %}
-    <a
-        href="/highscores/{{ leaderboard.game_slug }}/{{ leaderboard.name }}/"
-        class="btn btn-outline-light"
-        >{{ leaderboard.name }}</a>
-    {% endfor %}
+<div class="container my-5">
+    <div class="row">
+        {% for game, leaderboards in games.items %}
+        <div class="col-12 col-lg-4 mb-4">
+            <div class="card bg-dark text-white shadow-lg h-100">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ game }}</h3>
+                    {% if leaderboards|length > 1 %}
+                    <a
+                        href="/highscores/{{ leaderboards.copy.pop.game_slug }}/combined/"
+                        class="btn btn-outline-info"
+                        >Combined Leaderboard</a
+                    >
+                    <br /><br />
+                    {% endif %} 
+                    {% for leaderboard in leaderboards %}
+                    <a
+                        href="/highscores/{{ leaderboard.game_slug }}/{{ leaderboard.name }}/"
+                        class="btn btn-outline-light"
+                        >{{ leaderboard.name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %} 
+    </div>
 </div>
-
-{% endfor %} 
 {% endblock %}
