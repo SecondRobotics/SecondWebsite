@@ -9,7 +9,8 @@ from .forms import ProfileForm
 from django.contrib.auth.decorators import login_required
 from django.utils.translation import gettext_lazy as _
 
-from highscores.models import CleanCodeSubmission, Score
+from highscores.models import CleanCodeSubmission, Score, Leaderboard
+from django.db.models import OuterRef, Subquery, Exists
 
 
 def index(response):
@@ -101,17 +102,32 @@ def user_profile(request, user_id: int):
     except (User.DoesNotExist, OverflowError):
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
-    scores = Score.objects.filter(
-        player=user, approved=True).order_by('-time_set')
+    # Fetch all leaderboards
+    all_leaderboards = Leaderboard.objects.all()
 
+    # Fetch scores for the user
+    scores = Score.objects.filter(player=user, approved=True).order_by('-time_set')
+
+    # Create a dictionary to hold game data
     games = {}
-    for score in scores:
-        if score.leaderboard.game not in games:
-            games[score.leaderboard.game] = {
-                "overall": score.score, "slug": score.leaderboard.game_slug, "scores": [score]}
-        else:
-            games[score.leaderboard.game]["scores"] += [score]
-            games[score.leaderboard.game]["overall"] += score.score
+    for leaderboard in all_leaderboards:
+        game_name = leaderboard.game
+        if game_name not in games:
+            games[game_name] = {
+                "slug": leaderboard.game_slug,
+                "leaderboards": [],
+                "overall": 0
+            }
+        
+        # Check if the user has a score for this leaderboard
+        user_score = scores.filter(leaderboard=leaderboard).first()
+        score_value = user_score.score if user_score else 0
+        games[game_name]["leaderboards"].append({
+            "leaderboard": leaderboard,
+            "score": score_value,
+            "source": user_score.source if user_score else None
+        })
+        games[game_name]["overall"] += score_value
 
     all_game_modes = GameMode.objects.all()
     player_elos = PlayerElo.objects.filter(player=user)
@@ -120,7 +136,11 @@ def user_profile(request, user_id: int):
     for game_mode in all_game_modes:
         elos_by_game[game_mode] = player_elos.filter(game_mode=game_mode).first()
 
-    context = {"games": games, "user": user, "elos_by_game": elos_by_game}
+    context = {
+        "games": games,
+        "user": user,
+        "elos_by_game": elos_by_game
+    }
     return render(request, "home/user_profile.html", context)
 
 
