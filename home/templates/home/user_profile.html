@@ -19,33 +19,33 @@
 </div>
 
 {% if elos_by_game %}
-    <table class="table table-dark table-striped table-hover table-sm">
-        {% for game_type, modes in elos_by_game.items %}
-            <thead>
-                <tr>
-                    <th colspan="3" scope="colgroup" class="bg-dark text-white text-center">{{ game_type }}</th>
-                </tr>
-                <tr>
-                    <th scope="col">Mode</th>
-                    <th scope="col">ELO</th>
-                    <th scope="col">W-L-T</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for game_mode, player_elo in modes.items %}
-                <tr>
-                    <td>{{ game_mode.name }}</td>
-                    {% if player_elo %}
-                        <td>{{ player_elo.elo|floatformat:1 }}</td>
-                        <td>{{ player_elo.matches_won }}-{{ player_elo.matches_lost }}-{{ player_elo.matches_drawn }}</td>
-                    {% else %}
-                        <td colspan="2">Not Played</td>
-                    {% endif %}
-                </tr>
-                {% endfor %}
-            </tbody>
-        {% endfor %}
-    </table>
+    {% for game_mode, elo in elos_by_game.items %}
+        <div class="row">
+            <div class="col-12">
+                <h2 class="bg-dark text-white p-3">{{ game_mode.game }}</h2>
+                <table class="table table-dark table-striped table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>Mode</th>
+                            <th>ELO</th>
+                            <th>W-L-T</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ game_mode.name }}</td>
+                            {% if elo %}
+                                <td>{{ elo.elo|floatformat:1 }}</td>
+                                <td>{{ elo.matches_won }}-{{ elo.matches_lost }}-{{ elo.matches_drawn }}</td>
+                            {% else %}
+                                <td colspan="2">Not Played</td>
+                            {% endif %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endfor %}
 {% endif %}
 
 <div class="row">
