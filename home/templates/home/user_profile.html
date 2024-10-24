@@ -59,54 +59,42 @@
 {% if games %}
     {% for game_name, game in games.items %}
         <div class="row">
-            <div
-                class="position-relative overflow-hidden p-3 shadowy p-md-3 m-md-3 text-center bg-dark"
-            >
-                <h3>
-                    <a
-                        href="/highscores/{{game.slug}}/combined/"
-                        style="color: #fff; text-decoration: none"
-                        >{{game_name}}</a
-                    >
-                </h3>
-                <h4>{{game.overall}}</h4>
-            </div>
-
-            {% for entry in game.leaderboards %}
-                <div class="col-4">
-                    <div
-                        class="position-relative overflow-hidden p-3 p-md-3 shadowy m-md-3 text-center bg-dark"
-                    >
-                        <h3>
-                            <a
-                                href="/highscores/{{entry.leaderboard.game_slug}}/{{entry.leaderboard.name}}/"
-                                style="color: #fff; text-decoration: none"
-                                >{{entry.leaderboard.name}}</a
-                            >
-                        </h3>
-                        <h4>{{entry.score|default:"No Score"}}</h4>
-                        {% if entry.score %}
-                            {% if "youtube" in entry.source or "streamable" in entry.source %}
-                                <iframe
-                                    class="img-fluid rounded"
-                                    src="{{entry.source}}"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowfullscreen
-                                ></iframe>
-                            {% else %}
-                                {% if "https://i.imgur.com/bUUfB8c.png" not in entry.source %}
-                                    <img
-                                        src="{{entry.source}}"
-                                        class="img-fluid rounded"
-                                        alt="{{entry.leaderboard.name}} score screenshot"
-                                        width="300"
-                                    />
+            <div class="col-12">
+                <h3 class="bg-dark text-white p-3">{{ game_name }}</h3>
+                <h4>Total Score: {{game.overall}}</h4>
+                <table class="table table-dark table-striped table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>Robot Name</th>
+                            <th>Score</th>
+                            <th>Time Set</th>
+                            <th>Media Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in game.leaderboards %}
+                        <tr>
+                            <td>{{ entry.leaderboard.name }}</td>
+                            <td>{{ entry.score|default:"No Score" }}</td>
+                            <td>{{ entry.source|default:"N/A" }}</td>
+                            <td>
+                                {% if entry.score %}
+                                    {% if "youtube" in entry.source or "streamable" in entry.source %}
+                                        <a href="{{ entry.source }}" target="_blank">Video</a>
+                                    {% else %}
+                                        {% if "https://i.imgur.com/bUUfB8c.png" not in entry.source %}
+                                            <a href="{{ entry.source }}" target="_blank">Image</a>
+                                        {% endif %}
+                                    {% endif %}
+                                {% else %}
+                                    N/A
                                 {% endif %}
-                            {% endif %}
-                        {% endif %}
-                    </div>
-                </div>
-            {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     {% endfor %}
 {% endif %}
