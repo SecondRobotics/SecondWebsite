@@ -125,7 +125,8 @@ def user_profile(request, user_id: int):
         games[game_name]["leaderboards"].append({
             "leaderboard": leaderboard,
             "score": score_value,
-            "source": user_score.source if user_score else None
+            "source": user_score.source if user_score else None,
+            "time_set": user_score.time_set if user_score else None
         })
         games[game_name]["overall"] += score_value
 

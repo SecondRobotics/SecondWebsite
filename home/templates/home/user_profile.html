@@ -76,7 +76,7 @@
                         <tr>
                             <td>{{ entry.leaderboard.name }}</td>
                             <td>{{ entry.score|default:"No Score" }}</td>
-                            <td>{{ entry.source|default:"N/A" }}</td>
+                            <td>{{ entry.time_set|default:"N/A" }}</td>
                             <td>
                                 {% if entry.score %}
                                     {% if "youtube" in entry.source or "streamable" in entry.source %}
