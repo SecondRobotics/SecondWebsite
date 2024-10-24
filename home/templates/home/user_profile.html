@@ -1,4 +1,5 @@
-{% extends 'home/base.html' %} {% block content %}
+{% extends 'home/base.html' %}
+{% block content %}
 <div class="row">
     <div class="col-2">
         <img
@@ -18,22 +19,20 @@
 </div>
 
 {% if elos_by_game %}
-    <div class="row">
-        <div class="col-12">
-            <h2>Ranked Games</h2>
-            <table class="table table-dark table-striped table-hover table-sm">
-                <thead>
-                    <tr>
-                        <th>Game</th>
-                        <th>Mode</th>
-                        <th>ELO</th>
-                        <th>W-L-T</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for game_mode, elo in elos_by_game.items %}
+    {% for game_mode, elo in elos_by_game.items %}
+        <div class="row">
+            <div class="col-12">
+                <h2 class="bg-dark text-white p-3">{{ game_mode.game }}</h2>
+                <table class="table table-dark table-striped table-hover table-sm">
+                    <thead>
                         <tr>
-                            <td>{{ game_mode.game }}</td>
+                            <th>Mode</th>
+                            <th>ELO</th>
+                            <th>W-L-T</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
                             <td>{{ game_mode.name }}</td>
                             {% if elo %}
                                 <td>{{ elo.elo|floatformat:1 }}</td>
@@ -42,11 +41,11 @@
                                 <td colspan="2">Not Played</td>
                             {% endif %}
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
+    {% endfor %}
 {% endif %}
 
 <div class="row">
