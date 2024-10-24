@@ -19,10 +19,10 @@
 </div>
 
 {% if elos_by_game %}
-    {% for game_mode, elo in elos_by_game.items %}
+    {% for game_type, game_modes in elos_by_game.items|groupby:"game_mode.game" %}
         <div class="row">
             <div class="col-12">
-                <h2 class="bg-dark text-white p-3">{{ game_mode.game }}</h2>
+                <h2 class="bg-dark text-white p-3">{{ game_type }}</h2>
                 <table class="table table-dark table-striped table-hover table-sm">
                     <thead>
                         <tr>
@@ -32,6 +32,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% for game_mode, elo in game_modes %}
                         <tr>
                             <td>{{ game_mode.name }}</td>
                             {% if elo %}
@@ -41,6 +42,7 @@
                                 <td colspan="2">Not Played</td>
                             {% endif %}
                         </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
