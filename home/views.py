@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.translation import gettext_lazy as _
 
 from highscores.models import CleanCodeSubmission, Score, Leaderboard
-from django.db.models import OuterRef, Subquery, Exists
+from django.db.models import OuterRef, Subquery, Exists, Max
 
 
 def index(response):
@@ -102,13 +102,9 @@ def user_profile(request, user_id: int):
     except (User.DoesNotExist, OverflowError):
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
-    # Fetch all leaderboards
     all_leaderboards = Leaderboard.objects.all()
-
-    # Fetch scores for the user
     scores = Score.objects.filter(player=user, approved=True).order_by('-time_set')
 
-    # Create a dictionary to hold game data
     games = {}
     for leaderboard in all_leaderboards:
         game_name = leaderboard.game
@@ -119,16 +115,24 @@ def user_profile(request, user_id: int):
                 "overall": 0
             }
         
-        # Check if the user has a score for this leaderboard
         user_score = scores.filter(leaderboard=leaderboard).first()
         score_value = user_score.score if user_score else 0
+        games[game_name]["overall"] += score_value
+
+        # Calculate percentile
+        if user_score:
+            highest_score = Score.objects.filter(leaderboard=leaderboard, approved=True).aggregate(Max('score'))['score__max']
+            percentile = (score_value / highest_score) * 100 if highest_score else 0
+        else:
+            percentile = 0
+
         games[game_name]["leaderboards"].append({
             "leaderboard": leaderboard,
             "score": score_value,
+            "percentile": percentile,
             "source": user_score.source if user_score else None,
             "time_set": user_score.time_set if user_score else None
         })
-        games[game_name]["overall"] += score_value
 
     all_game_modes = GameMode.objects.all()
     player_elos = PlayerElo.objects.filter(player=user)

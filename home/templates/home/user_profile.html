@@ -66,6 +66,7 @@
                     <thead>
                         <tr>
                             <th>Robot Name</th>
+                            <th>Percentile</th>
                             <th>Score</th>
                             <th>Time Set</th>
                             <th>Media Link</th>
@@ -75,6 +76,7 @@
                         {% for entry in game.leaderboards %}
                         <tr>
                             <td>{{ entry.leaderboard.name }}</td>
+                            <td>{{ entry.percentile|floatformat:2 }}%</td>
                             <td>{{ entry.score|default:"No Score" }}</td>
                             <td>{{ entry.time_set|default:"N/A" }}</td>
                             <td>
