@@ -1,4 +1,4 @@
-from ranked.models import PlayerElo
+from ranked.models import PlayerElo, GameMode
 from .models import HistoricEvent, Staff
 from django.http.response import HttpResponseRedirect
 from discordoauth2.models import User
@@ -113,9 +113,14 @@ def user_profile(request, user_id: int):
             games[score.leaderboard.game]["scores"] += [score]
             games[score.leaderboard.game]["overall"] += score.score
 
+    all_game_modes = GameMode.objects.all()
     player_elos = PlayerElo.objects.filter(player=user)
+    
+    elos_by_game = {}
+    for game_mode in all_game_modes:
+        elos_by_game[game_mode] = player_elos.filter(game_mode=game_mode).first()
 
-    context = {"games": games, "user": user, "elos": player_elos}
+    context = {"games": games, "user": user, "elos_by_game": elos_by_game}
     return render(request, "home/user_profile.html", context)
 
 
