@@ -32,12 +32,12 @@
                 </tr>
             </thead>
             <tbody>
-                {% for item in modes %}
+                {% for game_mode, player_elo in modes.items %}
                 <tr>
-                    <td>{{ item.mode.name }}</td>
-                    {% if item.elo %}
-                        <td>{{ item.elo.elo|floatformat:1 }}</td>
-                        <td>{{ item.elo.matches_won }}-{{ item.elo.matches_lost }}-{{ item.elo.matches_drawn }}</td>
+                    <td>{{ game_mode.name }}</td>
+                    {% if player_elo %}
+                        <td>{{ player_elo.elo|floatformat:1 }}</td>
+                        <td>{{ player_elo.matches_won }}-{{ player_elo.matches_lost }}-{{ player_elo.matches_drawn }}</td>
                     {% else %}
                         <td colspan="2">Not Played</td>
                     {% endif %}
