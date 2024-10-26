@@ -1,7 +1,7 @@
 from datetime import datetime
 from rest_framework.test import APITestCase
 from events.models import Event
-from datetime import datetime
+from django.utils import timezone
 from rest_framework import status
 
 from rest_framework.reverse import reverse as api_reverse
@@ -10,9 +10,9 @@ class EventAPITestCase(APITestCase):
     def setUp(self):
         event = Event.objects.create(
             name="Event_Name", 
-            start_time=datetime.now(), 
-            end_time=datetime.now()
-            )
+            start_time=timezone.now(),  # Use timezone-aware datetime
+            end_time=timezone.now()     # Use timezone-aware datetime
+        )
 
     def test_single_event(self):
         event_count = Event.objects.count()
