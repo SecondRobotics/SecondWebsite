@@ -219,7 +219,7 @@ def clean_code_check(score_obj: Score, settings_callback: Callable[[list[str], s
         clean_code_decryption(score_obj)
 
         # Clean code extraction
-        restart_option, game_options, robot_model, blue_score, red_score, game_index, auto_or_teleop = extract_clean_code_info(
+        restart_option, game_options, robot_model, blue_score, red_score, game_index, auto_or_teleop, timer_left = extract_clean_code_info(
             score_obj)
 
         # Check game settings
@@ -241,7 +241,7 @@ def clean_code_check(score_obj: Score, settings_callback: Callable[[list[str], s
             return res
 
         # Check if time data has been tampered with
-        search_for_violating_time_data(score_obj)
+        search_for_violating_time_data(score_obj, timer_left, game_index)
 
         # Search for code in database to ensure it is unique
         res = search_for_reused_code(score_obj)
@@ -316,7 +316,7 @@ def skystone_clean_code_check(score_obj: Score) -> Union[str, None]:
     return clean_code_check(score_obj, check_skystone_game_settings, check_subtraction_score)
 
 
-def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str]:
+def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str, str]:
     """ Extracts the relevant information from the clean code.
     :param score_obj: Score object to extract from
     :return: Tuple of the relevant information
@@ -343,7 +343,7 @@ def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str,
         time_data += decode_time_data(dataset[i].strip()) + "\n"
     score_obj.time_data = time_data[:-1]
 
-    return restart_option, game_options, robot_model, blue_score, red_score, game_index, auto_or_teleop
+    return restart_option, game_options, robot_model, blue_score, red_score, game_index, auto_or_teleop, timer_left
 
 
 def clean_code_decryption(score_obj: Score) -> None:
@@ -682,8 +682,8 @@ def search_for_reused_code(score_obj: Score) -> Union[str, None]:
     return None  # No error
 
 
-def search_for_violating_time_data(score_obj: Score) -> None:
-    res = check_time_data(score_obj)
+def search_for_violating_time_data(score_obj: Score, timer_left: str, game_index: str) -> None:
+    res = check_time_data(score_obj, timer_left, game_index)
     if res:
         # Uh oh, there are possible indicators of cheating in the time data.
         # Report this via email.
@@ -698,12 +698,18 @@ def search_for_violating_time_data(score_obj: Score) -> None:
             print(ex)
 
 
-def check_time_data(score_obj: Score) -> Union[str, None]:
+def check_time_data(score_obj: Score, timer_left: str, game_index: str) -> Union[str, None]:
     """ Checks the time data for indicators of cheating.
     :return: None if the time data is valid, or a response with an error message if it is not.
     """
     if not score_obj.time_data:
         return 'No time data was submitted.'
+
+    # timer_left is in x:xx.x format
+    seconds_left = int(timer_left.split(
+        ':')[0]) * 60 + float(timer_left.split(':')[1])
+    game_time_elapsed = get_game_length(game_index) - seconds_left
+    min_time_data = min(int(game_time_elapsed/10), 1)
 
     time_data = score_obj.time_data.split('\n')
 
@@ -713,17 +719,26 @@ def check_time_data(score_obj: Score) -> Union[str, None]:
 
         if len(step) < 7:
             return f'Invalid length of time data array at step {i+1} (should be 7).'
-        if float(step[0]) - last_time > 20:
-            return f'Too long of a gap between steps {i} and {i+1} (should be 10 seconds apart).'
-        if float(step[0]) - last_time < 5 and last_time != 0:
-            return f'Too short of a gap between steps {i} and {i+1} (should be 10 seconds apart).'
+        if float(step[0]) - last_time > 12:
+            return f'Too long of a gap between steps {i} and {i+1} (should be ~10 seconds apart).'
+        if float(step[0]) - last_time < 8 and last_time != 0:
+            return f'Too short of a gap between steps {i} and {i+1} (should be ~10 seconds apart).'
 
         last_time = float(step[0])
 
-    if len(time_data) < 6:
-        return 'Not enough time data was submitted (should be at least 6 steps).'
+    if len(time_data) < min_time_data:
+        return f'Not enough time data was submitted (should be at least {min_time_data} steps for {game_time_elapsed}s game).'
 
     return None  # No error
+
+
+def get_game_length(game_index: str):
+    """ Returns the length of the game in seconds."""
+    # VEX games (skills challenges) are 60 seconds long
+    if game_index in ["8", "14", "17"]:
+        return 60
+    # All other games are 2:30 (150 seconds) long
+    return 150
 
 
 game_slug_to_submit_func = {
