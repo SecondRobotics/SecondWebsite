@@ -102,6 +102,10 @@ def submit_rover_ruckus(score_obj: Score) -> Union[str, None]:
     return submit_score(score_obj, rover_ruckus_clean_code_check)
 
 
+def submit_skystone(score_obj: Score) -> Union[str, None]:
+    return submit_score(score_obj, skystone_clean_code_check)
+
+
 def decode_time_data(in_string: str) -> str:
     out_bytes = ""
 
@@ -306,6 +310,10 @@ def into_the_deep_clean_code_check(score_obj: Score) -> Union[str, None]:
 
 def rover_ruckus_clean_code_check(score_obj: Score) -> Union[str, None]:
     return clean_code_check(score_obj, check_rover_ruckus_game_settings, check_subtraction_score)
+
+
+def skystone_clean_code_check(score_obj: Score) -> Union[str, None]:
+    return clean_code_check(score_obj, check_skystone_game_settings, check_subtraction_score)
 
 
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str]:
@@ -546,6 +554,24 @@ def check_rover_ruckus_game_settings(game_options: list, restart_option: str, ga
     return None  # No error
 
 
+def check_skystone_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
+    """ Checks if the Skystone game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if (game_index != '3'):
+        return 'Wrong game! This form is for Skystone.'
+    if (game_options[0] != '1'):
+        return 'You must have depot pushback enabled for high score submissions.'
+    if (game_options[1] != '1' or game_options[5] != '5'):
+        return 'You must have crossing under enemy skybridge penalty enabled and set to 5 pts for high score submissions.'
+    if (game_options[4] != '1' or game_options[8] != '5'):
+        return 'You must have possession limit penalty enabled and set to 5 pts for high score submissions.'
+    if (game_options[9] != '500'):
+        return 'Possession grace period must be set to 500 ms for high score submissions.'
+
+    return None  # No error
+
+
 def check_robot_type(score_obj: Score, robot_model: str) -> Union[str, None]:
     """ Checks if the robot model is valid.
     :return: None if the robot model is valid, or a response with an error message if it is not.
@@ -715,6 +741,7 @@ game_slug_to_submit_func = {
     "ug": submit_ultimate_goal,
     "id": submit_into_the_deep,
     "ro": submit_rover_ruckus,
+    "ss": submit_skystone,
 }
 
 game_to_submit_func = {
@@ -732,4 +759,5 @@ game_to_submit_func = {
     "Ultimate Goal": submit_ultimate_goal,
     "INTO THE DEEP": submit_into_the_deep,
     "Rover Ruckus": submit_rover_ruckus,
+    "Skystone": submit_skystone,
 }
