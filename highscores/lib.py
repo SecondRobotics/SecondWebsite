@@ -1,7 +1,7 @@
 from django.http import HttpRequest
 from django.core.mail import send_mail
 
-from .models import Score, CleanCodeSubmission
+from .models import Score, CleanCodeSubmission, ExemptedIP
 from .forms import ScoreForm
 from SRCweb.settings import NEW_AES_KEY, DEBUG, ADMIN_EMAILS, EMAIL_HOST_USER
 
@@ -661,23 +661,28 @@ def search_for_reused_code(score_obj: Score) -> Union[str, None]:
 
         return 'That clean code has already been submitted by another player.'
 
-    # # same ip but different player
-    # ip_search = CleanCodeSubmission.objects.filter(
-    #     ip=score_obj.ip).exclude(player=score_obj.player)
+    # same ip but different player
+    ip_search = CleanCodeSubmission.objects.filter(
+        ip=score_obj.ip).exclude(player=score_obj.player)
 
-    # if ip_search.exists():
-    #     # Uh oh, there are multiple users submitting from the same IP.
-    #     # Report this via email.
+    if ip_search.exists():
+        # search if an exemption exists
+        exempted_ip_search = ExemptedIP.objects.filter(ip=score_obj.ip)
+        if exempted_ip_search.exists():
+            return None
 
-    #     message = f"{score_obj.player} ({score_obj.ip}) submitted a score (successfully): [{score_obj.score}] - {score_obj.leaderboard}\n\n This IP has also been used by {ip_search[0].player} ({ip_search[0].ip})\n\n {score_obj.source}\n\nhttps://secondrobotics.org/admin/highscores/score/"
-    #     try:
-    #         if (not DEBUG):
-    #             send_mail(f"Duplicate IP usage from {score_obj.player}",
-    #                       message, EMAIL_HOST_USER, ADMIN_EMAILS, fail_silently=False)
-    #     except Exception as ex:
-    #         print(ex)
+        # Uh oh, there are multiple users submitting from the same IP.
+        # Report this via email.
 
-    #     # Still allow the score to be submitted.
+        message = f"{score_obj.player} ({score_obj.ip}) submitted a score (successfully): [{score_obj.score}] - {score_obj.leaderboard}\n\n This IP has also been used by {ip_search[0].player} ({ip_search[0].ip})\n\n {score_obj.source}\n\nhttps://secondrobotics.org/admin/highscores/score/"
+        try:
+            if (not DEBUG):
+                send_mail(f"Duplicate IP usage from {score_obj.player}",
+                          message, EMAIL_HOST_USER, ADMIN_EMAILS, fail_silently=False)
+        except Exception as ex:
+            print(ex)
+
+        # Still allow the score to be submitted.
 
     return None  # No error
 

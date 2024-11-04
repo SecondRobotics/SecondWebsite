@@ -58,3 +58,10 @@ class CleanCodeSubmission(models.Model):
     def __str__(self):
         return self.clean_code
 
+
+class ExemptedIP(models.Model):
+    ip = models.CharField(max_length=20)
+    reason = models.CharField(max_length=200, null=True, blank=True)
+
+    def __str__(self):
+        return self.ip
