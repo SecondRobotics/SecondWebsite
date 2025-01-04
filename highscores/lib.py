@@ -106,6 +106,10 @@ def submit_skystone(score_obj: Score) -> Union[str, None]:
     return submit_score(score_obj, skystone_clean_code_check)
 
 
+def submit_reefscape(score_obj: Score) -> Union[str, None]:
+    return submit_score(score_obj, reefscape_clean_code_check)
+
+
 def decode_time_data(in_string: str) -> str:
     out_bytes = ""
 
@@ -314,6 +318,10 @@ def rover_ruckus_clean_code_check(score_obj: Score) -> Union[str, None]:
 
 def skystone_clean_code_check(score_obj: Score) -> Union[str, None]:
     return clean_code_check(score_obj, check_skystone_game_settings, check_subtraction_score)
+
+
+def reefscape_clean_code_check(score_obj: Score) -> Union[str, None]:
+    return clean_code_check(score_obj, check_reefscape_game_settings, check_subtraction_score)
 
 
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str, str]:
@@ -572,6 +580,16 @@ def check_skystone_game_settings(game_options: list, restart_option: str, game_i
     return None  # No error
 
 
+def check_reefscape_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
+    """ Checks if the Reefscape game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if (game_index != '19'):
+        return 'Wrong game! This form is for Reefscape.'
+
+    return None  # No error
+
+
 def check_robot_type(score_obj: Score, robot_model: str) -> Union[str, None]:
     """ Checks if the robot model is valid.
     :return: None if the robot model is valid, or a response with an error message if it is not.
@@ -762,6 +780,7 @@ game_slug_to_submit_func = {
     "id": submit_into_the_deep,
     "ro": submit_rover_ruckus,
     "ss": submit_skystone,
+    "rs": submit_reefscape,
 }
 
 game_to_submit_func = {
@@ -780,4 +799,5 @@ game_to_submit_func = {
     "INTO THE DEEP": submit_into_the_deep,
     "Rover Ruckus": submit_rover_ruckus,
     "Skystone": submit_skystone,
+    "Reefscape": submit_reefscape,
 }
