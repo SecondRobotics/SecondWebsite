@@ -440,6 +440,8 @@ def check_freight_frenzy_game_settings(game_options: list, restart_option: str, 
     """
     if (game_index != '9'):
         return 'Wrong game! This form is for Freight Frenzy.'
+    if (game_options[1] != '1'):
+        return 'You must enable anchor shipping hubs option for high score submissions.'
     if (game_options[3] != '1'):
         return 'You must enable possession limit for high score submissions.'
 
