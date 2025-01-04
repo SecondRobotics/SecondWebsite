@@ -801,5 +801,5 @@ game_to_submit_func = {
     "INTO THE DEEP": submit_into_the_deep,
     "Rover Ruckus": submit_rover_ruckus,
     "Skystone": submit_skystone,
-    "Reefscape": submit_reefscape,
+    "REEFSCAPE": submit_reefscape,
 }
