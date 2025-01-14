@@ -1,6 +1,6 @@
 from datetime import timedelta
 from django.utils import timezone
-from django.db.models import Count, Q, ExpressionWrapper, F, FloatField, Max, Min
+from django.db.models import Count, Q, ExpressionWrapper, F, FloatField, Max, Min, Case, When, Value
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import api_view
@@ -12,6 +12,7 @@ from ranked.api.serializers import EloHistorySerializer, GameModeSerializer, Mat
 from ranked.models import EloHistory, GameMode, Match, PlayerElo
 from ranked.templatetags.rank_filter import mmr_to_rank
 from .serializers import LeaderboardSerializer
+from django.db.models.functions import Exp
 
 @api_view(['GET'])
 def ranked_api(request: Request) -> Response:
@@ -41,7 +42,7 @@ def get_leaderboard(request: Request, game_mode_code: str) -> Response:
     except GameMode.DoesNotExist:
         return Response(status=404, data={'error': f'Game mode {game_mode_code} does not exist.'})
 
-    players = PlayerElo.objects.filter(game_mode=game_mode)
+    players = PlayerElo.objects.filter(game_mode=game_mode, matches_played__gt=20)
     players = players.annotate(
         time_delta=ExpressionWrapper(
             timezone.now() - F('last_match_played_time'),
@@ -50,13 +51,25 @@ def get_leaderboard(request: Request, game_mode_code: str) -> Response:
     )
 
     players = players.annotate(
-        mmr=ExpressionWrapper(
-            F('elo') * 2 / (
-                (1 + pow(math.e, 1/168 * pow(F('time_delta'), 0.63))) *
-                (1 + pow(math.e, -0.33 * F('matches_played')))
+        mmr = ExpressionWrapper(
+        Case(
+            # When time_delta > 168
+            When(
+                time_delta__gt=168,
+                then=ExpressionWrapper(
+                    150 * Exp(-0.00175 * (F('time_delta') - Value(168))) + F('elo') - 150,
+                    output_field=FloatField()
+                )
+            ),
+            # When time_delta <= 168
+            When(
+                time_delta__lte=168,
+                then=F('elo')
             ),
             output_field=FloatField()
-        )
+        ),
+        output_field=FloatField()
+    )
     )
 
     highest_mmr = players.aggregate(Max('mmr'))['mmr__max']
@@ -351,3 +364,195 @@ def edit_match_result(request: Request, game_mode_code: str) -> Response:
         'red_elo_changes': red_elo_changes,
         'blue_elo_changes': blue_elo_changes,
     })
+
+@api_view(['GET'])
+def get_valid_players(request: Request, game_mode_code: str) -> Response:
+    """
+    Gets a list of all valid players for a particular game mode.
+    """
+    try:
+        game_mode = GameMode.objects.get(short_code=game_mode_code)
+    except GameMode.DoesNotExist:
+        return Response(status=404, data={'error': f'Game mode {game_mode_code} does not exist.'})
+
+    valid_players = PlayerElo.objects.filter(game_mode=game_mode).select_related('player')
+    
+    players_data = [{
+        'id': player_elo.player.id,
+        'display_name': str(player_elo.player),
+        'username': player_elo.player.username,
+        'avatar': player_elo.player.avatar,
+        'elo': player_elo.elo
+    } for player_elo in valid_players]
+
+    return Response(players_data)
+
+@api_view(['GET'])
+def get_all_users(request: Request) -> Response:
+    """
+    Gets a list of all registered users.
+    """
+    users = User.objects.all()
+    users_data = [{
+        'id': user.id,
+        'display_name': str(user),
+        'username': user.username,
+        'avatar': user.avatar,
+    } for user in users]
+
+    return Response(users_data)
+
+@api_view(['POST'])
+def change_match_game_modes(request: Request) -> Response:
+    """
+    Changes the game mode of specified matches.
+    """
+    if request.META.get('HTTP_X_API_KEY') != API_KEY:
+        return Response(status=401, data={
+            'error': 'Invalid API key.'
+        })
+
+    if 'matches' not in request.data or not isinstance(request.data['matches'], list):
+        return Response(status=400, data={'error': 'Invalid request format. Expected a list of matches.'})
+
+    results = []
+    for match_data in request.data['matches']:
+        if 'new_game_mode' not in match_data or 'match_number' not in match_data:
+            results.append({'error': 'Invalid match data format. Expected new_game_mode and match_number.'})
+            continue
+
+        try:
+            match = Match.objects.get(match_number=match_data['match_number'])
+        except Match.DoesNotExist:
+            results.append({'error': f"Match {match_data['match_number']} does not exist."})
+            continue
+
+        try:
+            new_game_mode = GameMode.objects.get(short_code=match_data['new_game_mode'])
+        except GameMode.DoesNotExist:
+            results.append({'error': f"Game mode {match_data['new_game_mode']} does not exist."})
+            continue
+
+        # Define old_game_mode from the match instance
+        old_game_mode = match.game_mode
+
+        # Proceed with changing the game mode
+        match.game_mode = new_game_mode
+        match.time = timezone.now()
+        match.save()
+
+        red_players = match.red_alliance.all()
+        blue_players = match.blue_alliance.all()
+        red_player_elos = PlayerElo.objects.filter(player__in=red_players, game_mode=old_game_mode)
+        blue_player_elos = PlayerElo.objects.filter(player__in=blue_players, game_mode=old_game_mode)
+
+        red_elo_history = EloHistory.objects.filter(
+            match_number=match.match_number, player_elo__in=red_player_elos)
+        blue_elo_history = EloHistory.objects.filter(
+            match_number=match.match_number, player_elo__in=blue_player_elos)
+
+        revert_player_elos(match, red_elo_history, blue_elo_history)
+
+        red_player_elos = PlayerElo.objects.filter(player__in=red_players, game_mode=new_game_mode)
+        blue_player_elos = PlayerElo.objects.filter(player__in=blue_players, game_mode=new_game_mode)
+
+        red_elo_changes, blue_elo_changes = update_player_elos(
+            match, list(red_player_elos), list(blue_player_elos))
+
+        match_serializer = MatchSerializer(match)
+        red_player_elos_serializer = PlayerEloSerializer(red_player_elos, many=True)
+        blue_player_elos_serializer = PlayerEloSerializer(blue_player_elos, many=True)
+        red_display_names = [str(player) for player in red_players]
+        blue_display_names = [str(player) for player in blue_players]
+
+        results.append({
+            'match': match_serializer.data,
+            'red_player_elos': red_player_elos_serializer.data,
+            'blue_player_elos': blue_player_elos_serializer.data,
+            'red_display_names': red_display_names,
+            'blue_display_names': blue_display_names,
+            'red_elo_changes': red_elo_changes,
+            'blue_elo_changes': blue_elo_changes,
+            'old_game_mode': old_game_mode.short_code,
+            'new_game_mode': new_game_mode.short_code,
+            'status': 'success'
+        })
+
+    return Response(results)
+
+@api_view(['POST'])
+def clear_leaderboard(request: Request) -> Response:
+    """
+    Clears the leaderboard for a specific game mode.
+    """
+    if request.META.get('HTTP_X_API_KEY') != API_KEY:
+        return Response(status=401, data={'error': 'Invalid API key.'})
+
+    game_mode_code = request.data.get('game_mode')
+    if not game_mode_code:
+        return Response(status=400, data={'error': 'Game mode code is required.'})
+
+    try:
+        game_mode = GameMode.objects.get(short_code=game_mode_code)
+    except GameMode.DoesNotExist:
+        return Response(status=404, data={'error': f'Game mode {game_mode_code} does not exist.'})
+
+    PlayerElo.objects.filter(game_mode=game_mode).delete()
+    return Response(status=200, data={'message': 'Leaderboard cleared successfully.'})
+
+
+@api_view(['POST'])
+def recalculate_elo(request: Request) -> Response:
+    """
+    Recalculates the ELO for a specific game mode.
+    """
+    if request.META.get('HTTP_X_API_KEY') != API_KEY:
+        return Response(status=401, data={'error': 'Invalid API key.'})
+
+    game_mode_code = request.data.get('game_mode')
+    if not game_mode_code:
+        return Response(status=400, data={'error': 'Game mode code is required.'})
+
+    try:
+        game_mode = GameMode.objects.get(short_code=game_mode_code)
+    except GameMode.DoesNotExist:
+        return Response(status=404, data={'error': f'Game mode {game_mode_code} does not exist.'})
+
+    # Ensure all players have PlayerElo objects
+    matches = Match.objects.filter(game_mode=game_mode).order_by('time')
+    all_players = set()
+    for match in matches:
+        all_players.update(match.red_alliance.all())
+        all_players.update(match.blue_alliance.all())
+
+    for player in all_players:
+        PlayerElo.objects.get_or_create(
+            player=player,
+            game_mode=game_mode,
+            defaults={'elo': 1200}
+        )
+
+    # Reset ELO to a base value
+    players = PlayerElo.objects.filter(game_mode=game_mode)
+    for player in players:
+        player.elo = 1200  # Reset ELO to a base value
+        player.save()
+
+    for match in matches:
+        red_players = match.red_alliance.all()
+        blue_players = match.blue_alliance.all()
+        red_player_elos = PlayerElo.objects.filter(player__in=red_players, game_mode=game_mode)
+        blue_player_elos = PlayerElo.objects.filter(player__in=blue_players, game_mode=game_mode)
+
+        red_elo_changes, blue_elo_changes = update_player_elos(
+            match, list(red_player_elos), list(blue_player_elos))
+
+        for player_elo, elo_change in zip(red_player_elos, red_elo_changes):
+            player_elo.elo += elo_change
+            player_elo.save()
+
+        for player_elo, elo_change in zip(blue_player_elos, blue_elo_changes):
+            player_elo.elo += elo_change
+            player_elo.save()
+
+    return Response(status=200, data={'message': 'ELO recalculated successfully.'})

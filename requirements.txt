@@ -12,9 +12,12 @@ pycodestyle==2.8.0
 pycryptodome==3.19.1
 python-dotenv==0.20.0
 pytz==2022.1
-requests==2.31.0
+requests==2.32.2
 six==1.16.0
 sqlparse==0.5.0
 toml==0.10.2
-urllib3==1.26.18
+urllib3==1.26.19
 wheel==0.42.0
+pytest==8.3.3
+pytest-django==4.9.0
+pytest-cov==5.0.0

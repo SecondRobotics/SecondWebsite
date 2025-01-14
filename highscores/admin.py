@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CleanCodeSubmission, Leaderboard, Score
+from .models import CleanCodeSubmission, Leaderboard, Score, ExemptedIP
 
 # Register your models here.
 
@@ -20,3 +20,4 @@ admin.site.site_header = "Second Robotics Admin Panel"
 admin.site.register(Leaderboard, LeaderboardAdmin)
 admin.site.register(Score, ScoreAdmin)
 admin.site.register(CleanCodeSubmission)
+admin.site.register(ExemptedIP)

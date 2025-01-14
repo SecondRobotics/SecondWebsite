@@ -2,24 +2,22 @@
 
 {% block content %}
 <!-- Hero Section -->
-<div class="position-relative overflow-hidden text-center bg-primary py-5">
-    <div class="container">
-        <h1 class="display-4 fw-bold text-white">Ranked Leaderboards</h1>
-    </div>
+<div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-primary">
+    <h1 class="display-4 text-white">Ranked Leaderboards</h1>
 </div>
 
 <!-- Game Modes Section -->
 <div class="container my-5">
     <div class="row">
         {% for game, gamemodes in games.items %}
-        <div class="col-12 col-md-4 mb-4">
+        <div class="col-12 col-lg-4 mb-4">
             <div class="card bg-dark text-white shadow-lg h-100">
                 <div class="card-body text-center">
                     <h3 class="card-title">{{ game }}</h3>
                     <div class="mt-4">
                         {% for gamemode in gamemodes %}
                         <a href="/ranked/{{ gamemode.short_code }}/" class="btn btn-outline-light mb-2">
-                            {{ gamemode.name }}
+                            {{ gamemode.name|slice:"-3:" }}
                         </a>
                         {% endfor %}
                     </div>

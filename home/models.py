@@ -12,6 +12,9 @@ class Staff(models.Model):
     github_url = models.URLField(null=True, blank=True)
     email = models.EmailField()
 
+    class Meta:
+        app_label = 'home'
+
     def __str__(self):
         return self.name
 
@@ -22,6 +25,9 @@ class HistoricEvent(models.Model):
     youtube_url = models.URLField(null=True, blank=True)
     first_place = models.CharField(max_length=100)
     second_place = models.CharField(max_length=100, null=True, blank=True)
+
+    class Meta:
+        app_label = 'home'
 
     def __str__(self):
         return self.name

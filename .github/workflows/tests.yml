@@ -1,0 +1,31 @@
+name: Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: 🔨 Set up Python 3.9.20
+      uses: actions/setup-python@v2
+      with:
+          python-version: 3.9.20
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: ▶ Run Tests
+      run: |
+        pytest
+      env:
+        SECRET_KEY: ${{ secrets.BASE_KEY }}
+        SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+        SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        NEW_AES_KEY: ${{ secrets.NEW_AES_KEY }}
+        DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}

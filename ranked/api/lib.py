@@ -92,7 +92,21 @@ def get_match_player_info(red_alliance: List[User], blue_alliance: List[User], g
     return None, red_players, blue_players, red_player_elos, blue_player_elos
 
 
+
+
 def update_player_elos(match: Match, red_player_elos: List[PlayerElo], blue_player_elos: List[PlayerElo]):
+    """
+    Updates the ELO ratings for players in a match.
+
+    Args:
+        match (Match): The match instance.
+        red_player_elos (List[PlayerElo]): List of PlayerElo objects for the red alliance.
+        blue_player_elos (List[PlayerElo]): List of PlayerElo objects for the blue alliance.
+
+    Returns:
+        Tuple[List[float], List[float]]: ELO changes for red and blue alliances.
+    """
+
     red_elo = match.red_starting_elo
     blue_elo = match.blue_starting_elo
 
@@ -132,19 +146,18 @@ def update_player_elos(match: Match, red_player_elos: List[PlayerElo], blue_play
             player.matches_lost += 1
 
         # Increase the importance of the score difference
-        importance_factor = 1.5
+        importance_factor = 3
         adjusted_score_diff = importance_factor * relative_score_diff
 
         elo_change = ((
             K / (1 + 0) + 2 * math.log(adjusted_score_diff + 1, 8)) * (
             odds_diff)) * (((B - 1) / (A ** num_played)) + 1)
 
-
         elo_changes.append(elo_change)
         player.elo += elo_change
 
         player.matches_played += 1
-        player.last_match_played_time = timezone.now()
+        player.last_match_played_time = match.time  # Use match.time instead of timezone.now()
         player.last_match_played_number = match.match_number
 
         player.save()
