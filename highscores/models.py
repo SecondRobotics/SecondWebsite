@@ -27,9 +27,9 @@ class Score(models.Model):
     time_set = models.DateTimeField(auto_now_add=True)
     source = models.URLField(null=False, blank=False)
     approved = models.BooleanField(default=False, null=False)
-    clean_code = models.CharField(max_length=600, null=False, blank=False)
+    clean_code = models.CharField(max_length=4000, null=False, blank=False)
 
-    decrypted_code = models.CharField(max_length=600, null=True, blank=True)
+    decrypted_code = models.CharField(max_length=2000, null=True, blank=True)
     client_version = models.CharField(max_length=20, null=True, blank=True)
     time_of_score = models.CharField(max_length=30, null=True, blank=True)
     robot_position = models.CharField(max_length=20, null=True, blank=True)
