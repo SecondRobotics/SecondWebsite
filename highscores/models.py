@@ -34,7 +34,7 @@ class Score(models.Model):
     time_of_score = models.CharField(max_length=30, null=True, blank=True)
     robot_position = models.CharField(max_length=20, null=True, blank=True)
     time_data = models.TextField(null=True, blank=True)
-    ip = models.CharField(max_length=20, null=True, blank=True)
+    ip = models.CharField(max_length=45, null=True, blank=True)
 
     class Meta:
         indexes = [
@@ -53,14 +53,14 @@ class CleanCodeSubmission(models.Model):
     score = models.IntegerField()
     leaderboard = models.ForeignKey(Leaderboard, on_delete=models.CASCADE)
     time_set = models.DateTimeField(auto_now_add=True)
-    ip = models.CharField(max_length=20, null=True, blank=True)
+    ip = models.CharField(max_length=45, null=True, blank=True)
 
     def __str__(self):
         return self.clean_code
 
 
 class ExemptedIP(models.Model):
-    ip = models.CharField(max_length=20)
+    ip = models.CharField(max_length=45)
     reason = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
