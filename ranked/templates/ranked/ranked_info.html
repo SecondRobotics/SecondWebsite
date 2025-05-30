@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Ranked Statistics</h1>
+    
+    <!-- Time Period Selector -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Time Period</h5>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary" data-period="day">Past 24 Hours</button>
+                <button type="button" class="btn btn-outline-primary" data-period="week">Past Week</button>
+                <button type="button" class="btn btn-outline-primary" data-period="month">Past Month</button>
+                <button type="button" class="btn btn-outline-primary" data-period="all">All Time</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Mode Statistics -->
+    <div class="row">
+        {% for game_mode in game_modes %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ game_mode.name }}</h5>
+                    <div class="game-mode-stats" data-game-mode="{{ game_mode.short_code }}">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Matches:</span>
+                            <span class="match-count">Loading...</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Unique Players:</span>
+                            <span class="player-count">Loading...</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Average Score:</span>
+                            <span class="avg-score">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const timeButtons = document.querySelectorAll('[data-period]');
+    let currentPeriod = 'day';
+
+    function updateStats(period) {
+        fetch(`/ranked/api/stats/?period=${period}`)
+            .then(response => response.json())
+            .then(data => {
+                Object.entries(data).forEach(([gameMode, stats]) => {
+                    const container = document.querySelector(`[data-game-mode="${gameMode}"]`);
+                    if (container) {
+                        container.querySelector('.match-count').textContent = stats.matches;
+                        container.querySelector('.player-count').textContent = stats.unique_players;
+                        container.querySelector('.avg-score').textContent = stats.avg_score.toFixed(1);
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching stats:', error));
+    }
+
+    timeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            timeButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            currentPeriod = this.dataset.period;
+            updateStats(currentPeriod);
+        });
+    });
+
+    // Initialize with day stats
+    timeButtons[0].classList.add('active');
+    updateStats(currentPeriod);
+});
+</script>
+{% endblock %} 

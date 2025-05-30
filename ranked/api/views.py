@@ -1,6 +1,6 @@
 from datetime import timedelta
 from django.utils import timezone
-from django.db.models import Count, Q, ExpressionWrapper, F, FloatField, Max, Min, Case, When, Value
+from django.db.models import Count, Q, ExpressionWrapper, F, FloatField, Max, Min, Case, When, Value, Avg
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import api_view
@@ -13,6 +13,7 @@ from ranked.models import EloHistory, GameMode, Match, PlayerElo
 from ranked.templatetags.rank_filter import mmr_to_rank
 from .serializers import LeaderboardSerializer
 from django.db.models.functions import Exp
+from django.http import JsonResponse
 
 @api_view(['GET'])
 def ranked_api(request: Request) -> Response:
@@ -556,3 +557,50 @@ def recalculate_elo(request: Request) -> Response:
             player_elo.save()
 
     return Response(status=200, data={'message': 'ELO recalculated successfully.'})
+
+def get_stats(request):
+    period = request.GET.get('period', 'day')
+    
+    # Calculate the start time based on the period
+    now = timezone.now()
+    if period == 'day':
+        start_time = now - timedelta(days=1)
+    elif period == 'week':
+        start_time = now - timedelta(weeks=1)
+    elif period == 'month':
+        start_time = now - timedelta(days=30)
+    else:  # all time
+        start_time = None
+
+    # Get all game modes
+    game_modes = GameMode.objects.all()
+    stats = {}
+
+    for game_mode in game_modes:
+        # Base queryset for this game mode
+        matches = Match.objects.filter(game_mode=game_mode)
+        
+        # Apply time filter if not 'all'
+        if start_time:
+            matches = matches.filter(time__gte=start_time)
+
+        # Get match count
+        match_count = matches.count()
+
+        # Get unique players
+        red_players = User.objects.filter(red_alliance__in=matches).distinct()
+        blue_players = User.objects.filter(blue_alliance__in=matches).distinct()
+        unique_players = (red_players | blue_players).distinct().count()
+
+        # Calculate average score
+        avg_score = matches.aggregate(
+            avg_score=Avg('red_score') + Avg('blue_score')
+        )['avg_score'] or 0
+
+        stats[game_mode.short_code] = {
+            'matches': match_count,
+            'unique_players': unique_players,
+            'avg_score': avg_score
+        }
+
+    return JsonResponse(stats)

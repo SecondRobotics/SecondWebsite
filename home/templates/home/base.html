@@ -221,13 +221,32 @@
                             </ul>
                         </li>
 
-                        <li class="nav-item">
+                        <li class="nav-item dropdown">
                             <a
-                                class="nav-link"
-                                aria-current="page"
-                                href="/ranked"
-                                >Ranked</a
+                                class="nav-link dropdown-toggle"
+                                href="#"
+                                id="rankedDropdown"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
                             >
+                                Ranked
+                            </a>
+                            <ul
+                                class="dropdown-menu"
+                                aria-labelledby="rankedDropdown"
+                            >
+                                <li>
+                                    <a class="dropdown-item" href="/ranked"
+                                        >Leaderboards</a
+                                    >
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/ranked/info"
+                                        >Ranked Info</a
+                                    >
+                                </li>
+                            </ul>
                         </li>
                     </ul>
                     <!-- Nav Item - User Information -->

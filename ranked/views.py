@@ -133,3 +133,10 @@ def player_info(request, name, player_id):
 
 def mmr_calc(elo, matches_played, delta_hours):
     return elo * 2 / ((1 + pow(math.e, 1/168 * pow(delta_hours, 0.63))) * (1 + pow(math.e, -0.33 * matches_played)))
+
+
+def ranked_info(request):
+    game_modes = GameMode.objects.all()
+    return render(request, 'ranked/ranked_info.html', {
+        'game_modes': game_modes
+    })
