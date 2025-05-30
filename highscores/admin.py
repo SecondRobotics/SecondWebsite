@@ -7,7 +7,8 @@ from .models import CleanCodeSubmission, Leaderboard, Score
 class ScoreAdmin(admin.ModelAdmin):
     list_display = ('player', 'score', 'leaderboard', 'approved',)
     list_filter = ('approved', 'time_set', 'leaderboard')
-    search_fields = ('player',)
+    search_fields = ('player__username', 'leaderboard__name')
+    raw_id_fields = ('player', 'leaderboard')
 
 
 class LeaderboardAdmin(admin.ModelAdmin):
