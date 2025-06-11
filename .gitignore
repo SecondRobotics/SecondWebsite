@@ -137,3 +137,5 @@ migrations/
 .vscode/
 .DS_Store
 matches.csv
+CLAUDE.md
+.claude/settings.local.json
