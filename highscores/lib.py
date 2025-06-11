@@ -1,6 +1,7 @@
 from django.http import HttpRequest
 from django.core.mail import send_mail
 from django.utils import timezone
+import logging
 
 from .models import Score, CleanCodeSubmission, ExemptedIP
 from .forms import ScoreForm
@@ -29,7 +30,7 @@ WRONG_AUTO_OR_TELEOP_MESSAGE = 'Incorrect choice for control mode! Ensure you ar
 def send_world_record_webhook(new_score: Score, previous_record: Score = None) -> None:
     """Send Discord webhook notification for new world record"""
     if not DISCORD_WEBHOOK_URL:
-        print("Discord webhook URL not configured")
+        logging.error("Discord webhook URL not configured")
         return
         
     try:
@@ -126,7 +127,7 @@ def send_world_record_webhook(new_score: Score, previous_record: Score = None) -
 def test_world_record_webhook(player_name: str, score: int, game: str, robot: str, previous_player: str = "TestPlayer", previous_score: int = 95000, duration: str = "2 days, 3 hours") -> bool:
     """Test function for Discord webhook - returns True if successful"""
     if not DISCORD_WEBHOOK_URL:
-        print("Discord webhook URL not configured")
+        logging.error("Discord webhook URL not configured")
         return False
         
     try:
@@ -183,7 +184,7 @@ def test_world_record_webhook(player_name: str, score: int, game: str, robot: st
         return response.status == 204
         
     except Exception as e:
-        print(f"Failed to send test Discord webhook: {e}")
+        logging.error(f"Failed to send test Discord webhook: {e}")
         return False
 
 
@@ -338,9 +339,9 @@ def approve_score(score_obj: Score, prev_submissions):
             try:
                 send_world_record_webhook(score_obj, current_world_record)
             except Exception as e:
-                print(f"Failed to send world record webhook: {e}")
+                logging.error(f"Failed to send world record webhook: {e}")
         else:
-            print(f"DEBUG: World record detected for {score_obj.player.username} - {score_obj.score} on {score_obj.leaderboard.name} (webhook disabled in debug mode)")
+            logging.info(f"DEBUG: World record detected for {score_obj.player.username} - {score_obj.score} on {score_obj.leaderboard.name} (webhook disabled in debug mode)")
 
     code_obj = CleanCodeSubmission()
     code_obj.clean_code = score_obj.clean_code
