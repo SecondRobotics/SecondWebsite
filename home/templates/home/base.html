@@ -79,6 +79,19 @@
             p.center {
                 text-align: center;
             }
+            
+            /* Prevent horizontal overflow */
+            body {
+                overflow-x: hidden;
+            }
+            
+            .navbar-nav {
+                flex-wrap: nowrap;
+            }
+            
+            .navbar-collapse {
+                overflow-x: hidden;
+            }
         </style>
 
         <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
@@ -246,7 +259,7 @@
                     <!-- Nav Item - User Information -->
                     <ul
                         class="nav navbar-nav navbar-right"
-                        style="margin-right: 2%"
+                        style="margin-right: 2%; flex-wrap: nowrap;"
                     >
                         {% if request.user.is_authenticated %}
                         <li class="nav-item dropdown">

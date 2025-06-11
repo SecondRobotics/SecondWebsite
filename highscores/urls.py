@@ -11,4 +11,5 @@ urlpatterns = [
          views.leaderboard_robot, name="robot leaderboard"),
      path('world-records/', views.world_records, name='world-records'),
      path('overall/', views.overall_singleplayer_leaderboard, name='overall-singleplayer-leaderboard'),
+     path('webhook-test/', views.webhook_test, name='webhook-test'),
 ]
