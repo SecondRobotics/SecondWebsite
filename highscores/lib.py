@@ -117,10 +117,10 @@ def send_world_record_webhook(new_score: Score, previous_record: Score = None) -
         
         response = urlopen(req)
         if response.status != 204:
-            print(f"Discord webhook failed with status: {response.status}")
+            logging.error(f"Discord webhook failed with status: {response.status}")
             
     except Exception as e:
-        print(f"Failed to send Discord webhook: {e}")
+        logging.error(f"Failed to send Discord webhook: {e}")
 
 
 def test_world_record_webhook(player_name: str, score: int, game: str, robot: str, previous_player: str = "TestPlayer", previous_score: int = 95000, duration: str = "2 days, 3 hours") -> bool:
