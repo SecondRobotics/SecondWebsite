@@ -5,7 +5,7 @@ import logging
 
 from .models import Score, CleanCodeSubmission, ExemptedIP
 from .forms import ScoreForm
-from SRCweb.settings import NEW_AES_KEY, DEBUG, ADMIN_EMAILS, EMAIL_HOST_USER
+from SRCweb.settings import NEW_AES_KEY, DEBUG, ADMIN_EMAILS, EMAIL_HOST_USER, DISCORD_WEBHOOK_URL
 import os
 
 from typing import Callable, Union
@@ -14,8 +14,6 @@ from urllib.request import urlopen, Request
 import json
 
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
-
-DISCORD_WEBHOOK_URL = os.getenv("HIGHSCORES_WEBHOOK_URL")
 
 WRONG_ROBOT_MESSAGE = 'Double-check the robot type that you selected!'
 HIGHER_SCORE_MESSAGE = 'You already have a submission with an equal or higher score than this!'
