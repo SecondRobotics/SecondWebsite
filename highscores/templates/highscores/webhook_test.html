@@ -1,0 +1,113 @@
+{% extends 'home/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Discord Webhook Test</h1>
+    <p class="text-muted">Admin only - Test Discord world record notifications</p>
+    
+    {% if success_message %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ success_message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+    
+    {% if error_message %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ error_message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Send Test Webhook</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="player_name" class="form-label">Player Name</label>
+                            <input type="text" class="form-control" id="player_name" name="player_name" value="Test Player" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="score" class="form-label">Score</label>
+                            <input type="number" class="form-control" id="score" name="score" value="100000" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="game" class="form-label">Game</label>
+                            <select class="form-control" id="game" name="game">
+                                <option value="Test Game">Test Game</option>
+                                {% for game in games %}
+                                <option value="{{ game }}">{{ game }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="robot" class="form-label">Robot</label>
+                            <select class="form-control" id="robot" name="robot">
+                                <option value="Test Robot">Test Robot</option>
+                                {% for robot in robots %}
+                                <option value="{{ robot }}">{{ robot }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="previous_player" class="form-label">Previous Record Holder</label>
+                            <input type="text" class="form-control" id="previous_player" name="previous_player" value="PreviousPlayer" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="previous_score" class="form-label">Previous Record Score</label>
+                            <input type="number" class="form-control" id="previous_score" name="previous_score" value="95000" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="duration" class="form-label">Previous Record Duration</label>
+                            <input type="text" class="form-control" id="duration" name="duration" value="2 days, 3 hours" required>
+                            <small class="form-text text-muted">Example: "2 days, 3 hours" or "45 minutes"</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Send Test Webhook</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Information</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        This page allows administrators to test the Discord webhook system that sends notifications when world records are broken.
+                    </p>
+                    <p class="card-text">
+                        <strong>What gets sent:</strong>
+                    </p>
+                    <ul>
+                        <li>Player who got the record</li>
+                        <li>Score achieved</li>
+                        <li>Game name</li>
+                        <li>Robot type</li>
+                        <li>Duration the previous record stood</li>
+                        <li>Link to submission source</li>
+                    </ul>
+                    <p class="card-text text-muted">
+                        <small>Test messages will be clearly marked as tests in Discord.</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
