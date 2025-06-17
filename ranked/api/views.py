@@ -1,6 +1,6 @@
 from datetime import timedelta
 from django.utils import timezone
-from django.db.models import Count, Q, ExpressionWrapper, F, FloatField, Max, Min, Case, When, Value, Avg
+from django.db.models import Count, Q, ExpressionWrapper, F, FloatField, Max, Min, Case, When, Value
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import api_view
@@ -558,8 +558,9 @@ def recalculate_elo(request: Request) -> Response:
 
     return Response(status=200, data={'message': 'ELO recalculated successfully.'})
 
+@api_view(['GET'])
 def get_stats(request):
-    period = request.GET.get('period', 'day')
+    period = request.GET.get('period', 'month')
     
     # Calculate the start time based on the period
     now = timezone.now()
@@ -569,6 +570,8 @@ def get_stats(request):
         start_time = now - timedelta(weeks=1)
     elif period == 'month':
         start_time = now - timedelta(days=30)
+    elif period == 'year':
+        start_time = now - timedelta(days=365)
     else:  # all time
         start_time = None
 
@@ -588,19 +591,15 @@ def get_stats(request):
         match_count = matches.count()
 
         # Get unique players
-        red_players = User.objects.filter(red_alliance__in=matches).distinct()
-        blue_players = User.objects.filter(blue_alliance__in=matches).distinct()
-        unique_players = (red_players | blue_players).distinct().count()
-
-        # Calculate average score
-        avg_score = matches.aggregate(
-            avg_score=Avg('red_score') + Avg('blue_score')
-        )['avg_score'] or 0
+        all_players = set()
+        for match in matches:
+            all_players.update(match.red_alliance.all())
+            all_players.update(match.blue_alliance.all())
+        unique_players = len(all_players)
 
         stats[game_mode.short_code] = {
             'matches': match_count,
-            'unique_players': unique_players,
-            'avg_score': avg_score
+            'unique_players': unique_players
         }
 
-    return JsonResponse(stats)
+    return Response(stats)
