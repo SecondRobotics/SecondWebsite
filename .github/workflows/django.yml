@@ -34,6 +34,16 @@ jobs:
                   NEW_AES_KEY: ${{ secrets.NEW_AES_KEY }}
                   DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
 
+            - name: 📦 Collect Static Files
+              run: |
+                  python manage.py collectstatic --noinput
+              env:
+                  SECRET_KEY: ${{ secrets.BASE_KEY }}
+                  SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+                  SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+                  NEW_AES_KEY: ${{ secrets.NEW_AES_KEY }}
+                  DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
+
             - name: 🔃 Restart Server
               run: |
                   mkdir tmp
