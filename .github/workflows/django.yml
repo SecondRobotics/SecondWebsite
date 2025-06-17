@@ -14,10 +14,10 @@ jobs:
             - name: 🚚 Get latest code
               uses: actions/checkout@v2
 
-            - name: 🔨 Set up Python 3.9.20
+            - name: 🔨 Set up Python 3.12
               uses: actions/setup-python@v2
               with:
-                  python-version: 3.9.20
+                  python-version: 3.12
 
             - name: 🛠 Install Dependencies
               run: |
