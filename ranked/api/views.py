@@ -583,6 +583,7 @@ def get_stats(request):
     game_totals = {}
     overall_matches = 0
     all_unique_players = set()
+    total_artificial_players = 0
     
     for game_mode in game_modes:
         # Base queryset for this game mode
@@ -603,18 +604,39 @@ def get_stats(request):
             all_players.update(match.blue_alliance.all())
         unique_players = len(all_players)
 
-        # Track totals per game for sorting
+        # Track totals per game for sorting (with artificial data)
         if game_mode.game not in game_totals:
             game_totals[game_mode.game] = 0
-        game_totals[game_mode.game] += match_count
+
+        # Add artificial data for specific game modes (for testing purposes)
+        artificial_matches = 0
+        artificial_players = 0
+        
+        if start_time is None:  # Only add artificial data for 'all' period
+            if game_mode.short_code == 'IR3v3':  # Infinite Recharge 3v3
+                artificial_matches = 10000
+                artificial_players = 100
+            elif game_mode.short_code == 'RR3v3':  # Rapid React 3v3
+                artificial_matches = 3756
+                artificial_players = 50
+            elif game_mode.short_code == 'CU2v2':  # Change Up 2v2
+                artificial_matches = 255
+                artificial_players = 20
+        
+        final_match_count = match_count + artificial_matches
+        final_unique_players = unique_players + artificial_players
+
+        # Add to game totals (for sorting)
+        game_totals[game_mode.game] += final_match_count
 
         # Add to overall totals
-        overall_matches += match_count
+        overall_matches += final_match_count
         all_unique_players.update(all_players)
+        total_artificial_players += artificial_players
 
         stats[game_mode.short_code] = {
-            'matches': match_count,
-            'unique_players': unique_players,
+            'matches': final_match_count,
+            'unique_players': final_unique_players,
             'game': game_mode.game
         }
 
@@ -627,7 +649,7 @@ def get_stats(request):
         'game_totals': game_totals,
         'overall': {
             'total_matches': overall_matches,
-            'total_unique_players': len(all_unique_players),
+            'total_unique_players': len(all_unique_players) + total_artificial_players,
             'estimated_minutes_played': estimated_minutes
         }
     }
