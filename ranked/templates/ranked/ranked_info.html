@@ -2,40 +2,43 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4">Ranked Statistics</h1>
+<div class="container-fluid mt-2">
+    <h3 class="mb-3">Ranked Statistics</h3>
     
     <!-- Time Period Selector -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Time Period</h5>
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-outline-primary" data-period="day">Past 24 Hours</button>
-                <button type="button" class="btn btn-outline-primary" data-period="week">Past Week</button>
-                <button type="button" class="btn btn-outline-primary" data-period="month">Past Month</button>
-                <button type="button" class="btn btn-outline-primary" data-period="year">Past Year</button>
-                <button type="button" class="btn btn-outline-primary" data-period="all">All Time</button>
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <div class="btn-group btn-group-sm" role="group">
+                <button type="button" class="btn btn-outline-primary btn-sm" data-period="day">24h</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" data-period="week">Week</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" data-period="month">Month</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" data-period="year">Year</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" data-period="all">All</button>
             </div>
         </div>
     </div>
 
-    <!-- Game Mode Statistics -->
-    <div class="row">
-        {% for game_mode in game_modes %}
-        <div class="col-md-6 col-lg-4 mb-4">
+    <!-- Game Statistics -->
+    <div class="row g-1">
+        {% for game_name, game_modes in games_dict.items %}
+        <div class="col-md-4 col-lg-3 col-xl-2 mb-1">
             <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">{{ game_mode.name }}</h5>
-                    <div class="game-mode-stats" data-game-mode="{{ game_mode.short_code }}">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Total Matches:</span>
+                <div class="card-body p-1">
+                    <h6 class="card-title" style="font-size: 0.9rem; margin-bottom: 0.4rem;">{{ game_name }}</h6>
+                    {% for game_mode in game_modes %}
+                    <div class="game-mode-stats" data-game-mode="{{ game_mode.short_code }}" style="margin-bottom: 0.3rem;">
+                        <div class="fw-bold text-primary" style="font-size: 0.8rem; margin-bottom: 0.1rem;">{{ game_mode.players_per_alliance }}v{{ game_mode.players_per_alliance }}</div>
+                        <div class="d-flex justify-content-between" style="font-size: 0.8rem; line-height: 1.0; margin-bottom: 0.05rem;">
+                            <span>Matches:</span>
                             <span class="match-count">Loading...</span>
                         </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Unique Players:</span>
+                        <div class="d-flex justify-content-between" style="font-size: 0.8rem; line-height: 1.0;">
+                            <span>Players:</span>
                             <span class="player-count">Loading...</span>
                         </div>
                     </div>
+                    {% if not forloop.last %}<hr style="margin: 0.15rem 0; opacity: 0.3;">{% endif %}
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -52,6 +55,12 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentPeriod = 'month';
 
     function updateStats(period) {
+        // Set all values to "Loading..." immediately
+        document.querySelectorAll('.match-count, .player-count').forEach(el => {
+            el.textContent = 'Loading...';
+            el.className = el.className.replace(/text-(success|warning|danger)/g, '');
+        });
+
         fetch(`/api/ranked/stats/?period=${period}`)
             .then(response => {
                 if (!response.ok) {
@@ -60,19 +69,83 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             })
             .then(data => {
-                Object.entries(data).forEach(([gameMode, stats]) => {
+                const stats = data.stats;
+                const gameTotals = data.game_totals;
+                
+                // Calculate max values for color coding
+                const allMatches = Object.values(stats).map(s => s.matches);
+                const allPlayers = Object.values(stats).map(s => s.unique_players);
+                const maxMatches = Math.max(...allMatches.filter(v => v > 0));
+                const maxPlayers = Math.max(...allPlayers.filter(v => v > 0));
+
+                // Update stats
+                Object.entries(stats).forEach(([gameMode, gameStats]) => {
                     const container = document.querySelector(`[data-game-mode="${gameMode}"]`);
                     if (container) {
-                        container.querySelector('.match-count').textContent = stats.matches;
-                        container.querySelector('.player-count').textContent = stats.unique_players;
+                        const matchEl = container.querySelector('.match-count');
+                        const playerEl = container.querySelector('.player-count');
+                        
+                        // Update text
+                        matchEl.textContent = gameStats.matches;
+                        playerEl.textContent = gameStats.unique_players;
+                        
+                        // Add color coding based on relative values
+                        applyColorCoding(matchEl, gameStats.matches, maxMatches);
+                        applyColorCoding(playerEl, gameStats.unique_players, maxPlayers);
                     }
                 });
+
+                // Re-sort cards by popularity
+                sortCardsByPopularity(gameTotals);
             })
             .catch(error => {
                 document.querySelectorAll('.match-count, .player-count').forEach(el => {
                     el.textContent = 'Error';
+                    el.className = el.className.replace(/text-(success|warning|danger)/g, '') + ' text-danger';
                 });
             });
+    }
+
+    function applyColorCoding(element, value, maxValue) {
+        // Remove existing color classes
+        element.className = element.className.replace(/text-(success|warning|danger)/g, '');
+        
+        if (value === 0) {
+            // No color for zero values
+            return;
+        }
+        
+        const percentage = value / maxValue;
+        if (percentage >= 0.7) {
+            element.classList.add('text-success'); // Green for high values
+        } else if (percentage >= 0.3) {
+            element.classList.add('text-warning'); // Yellow for medium values  
+        } else {
+            element.classList.add('text-danger'); // Red for low values
+        }
+    }
+
+    function sortCardsByPopularity(gameTotals) {
+        const container = document.querySelector('.row.g-1');
+        if (!container) return;
+
+        // Get all game cards
+        const cards = Array.from(container.children);
+        
+        // Sort cards by their game popularity
+        cards.sort((a, b) => {
+            const gameNameA = a.querySelector('.card-title').textContent.trim();
+            const gameNameB = b.querySelector('.card-title').textContent.trim();
+            
+            const totalA = gameTotals[gameNameA] || 0;
+            const totalB = gameTotals[gameNameB] || 0;
+            
+            // Sort descending (most popular first)
+            return totalB - totalA;
+        });
+
+        // Reorder the cards in the DOM
+        cards.forEach(card => container.appendChild(card));
     }
 
     timeButtons.forEach(button => {

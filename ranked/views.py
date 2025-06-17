@@ -136,7 +136,35 @@ def mmr_calc(elo, matches_played, delta_hours):
 
 
 def ranked_info(request):
-    game_modes = GameMode.objects.all()
+    from datetime import timedelta
+    from django.db.models import Count
+    
+    # Get game modes with recent match counts for sorting
+    game_modes = GameMode.objects.annotate(
+        recent_match_count=Count(
+            'match',
+            filter=Q(match__time__gte=timezone.now() - timedelta(days=30))
+        )
+    ).order_by('-recent_match_count', 'game', 'players_per_alliance')
+    
+    # Group game modes by game name
+    games_dict = {}
+    for game_mode in game_modes:
+        if game_mode.game not in games_dict:
+            games_dict[game_mode.game] = []
+        games_dict[game_mode.game].append(game_mode)
+    
+    # Sort games by total popularity (sum of all variants)
+    game_popularity = {}
+    for game_name, modes in games_dict.items():
+        total_matches = sum(mode.recent_match_count for mode in modes)
+        game_popularity[game_name] = total_matches
+    
+    # Sort games dict by popularity
+    sorted_games = dict(sorted(games_dict.items(), 
+                              key=lambda x: game_popularity[x[0]], 
+                              reverse=True))
+    
     return render(request, 'ranked/ranked_info.html', {
-        'game_modes': game_modes
+        'games_dict': sorted_games
     })

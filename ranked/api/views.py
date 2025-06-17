@@ -579,6 +579,9 @@ def get_stats(request):
     game_modes = GameMode.objects.all()
     stats = {}
 
+    # Track game totals for sorting
+    game_totals = {}
+    
     for game_mode in game_modes:
         # Base queryset for this game mode
         matches = Match.objects.filter(game_mode=game_mode)
@@ -590,16 +593,29 @@ def get_stats(request):
         # Get match count
         match_count = matches.count()
 
-        # Get unique players
+        # Get unique players with prefetch to reduce queries
         all_players = set()
-        for match in matches:
+        matches_with_players = matches.prefetch_related('red_alliance', 'blue_alliance')
+        for match in matches_with_players:
             all_players.update(match.red_alliance.all())
             all_players.update(match.blue_alliance.all())
         unique_players = len(all_players)
 
+        # Track totals per game for sorting
+        if game_mode.game not in game_totals:
+            game_totals[game_mode.game] = 0
+        game_totals[game_mode.game] += match_count
+
         stats[game_mode.short_code] = {
             'matches': match_count,
-            'unique_players': unique_players
+            'unique_players': unique_players,
+            'game': game_mode.game
         }
 
-    return Response(stats)
+    # Add game totals to response for sorting
+    response_data = {
+        'stats': stats,
+        'game_totals': game_totals
+    }
+
+    return Response(response_data)
