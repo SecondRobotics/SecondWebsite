@@ -579,8 +579,10 @@ def get_stats(request):
     game_modes = GameMode.objects.all()
     stats = {}
 
-    # Track game totals for sorting
+    # Track game totals for sorting and overall totals
     game_totals = {}
+    overall_matches = 0
+    all_unique_players = set()
     
     for game_mode in game_modes:
         # Base queryset for this game mode
@@ -606,16 +608,28 @@ def get_stats(request):
             game_totals[game_mode.game] = 0
         game_totals[game_mode.game] += match_count
 
+        # Add to overall totals
+        overall_matches += match_count
+        all_unique_players.update(all_players)
+
         stats[game_mode.short_code] = {
             'matches': match_count,
             'unique_players': unique_players,
             'game': game_mode.game
         }
 
-    # Add game totals to response for sorting
+    # Calculate estimated time played (4 minutes per match)
+    estimated_minutes = overall_matches * 4
+    
+    # Add game totals and overall totals to response
     response_data = {
         'stats': stats,
-        'game_totals': game_totals
+        'game_totals': game_totals,
+        'overall': {
+            'total_matches': overall_matches,
+            'total_unique_players': len(all_unique_players),
+            'estimated_minutes_played': estimated_minutes
+        }
     }
 
     return Response(response_data)

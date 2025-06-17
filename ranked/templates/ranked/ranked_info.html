@@ -2,8 +2,51 @@
 {% load static %}
 
 {% block content %}
+<style>
+.loading-pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+</style>
+
 <div class="container-fluid mt-2">
     <h3 class="mb-3">Ranked Statistics</h3>
+    
+    <!-- Hero Section -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body py-3">
+                    <div class="row text-center">
+                        <div class="col-md-4" style="border-right: 1px solid rgba(255,255,255,0.2);">
+                            <h2 class="mb-1 loading-pulse" id="hero-total-matches">Loading...</h2>
+                            <p class="mb-0" style="font-size: 0.9rem;">Total Matches</p>
+                        </div>
+                        <div class="col-md-4" style="border-right: 1px solid rgba(255,255,255,0.2);">
+                            <h2 class="mb-1 loading-pulse" id="hero-total-players">Loading...</h2>
+                            <p class="mb-0" style="font-size: 0.9rem;">Unique Players</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h2 class="mb-1 loading-pulse" id="hero-time-played">Loading...</h2>
+                            <p class="mb-0" style="font-size: 0.9rem;">Time Played</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <!-- Time Period Selector -->
     <div class="card mb-3">
@@ -30,11 +73,11 @@
                         <div class="fw-bold text-primary" style="font-size: 0.8rem; margin-bottom: 0.1rem;">{{ game_mode.players_per_alliance }}v{{ game_mode.players_per_alliance }}</div>
                         <div class="d-flex justify-content-between" style="font-size: 0.8rem; line-height: 1.0; margin-bottom: 0.05rem;">
                             <span>Matches:</span>
-                            <span class="match-count">Loading...</span>
+                            <span class="match-count loading-pulse">Loading...</span>
                         </div>
                         <div class="d-flex justify-content-between" style="font-size: 0.8rem; line-height: 1.0;">
                             <span>Players:</span>
-                            <span class="player-count">Loading...</span>
+                            <span class="player-count loading-pulse">Loading...</span>
                         </div>
                     </div>
                     {% if not forloop.last %}<hr style="margin: 0.15rem 0; opacity: 0.3;">{% endif %}
@@ -55,11 +98,23 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentPeriod = 'month';
 
     function updateStats(period) {
-        // Set all values to "Loading..." immediately
+        // Set all values to "Loading..." with animation
         document.querySelectorAll('.match-count, .player-count').forEach(el => {
             el.textContent = 'Loading...';
             el.className = el.className.replace(/text-(success|warning|danger)/g, '');
+            el.classList.add('loading-pulse');
         });
+        
+        // Add loading animation to hero section
+        const heroMatches = document.getElementById('hero-total-matches');
+        const heroPlayers = document.getElementById('hero-total-players');
+        const heroTime = document.getElementById('hero-time-played');
+        heroMatches.textContent = 'Loading...';
+        heroPlayers.textContent = 'Loading...';
+        heroTime.textContent = 'Loading...';
+        heroMatches.classList.add('loading-pulse');
+        heroPlayers.classList.add('loading-pulse');
+        heroTime.classList.add('loading-pulse');
 
         fetch(`/api/ranked/stats/?period=${period}`)
             .then(response => {
@@ -71,6 +126,18 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 const stats = data.stats;
                 const gameTotals = data.game_totals;
+                const overall = data.overall;
+                
+                // Update hero section and remove loading animations
+                const heroMatches = document.getElementById('hero-total-matches');
+                const heroPlayers = document.getElementById('hero-total-players');
+                const heroTime = document.getElementById('hero-time-played');
+                heroMatches.textContent = overall.total_matches.toLocaleString();
+                heroPlayers.textContent = overall.total_unique_players.toLocaleString();
+                heroTime.textContent = formatTimeCompact(overall.estimated_minutes_played);
+                heroMatches.classList.remove('loading-pulse');
+                heroPlayers.classList.remove('loading-pulse');
+                heroTime.classList.remove('loading-pulse');
                 
                 // Calculate max values for color coding
                 const allMatches = Object.values(stats).map(s => s.matches);
@@ -78,16 +145,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 const maxMatches = Math.max(...allMatches.filter(v => v > 0));
                 const maxPlayers = Math.max(...allPlayers.filter(v => v > 0));
 
-                // Update stats
+                // Update stats and remove loading animations
                 Object.entries(stats).forEach(([gameMode, gameStats]) => {
                     const container = document.querySelector(`[data-game-mode="${gameMode}"]`);
                     if (container) {
                         const matchEl = container.querySelector('.match-count');
                         const playerEl = container.querySelector('.player-count');
                         
-                        // Update text
+                        // Update text and remove loading animation
                         matchEl.textContent = gameStats.matches;
                         playerEl.textContent = gameStats.unique_players;
+                        matchEl.classList.remove('loading-pulse');
+                        playerEl.classList.remove('loading-pulse');
                         
                         // Add color coding based on relative values
                         applyColorCoding(matchEl, gameStats.matches, maxMatches);
@@ -102,8 +171,69 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.querySelectorAll('.match-count, .player-count').forEach(el => {
                     el.textContent = 'Error';
                     el.className = el.className.replace(/text-(success|warning|danger)/g, '') + ' text-danger';
+                    el.classList.remove('loading-pulse');
                 });
+                
+                const heroMatches = document.getElementById('hero-total-matches');
+                const heroPlayers = document.getElementById('hero-total-players');
+                const heroTime = document.getElementById('hero-time-played');
+                heroMatches.textContent = 'Error';
+                heroPlayers.textContent = 'Error';
+                heroTime.textContent = 'Error';
+                heroMatches.classList.remove('loading-pulse');
+                heroPlayers.classList.remove('loading-pulse');
+                heroTime.classList.remove('loading-pulse');
             });
+    }
+
+    function formatTimeCompact(minutes) {
+        if (minutes < 60) {
+            return '~' + Math.round(minutes) + 'm';
+        }
+        
+        const totalHours = minutes / 60;
+        if (totalHours < 24) {
+            const hours = Math.floor(totalHours);
+            const remainingMinutes = Math.round((totalHours - hours) * 60);
+            if (remainingMinutes > 0 && hours > 0) {
+                return `~${hours}h, ${remainingMinutes}m`;
+            }
+            return '~' + Math.round(totalHours) + 'h';
+        }
+        
+        const totalDays = totalHours / 24;
+        if (totalDays < 30) {
+            const days = Math.floor(totalDays);
+            const remainingHours = Math.floor((totalDays - days) * 24);
+            const finalMinutes = Math.round(((totalDays - days) * 24 - remainingHours) * 60);
+            
+            let result = `~${days}d`;
+            if (remainingHours > 0) result += `, ${remainingHours}h`;
+            if (finalMinutes > 0 && remainingHours < 12) result += `, ${finalMinutes}m`;
+            return result;
+        }
+        
+        const totalMonths = totalDays / 30;
+        if (totalMonths < 12) {
+            const months = Math.floor(totalMonths);
+            const remainingDays = Math.floor((totalMonths - months) * 30);
+            const finalHours = Math.round(((totalMonths - months) * 30 - remainingDays) * 24);
+            
+            let result = `~${months}mo`;
+            if (remainingDays > 0) result += `, ${remainingDays}d`;
+            if (finalHours > 0 && remainingDays < 15) result += `, ${finalHours}h`;
+            return result;
+        }
+        
+        const totalYears = totalMonths / 12;
+        const years = Math.floor(totalYears);
+        const remainingMonths = Math.floor((totalYears - years) * 12);
+        const finalDays = Math.round(((totalYears - years) * 12 - remainingMonths) * 30);
+        
+        let result = `~${years}y`;
+        if (remainingMonths > 0) result += `, ${remainingMonths}mo`;
+        if (finalDays > 0 && remainingMonths < 6) result += `, ${finalDays}d`;
+        return result;
     }
 
     function applyColorCoding(element, value, maxValue) {
