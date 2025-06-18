@@ -103,94 +103,139 @@
         <div class="row">
             <div class="col-12">
                 <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-dark border-0 py-4" data-toggle="collapse" data-target="#rankedStatsCollapse" aria-expanded="true" aria-controls="rankedStatsCollapse" style="cursor: pointer;">
+                    <div class="card-header bg-darker border-0 py-4 collapsible-header" data-bs-toggle="collapse" data-bs-target="#rankedStatsCollapse" aria-expanded="false" aria-controls="rankedStatsCollapse">
                         <div class="d-flex justify-content-between align-items-center">
                             <h4 class="mb-0 font-weight-bold text-white">
                                 <i class="fas fa-medal text-primary mr-2"></i>Ranked Statistics
                             </h4>
-                            <i class="fas fa-chevron-down text-white"></i>
+                            <i class="fas fa-chevron-right text-white chevron-indicator"></i>
                         </div>
                     </div>
-                    <div class="collapse show" id="rankedStatsCollapse">
+                    <div class="collapse" id="rankedStatsCollapse">
                         <div class="card-body p-0">
-                        {% for game_mode, elo in elos_by_game.items %}
+                        {% regroup elos_by_game.items by 0.game as ranked_games %}
+                        {% for game_group in ranked_games %}
                         <div class="border-bottom">
-                            <div class="p-4">
-                                <div class="d-flex justify-content-between align-items-center mb-4">
-                                    <h5 class="font-weight-bold text-gray-800 mb-0">{{ game_mode.game }} - {{ game_mode.name }}</h5>
-                                    {% if elo %}
-                                        <span class="badge badge-lg px-3 py-2 
-                                            {% if elo.elo >= 1600 %}badge-danger
-                                            {% elif elo.elo >= 1400 %}badge-warning  
-                                            {% elif elo.elo >= 1200 %}badge-info
-                                            {% else %}badge-secondary{% endif %}">
-                                            {{ elo.elo|floatformat:0 }} ELO
-                                        </span>
-                                    {% endif %}
+                            <div class="p-0">
+                                <div class="game-header bg-darker-secondary border-0 py-3 px-4 collapsible-header" data-bs-toggle="collapse" data-bs-target="#ranked-game-{{ forloop.counter }}" aria-expanded="false" aria-controls="ranked-game-{{ forloop.counter }}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="font-weight-bold text-white mb-0">{{ game_group.grouper }}</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="badge-container">
+                                                <span class="badge-stat badge-stat-primary">
+                                                    <i class="fas fa-gamepad"></i>{{ game_group.list|length }} Mode{% if game_group.list|length != 1 %}s{% endif %}
+                                                </span>
+                                            </div>
+                                            {% for game_name, stats in ranked_games_stats.items %}
+                                                {% if game_name == game_group.grouper %}
+                                                    <div class="badge-container">
+                                                        <span class="badge-stat badge-stat-info">
+                                                            <i class="fas fa-chart-bar"></i>{{ stats.modes_with_elo }}/{{ stats.total_modes }} Played
+                                                        </span>
+                                                    </div>
+                                                    {% if stats.modes_with_elo > 0 %}
+                                                        <div class="progress-container ml-2" style="width: 100px;">
+                                                            <small class="text-muted d-block text-center mb-1">{{ stats.completion_percent }}% Complete</small>
+                                                            <div class="progress" style="height: 6px;">
+                                                                <div class="progress-bar 
+                                                                    {% if stats.completion_percent == 100 %}bg-success
+                                                                    {% elif stats.completion_percent >= 75 %}bg-info
+                                                                    {% elif stats.completion_percent >= 50 %}bg-warning
+                                                                    {% else %}bg-danger{% endif %}" 
+                                                                    style="width: {{ stats.completion_percent }}%"></div>
+                                                            </div>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% endfor %}
+                                            <i class="fas fa-chevron-right text-white chevron-indicator ml-3"></i>
+                                        </div>
+                                    </div>
                                 </div>
                                 
-                                {% if elo %}
-                                <div class="row text-center">
-                                    <div class="col-md-2 col-6 mb-3">
-                                        <div class="border rounded p-3 h-100">
-                                            <div class="text-success font-weight-bold h4 mb-1">{{ elo.matches_won }}</div>
-                                            <small class="text-muted">Wins</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2 col-6 mb-3">
-                                        <div class="border rounded p-3 h-100">
-                                            <div class="text-danger font-weight-bold h4 mb-1">{{ elo.matches_lost }}</div>
-                                            <small class="text-muted">Losses</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2 col-6 mb-3">
-                                        <div class="border rounded p-3 h-100">
-                                            <div class="text-warning font-weight-bold h4 mb-1">{{ elo.matches_drawn }}</div>
-                                            <small class="text-muted">Draws</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2 col-6 mb-3">
-                                        <div class="border rounded p-3 h-100">
-                                            {% with total_matches=elo.matches_won|add:elo.matches_lost|add:elo.matches_drawn %}
-                                                <div class="font-weight-bold h4 mb-1">{{ total_matches }}</div>
-                                                <small class="text-muted">Total</small>
-                                            {% endwith %}
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4 col-12 mb-3">
-                                        <div class="border rounded p-3 h-100">
-                                            {% with total_matches=elo.matches_won|add:elo.matches_lost|add:elo.matches_drawn %}
-                                                {% if total_matches > 0 %}
-                                                    {% widthratio elo.matches_won total_matches 100 as win_rate %}
-                                                    <div class="font-weight-bold h4 mb-1
-                                                        {% if win_rate >= 70 %}text-success
-                                                        {% elif win_rate >= 50 %}text-warning
-                                                        {% else %}text-danger{% endif %}">
-                                                        {{ win_rate }}%
-                                                    </div>
-                                                    <small class="text-muted">Win Rate</small>
-                                                    <div class="progress mt-2" style="height: 6px;">
-                                                        <div class="progress-bar 
-                                                            {% if win_rate >= 70 %}bg-success
-                                                            {% elif win_rate >= 50 %}bg-warning
-                                                            {% else %}bg-danger{% endif %}" 
-                                                            style="width: {{ win_rate }}%"></div>
-                                                    </div>
-                                                {% else %}
-                                                    <div class="font-weight-bold h4 mb-1 text-muted">N/A</div>
-                                                    <small class="text-muted">Win Rate</small>
+                                <div class="collapse" id="ranked-game-{{ forloop.counter }}">
+                                    <div class="bg-darker p-4">
+                                        {% for game_mode, elo in game_group.list %}
+                                        <div class="mb-4 {% if not forloop.last %}border-bottom pb-4{% endif %}">
+                                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                                <h6 class="font-weight-bold text-white mb-0">{{ game_mode.name }}</h6>
+                                                {% if elo %}
+                                                    <span class="badge badge-lg px-3 py-2 
+                                                        {% if elo.elo >= 1600 %}badge-danger
+                                                        {% elif elo.elo >= 1400 %}badge-warning  
+                                                        {% elif elo.elo >= 1200 %}badge-info
+                                                        {% else %}badge-secondary{% endif %}">
+                                                        {{ elo.elo|floatformat:0 }} ELO
+                                                    </span>
                                                 {% endif %}
-                                            {% endwith %}
+                                            </div>
+                                            
+                                            {% if elo %}
+                                            <div class="row text-center">
+                                                <div class="col-md-2 col-6 mb-3">
+                                                    <div class="border border-dark rounded p-3 h-100 bg-darker">
+                                                        <div class="text-success font-weight-bold h4 mb-1">{{ elo.matches_won }}</div>
+                                                        <small class="text-muted">Wins</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-2 col-6 mb-3">
+                                                    <div class="border border-dark rounded p-3 h-100 bg-darker">
+                                                        <div class="text-danger font-weight-bold h4 mb-1">{{ elo.matches_lost }}</div>
+                                                        <small class="text-muted">Losses</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-2 col-6 mb-3">
+                                                    <div class="border border-dark rounded p-3 h-100 bg-darker">
+                                                        <div class="text-warning font-weight-bold h4 mb-1">{{ elo.matches_drawn }}</div>
+                                                        <small class="text-muted">Draws</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-2 col-6 mb-3">
+                                                    <div class="border border-dark rounded p-3 h-100 bg-darker">
+                                                        {% with total_matches=elo.matches_won|add:elo.matches_lost|add:elo.matches_drawn %}
+                                                            <div class="font-weight-bold h4 mb-1 text-white">{{ total_matches }}</div>
+                                                            <small class="text-muted">Total</small>
+                                                        {% endwith %}
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 col-12 mb-3">
+                                                    <div class="border border-dark rounded p-3 h-100 bg-darker">
+                                                        {% with total_matches=elo.matches_won|add:elo.matches_lost|add:elo.matches_drawn %}
+                                                            {% if total_matches > 0 %}
+                                                                {% widthratio elo.matches_won total_matches 100 as win_rate %}
+                                                                <div class="font-weight-bold h4 mb-1
+                                                                    {% if win_rate >= 70 %}text-success
+                                                                    {% elif win_rate >= 50 %}text-warning
+                                                                    {% else %}text-danger{% endif %}">
+                                                                    {{ win_rate }}%
+                                                                </div>
+                                                                <small class="text-muted">Win Rate</small>
+                                                                <div class="progress mt-2" style="height: 6px;">
+                                                                    <div class="progress-bar 
+                                                                        {% if win_rate >= 70 %}bg-success
+                                                                        {% elif win_rate >= 50 %}bg-warning
+                                                                        {% else %}bg-danger{% endif %}" 
+                                                                        style="width: {{ win_rate }}%"></div>
+                                                                </div>
+                                                            {% else %}
+                                                                <div class="font-weight-bold h4 mb-1 text-muted">N/A</div>
+                                                                <small class="text-muted">Win Rate</small>
+                                                            {% endif %}
+                                                        {% endwith %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% else %}
+                                            <div class="text-center py-4">
+                                                <div class="text-muted">
+                                                    <i class="fas fa-info-circle mr-2"></i>No matches played in this mode yet
+                                                </div>
+                                            </div>
+                                            {% endif %}
                                         </div>
+                                        {% endfor %}
                                     </div>
                                 </div>
-                                {% else %}
-                                <div class="text-center py-4">
-                                    <div class="text-muted">
-                                        <i class="fas fa-info-circle mr-2"></i>No matches played in this mode yet
-                                    </div>
-                                </div>
-                                {% endif %}
                             </div>
                         </div>
                         {% endfor %}
@@ -206,91 +251,123 @@
         <div class="row">
             <div class="col-12">
                 <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-dark border-0 py-4" data-toggle="collapse" data-target="#highscoreCollapse" aria-expanded="true" aria-controls="highscoreCollapse" style="cursor: pointer;">
+                    <div class="card-header bg-darker border-0 py-4 collapsible-header" data-bs-toggle="collapse" data-bs-target="#highscoreCollapse" aria-expanded="false" aria-controls="highscoreCollapse">
                         <div class="d-flex justify-content-between align-items-center">
                             <h4 class="mb-0 font-weight-bold text-white">
                                 <i class="fas fa-trophy text-primary mr-2"></i>Highscore Achievements
                             </h4>
-                            <i class="fas fa-chevron-down text-white"></i>
+                            <i class="fas fa-chevron-right text-white chevron-indicator"></i>
                         </div>
                     </div>
-                    <div class="collapse show" id="highscoreCollapse">
+                    <div class="collapse" id="highscoreCollapse">
                         <div class="card-body p-0">
                         {% for game_name, game in games.items %}
                         <div class="border-bottom">
-                            <div class="p-4">
-                                <div class="d-flex justify-content-between align-items-center mb-4">
-                                    <h5 class="font-weight-bold text-gray-800 mb-0">{{ game_name }}</h5>
-                                    <div class="d-flex align-items-center">
-                                        <span class="badge badge-success badge-lg px-3 py-2">
-                                            <i class="fas fa-star mr-1"></i>{{ game.overall }} Total Score
-                                        </span>
+                            <div class="p-0">
+                                <div class="game-header bg-darker-secondary border-0 py-3 px-4 collapsible-header" data-bs-toggle="collapse" data-bs-target="#game-{{ forloop.counter }}" aria-expanded="false" aria-controls="game-{{ forloop.counter }}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="font-weight-bold text-white mb-0">{{ game_name }}</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="badge-container">
+                                                <span class="badge-stat badge-stat-success">
+                                                    <i class="fas fa-star"></i>{{ game.overall }} Total Score
+                                                </span>
+                                            </div>
+                                            <div class="badge-container">
+                                                <span class="badge-stat badge-stat-info">
+                                                    <i class="fas fa-robot"></i>{{ game.robots_with_scores }}/{{ game.leaderboards|length }} Robot{% if game.leaderboards|length != 1 %}s{% endif %}
+                                                </span>
+                                            </div>
+                                            {% if game.robots_with_scores > 0 %}
+                                                <div class="badge-container">
+                                                    <span class="badge-stat badge-stat-warning">
+                                                        <i class="fas fa-chart-line"></i>{{ game.avg_percentile|floatformat:1 }}% Avg
+                                                    </span>
+                                                </div>
+                                                <div class="progress-container ml-2" style="width: 100px;">
+                                                    <small class="text-muted d-block text-center mb-1">{{ game.avg_percentile|floatformat:1 }}% Avg</small>
+                                                    <div class="progress" style="height: 6px;">
+                                                        <div class="progress-bar 
+                                                            {% if game.avg_percentile >= 90 %}bg-warning
+                                                            {% elif game.avg_percentile >= 75 %}bg-success
+                                                            {% elif game.avg_percentile >= 50 %}bg-info
+                                                            {% else %}bg-secondary{% endif %}" 
+                                                            style="width: {{ game.avg_percentile }}%"></div>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            <i class="fas fa-chevron-right text-white chevron-indicator ml-3"></i>
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div class="row">
-                                    {% for entry in game.leaderboards %}
-                                    <div class="col-lg-6 col-xl-4 mb-4">
-                                        <div class="card border h-100 hover-shadow">
-                                            <div class="card-body p-4">
-                                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                                    <h6 class="font-weight-bold text-gray-800 mb-0">{{ entry.leaderboard.name }}</h6>
-                                                    {% if entry.percentile >= 90 %}
-                                                        <span class="badge badge-warning">Top {{ entry.percentile|floatformat:1 }}%</span>
-                                                    {% elif entry.percentile >= 75 %}
-                                                        <span class="badge badge-success">{{ entry.percentile|floatformat:1 }}%</span>
-                                                    {% elif entry.percentile >= 50 %}
-                                                        <span class="badge badge-info">{{ entry.percentile|floatformat:1 }}%</span>
-                                                    {% else %}
-                                                        <span class="badge badge-secondary">{{ entry.percentile|floatformat:1 }}%</span>
-                                                    {% endif %}
-                                                </div>
-                                                
-                                                {% if entry.score %}
-                                                    <div class="text-center mb-3">
-                                                        <div class="h3 font-weight-bold text-primary mb-1">{{ entry.score }}</div>
-                                                        <small class="text-muted">Best Score</small>
-                                                    </div>
-                                                    
-                                                    <div class="progress mb-3" style="height: 8px;">
-                                                        <div class="progress-bar 
-                                                            {% if entry.percentile >= 90 %}bg-warning
-                                                            {% elif entry.percentile >= 75 %}bg-success
-                                                            {% elif entry.percentile >= 50 %}bg-info
-                                                            {% else %}bg-secondary{% endif %}" 
-                                                            style="width: {{ entry.percentile }}%"></div>
-                                                    </div>
-                                                    
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <small class="text-muted">
-                                                            <i class="fas fa-clock mr-1"></i>{{ entry.time_set|default:"N/A" }}
-                                                        </small>
-                                                        {% if "youtube" in entry.source or "streamable" in entry.source %}
-                                                            <a href="{{ entry.source }}" target="_blank" class="btn btn-sm btn-outline-danger">
-                                                                <i class="fas fa-video mr-1"></i>Video
-                                                            </a>
-                                                        {% else %}
-                                                            {% if "https://i.imgur.com/bUUfB8c.png" not in entry.source %}
-                                                                <a href="{{ entry.source }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                                    <i class="fas fa-image mr-1"></i>Image
-                                                                </a>
+                                <div class="collapse" id="game-{{ forloop.counter }}">
+                                    <div class="bg-darker p-4">
+                                        <div class="row">
+                                            {% for entry in game.leaderboards %}
+                                            <div class="col-lg-6 col-xl-4 mb-4">
+                                                <div class="card border h-100 hover-shadow">
+                                                    <div class="card-body p-4">
+                                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                                            <h6 class="font-weight-bold text-gray-800 mb-0">{{ entry.leaderboard.name }}</h6>
+                                                            {% if entry.percentile >= 90 %}
+                                                                <span class="badge badge-warning">Top {{ entry.percentile|floatformat:1 }}%</span>
+                                                            {% elif entry.percentile >= 75 %}
+                                                                <span class="badge badge-success">{{ entry.percentile|floatformat:1 }}%</span>
+                                                            {% elif entry.percentile >= 50 %}
+                                                                <span class="badge badge-info">{{ entry.percentile|floatformat:1 }}%</span>
                                                             {% else %}
-                                                                <span class="text-muted small">No media</span>
+                                                                <span class="badge badge-secondary">{{ entry.percentile|floatformat:1 }}%</span>
                                                             {% endif %}
+                                                        </div>
+                                                        
+                                                        {% if entry.score %}
+                                                            <div class="text-center mb-3">
+                                                                <div class="h3 font-weight-bold text-primary mb-1">{{ entry.score }}</div>
+                                                                <small class="text-muted">Best Score</small>
+                                                            </div>
+                                                            
+                                                            <div class="progress mb-3" style="height: 8px;">
+                                                                <div class="progress-bar 
+                                                                    {% if entry.percentile >= 90 %}bg-warning
+                                                                    {% elif entry.percentile >= 75 %}bg-success
+                                                                    {% elif entry.percentile >= 50 %}bg-info
+                                                                    {% else %}bg-secondary{% endif %}" 
+                                                                    style="width: {{ entry.percentile }}%"></div>
+                                                            </div>
+                                                            
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <small class="text-muted">
+                                                                    <i class="fas fa-clock mr-1"></i>{{ entry.time_set|default:"N/A" }}
+                                                                </small>
+                                                                {% if "youtube" in entry.source or "streamable" in entry.source %}
+                                                                    <a href="{{ entry.source }}" target="_blank" class="btn btn-sm btn-outline-danger">
+                                                                        <i class="fas fa-video mr-1"></i>Video
+                                                                    </a>
+                                                                {% else %}
+                                                                    {% if "https://i.imgur.com/bUUfB8c.png" not in entry.source %}
+                                                                        <a href="{{ entry.source }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                                            <i class="fas fa-image mr-1"></i>Image
+                                                                        </a>
+                                                                    {% else %}
+                                                                        <span class="text-muted small">No media</span>
+                                                                    {% endif %}
+                                                                {% endif %}
+                                                            </div>
+                                                        {% else %}
+                                                            <div class="text-center py-3">
+                                                                <div class="text-muted">
+                                                                    <i class="fas fa-info-circle mb-2 d-block fa-2x"></i>
+                                                                    <small>No score submitted</small>
+                                                                </div>
+                                                            </div>
                                                         {% endif %}
                                                     </div>
-                                                {% else %}
-                                                    <div class="text-center py-3">
-                                                        <div class="text-muted">
-                                                            <i class="fas fa-info-circle mb-2 d-block fa-2x"></i>
-                                                            <small>No score submitted</small>
-                                                        </div>
-                                                    </div>
-                                                {% endif %}
+                                                </div>
                                             </div>
+                                            {% endfor %}
                                         </div>
                                     </div>
-                                    {% endfor %}
                                 </div>
                             </div>
                         </div>
@@ -319,22 +396,116 @@
         .gap-2 > *:last-child {
             margin-right: 0;
         }
-        .card-header[data-toggle="collapse"] i.fa-chevron-down {
+        .bg-darker {
+            background-color: #1a1a1a !important;
+        }
+        .bg-darker-secondary {
+            background-color: #2a2a2a !important;
+        }
+        .collapsible-header {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        .collapsible-header:hover {
+            background-color: #2a2a2a !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .chevron-indicator {
             transition: transform 0.3s ease;
         }
-        .card-header[data-toggle="collapse"][aria-expanded="false"] i.fa-chevron-down {
-            transform: rotate(-90deg);
+        .collapsible-header[aria-expanded="true"] .chevron-indicator {
+            transform: rotate(90deg);
+        }
+        .game-header {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        .game-header:hover {
+            background-color: #3a3a3a !important;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .badge-container {
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        .badge-stat {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .badge-stat i {
+            font-size: 1rem;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+        .badge-stat-success {
+            background: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+            border-color: rgba(40, 167, 69, 0.3);
+        }
+        .badge-stat-success:hover {
+            background: rgba(40, 167, 69, 0.3);
+            border-color: #28a745;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        }
+        .badge-stat-info {
+            background: rgba(23, 162, 184, 0.2);
+            color: #17a2b8;
+            border-color: rgba(23, 162, 184, 0.3);
+        }
+        .badge-stat-info:hover {
+            background: rgba(23, 162, 184, 0.3);
+            border-color: #17a2b8;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
+        }
+        .badge-stat-warning {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border-color: rgba(255, 193, 7, 0.3);
+        }
+        .badge-stat-warning:hover {
+            background: rgba(255, 193, 7, 0.3);
+            border-color: #ffc107;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+        }
+        .badge-stat-primary {
+            background: rgba(0, 123, 255, 0.2);
+            color: #007bff;
+            border-color: rgba(0, 123, 255, 0.3);
+        }
+        .badge-stat-primary:hover {
+            background: rgba(0, 123, 255, 0.3);
+            border-color: #007bff;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+        }
+        .progress-container {
+            display: inline-block;
+            vertical-align: middle;
         }
     </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Handle chevron rotation on collapse/expand
-            document.querySelectorAll('[data-toggle="collapse"]').forEach(function(element) {
-                element.addEventListener('click', function() {
-                    const target = document.querySelector(this.getAttribute('data-target'));
-                    const chevron = this.querySelector('.fa-chevron-down');
-                    
+            // Handle chevron rotation on collapse/expand for Bootstrap 5
+            document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function(element) {
+                const target = document.querySelector(element.getAttribute('data-bs-target'));
+                
+                if (target) {
                     target.addEventListener('shown.bs.collapse', function() {
                         element.setAttribute('aria-expanded', 'true');
                     });
@@ -342,7 +513,7 @@
                     target.addEventListener('hidden.bs.collapse', function() {
                         element.setAttribute('aria-expanded', 'false');
                     });
-                });
+                }
             });
         });
     </script>

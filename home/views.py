@@ -112,7 +112,9 @@ def user_profile(request, user_id: int):
             games[game_name] = {
                 "slug": leaderboard.game_slug,
                 "leaderboards": [],
-                "overall": 0
+                "overall": 0,
+                "robots_with_scores": 0,
+                "total_percentile": 0
             }
         
         user_score = scores.filter(leaderboard=leaderboard).first()
@@ -123,6 +125,8 @@ def user_profile(request, user_id: int):
         if user_score:
             highest_score = Score.objects.filter(leaderboard=leaderboard, approved=True).aggregate(Max('score'))['score__max']
             percentile = (score_value / highest_score) * 100 if highest_score else 0
+            games[game_name]["robots_with_scores"] += 1
+            games[game_name]["total_percentile"] += percentile
         else:
             percentile = 0
 
@@ -134,22 +138,53 @@ def user_profile(request, user_id: int):
             "time_set": user_score.time_set if user_score else None
         })
 
+    # Calculate average percentiles
+    for game_name in games:
+        if games[game_name]["robots_with_scores"] > 0:
+            games[game_name]["avg_percentile"] = games[game_name]["total_percentile"] / games[game_name]["robots_with_scores"]
+        else:
+            games[game_name]["avg_percentile"] = 0
+
     all_game_modes = GameMode.objects.all()
     player_elos = PlayerElo.objects.filter(player=user)
     
     elos_by_game = {}
     total_matches = 0
+    
+    # Group game modes by game and calculate stats
+    ranked_games_stats = {}
     for game_mode in all_game_modes:
         elo_record = player_elos.filter(game_mode=game_mode).first()
         elos_by_game[game_mode] = elo_record
         if elo_record:
             total_matches += elo_record.matches_won + elo_record.matches_lost + elo_record.matches_drawn
+        
+        # Track stats per game
+        game_name = game_mode.game
+        if game_name not in ranked_games_stats:
+            ranked_games_stats[game_name] = {
+                'total_modes': 0,
+                'modes_with_elo': 0,
+                'completion_percent': 0
+            }
+        ranked_games_stats[game_name]['total_modes'] += 1
+        if elo_record:
+            ranked_games_stats[game_name]['modes_with_elo'] += 1
+
+    # Calculate completion percentages
+    for game_name in ranked_games_stats:
+        stats = ranked_games_stats[game_name]
+        if stats['total_modes'] > 0:
+            stats['completion_percent'] = round((stats['modes_with_elo'] / stats['total_modes']) * 100, 1)
+        else:
+            stats['completion_percent'] = 0
 
     context = {
         "games": games,
         "user": user,
         "elos_by_game": elos_by_game,
-        "total_matches": total_matches
+        "total_matches": total_matches,
+        "ranked_games_stats": ranked_games_stats
     }
     return render(request, "home/user_profile.html", context)
 
