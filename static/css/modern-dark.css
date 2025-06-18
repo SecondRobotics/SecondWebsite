@@ -17,6 +17,14 @@
 }
 
 /* Global Styles */
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    max-width: 100vw;
+}
+
 body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
@@ -32,6 +40,12 @@ body {
     padding: 1rem 0;
     transition: all 0.3s ease;
     box-shadow: var(--shadow-subtle);
+    z-index: 1050;
+    position: relative;
+}
+
+.navbar-right {
+    margin-right: 1rem;
 }
 
 .navbar-brand {
@@ -120,6 +134,8 @@ body {
     animation: fadeInDown 0.3s ease;
     padding: 0.5rem;
     overflow: hidden;
+    z-index: 1055;
+    position: absolute;
 }
 
 .dropdown-item {
@@ -220,6 +236,13 @@ body {
 #content {
     min-height: calc(100vh - 200px);
     padding: 2rem 0;
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+/* Container fixes */
+.container-fluid {
+    max-width: 100vw;
 }
 
 /* Footer Styles */
@@ -227,6 +250,9 @@ footer {
     background: var(--gradient-dark) !important;
     border-top: 1px solid var(--border-color);
     margin-top: 4rem;
+    max-width: 100vw;
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 footer .text-center {

@@ -83,6 +83,7 @@
         >
             <div class="col-md">
                 {% if quals|length > 0 %}
+                <div class="table-responsive">
                 <table class="table table-striped table-hover table-sm shadowy">
                     <thead>
                         <tr>
@@ -118,6 +119,7 @@
                                 </tr>
                             {% endfor %}
                     </table>
+                </div>
                 {% else %}
                     <h3>Looks like qualifications haven't started yet, tune in later!</h3>
                 {% endif %}
@@ -129,6 +131,7 @@
             role="tabpanel"
         >
             {% if rankings|length > 0 %}
+                <div class="table-responsive">
                 <table class="table table-striped table-hover table-sm shadowy" style="text-align:center">
                     <thead>
                         <tr>
@@ -147,6 +150,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                </div>
             {% else %}
                 <h3>Looks like matches haven't started yet, tune in later!</h3>
             {% endif %}
@@ -157,6 +161,7 @@
             role="tabpanel"
         >
             {% if quarters|length > 0 or semis|length > 0 or finals|length > 0 or alliances|length > 0 %}
+                <div class="table-responsive">
                 <table class="table table-striped table-hover table-sm shadowy" style="text-align:center">
                     <thead>
                         <tr>
@@ -267,6 +272,7 @@
                             {% endfor %}
                         {% endif %}
                 </table>
+                </div>
             {% else %}
                 <h3>Seems like eliminations haven't started yet, tune in later!</h3>
             {% endif %}

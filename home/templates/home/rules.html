@@ -1,43 +1,487 @@
-{% extends 'home/base.html' %} {% block content %}
-<div class="p-3 p-md-5 m-md-3 shadowy text-center bg-primary">
-    <h1 class="display-4 fw-normal">Event and Match Rules</h1>
+{% extends 'home/base.html' %}
+
+{% block extra_js %}
+<style>
+/* Hero Section */
+.rules-hero {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    position: relative;
+    overflow: hidden;
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    z-index: 1;
+}
+
+.rules-hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 25% 30%, rgba(239, 68, 68, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 75% 70%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
+        linear-gradient(135deg, transparent 0%, rgba(239, 68, 68, 0.08) 30%, rgba(59, 130, 246, 0.05) 70%, transparent 100%);
+    animation: backgroundPulse 10s ease-in-out infinite;
+}
+
+.rules-hero-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(239, 68, 68, 0.15) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.15) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridFloat 30s linear infinite;
+    opacity: 0.4;
+}
+
+.rules-hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 2rem;
+}
+
+.rules-title {
+    font-size: 4rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffffff 0%, #ef4444 40%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+    animation: titleGlow 4s ease-in-out infinite;
+}
+
+.rules-subtitle {
+    font-size: 1.3rem;
+    color: #e0e0e0;
+    margin-bottom: 1rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+    animation: slideUp 1s ease-out 0.3s both;
+}
+
+.rules-description {
+    font-size: 1.1rem;
+    color: #c0c0c0;
+    margin-bottom: 2rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+    animation: slideUp 1s ease-out 0.6s both;
+}
+
+/* Rules Section */
+.rules-section {
+    background: #0a0a0a;
+    padding: 5rem 0;
+    min-height: 70vh;
+}
+
+.rules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+/* Rule Cards */
+.rule-card {
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(37, 37, 37, 0.95) 100%);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    padding: 2.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.8s ease-out;
+    text-align: center;
+}
+
+.rule-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ef4444 0%, #f97316 25%, #eab308 50%, #22c55e 75%, #3b82f6 100%);
+    transform: scaleX(0);
+    transition: transform 0.6s ease;
+    transform-origin: left;
+}
+
+.rule-card:nth-child(1)::before {
+    background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+}
+
+.rule-card:nth-child(2)::before {
+    background: linear-gradient(90deg, #f97316 0%, #ea580c 100%);
+}
+
+.rule-card:nth-child(3)::before {
+    background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+}
+
+.rule-card:nth-child(4)::before {
+    background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.rule-card:hover::before {
+    transform: scaleX(1);
+}
+
+.rule-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.rule-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.rule-card:nth-child(1) .rule-icon {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+}
+
+.rule-card:nth-child(2) .rule-icon {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);
+}
+
+.rule-card:nth-child(3) .rule-icon {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);
+}
+
+.rule-card:nth-child(4) .rule-icon {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+}
+
+.rule-card:hover .rule-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.rule-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 2rem;
+    background: linear-gradient(135deg, #ffffff 0%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.rule-btn {
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    border: none;
+    color: white;
+    padding: 12px 32px;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.rule-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.rule-btn:hover::before {
+    left: 100%;
+}
+
+.rule-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+/* Additional Info Section */
+.info-section {
+    background: var(--bg-secondary);
+    padding: 4rem 0;
+    border-top: 1px solid var(--border-color);
+}
+
+.info-card {
+    background: var(--bg-tertiary);
+    border-radius: 20px;
+    padding: 3rem;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-medium);
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+    animation: slideUp 1s ease-out;
+}
+
+.info-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #ffffff 0%, #ef4444 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.info-text {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 2rem;
+}
+
+.warning-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+/* Animations */
+@keyframes backgroundPulse {
+    0%, 100% { 
+        transform: scale(1) rotate(0deg);
+        opacity: 0.8;
+    }
+    33% { 
+        transform: scale(1.02) rotate(0.3deg);
+        opacity: 1;
+    }
+    66% { 
+        transform: scale(0.98) rotate(-0.3deg);
+        opacity: 0.9;
+    }
+}
+
+@keyframes gridFloat {
+    0% { 
+        transform: translateX(0) translateY(0);
+    }
+    100% { 
+        transform: translateX(50px) translateY(50px);
+    }
+}
+
+@keyframes titleGlow {
+    0%, 100% { 
+        filter: brightness(1);
+        text-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+    }
+    50% { 
+        filter: brightness(1.1);
+        text-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Stagger animation for cards */
+.rule-card:nth-child(1) { animation-delay: 0.1s; }
+.rule-card:nth-child(2) { animation-delay: 0.2s; }
+.rule-card:nth-child(3) { animation-delay: 0.3s; }
+.rule-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .rules-title {
+        font-size: 3rem;
+    }
+    
+    .rules-subtitle {
+        font-size: 1.1rem;
+    }
+    
+    .rules-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 0 1rem;
+    }
+    
+    .rule-card {
+        padding: 2rem;
+    }
+    
+    .info-card {
+        padding: 2rem;
+        margin: 0 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="rules-hero">
+    <div class="rules-hero-bg"></div>
+    <div class="rules-hero-grid"></div>
+    
+    <div class="container-fluid">
+        <div class="rules-hero-content">
+            <h1 class="rules-title">Official Rules</h1>
+            <p class="rules-subtitle">Competition Standards & Guidelines</p>
+            <p class="rules-description">
+                Second Robotics maintains the official simulator rules for all competitive events. 
+                These comprehensive rulesets ensure fair play and consistent standards across 
+                all Second-sponsored tournaments and official leaderboards.
+            </p>
+        </div>
+    </div>
 </div>
-<div
-    class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-dark"
->
-    <p style="color: white" class="lead fw-normal">
-        Second Robotics maintains the official simulator rules that should be
-        followed for official Second-sponsored events and official high scores.
-        Below you will find the currently maintained official rulesets for SRC,
-        STC, and MRC. These rulesets may be updated at any time without notice.
-        Official referees have the final say on the interpretation and
-        enforcement of the rules.
-    </p>
+
+<!-- Rules Grid Section -->
+<div class="rules-section">
+    <div class="container-fluid">
+        <div class="rules-grid">
+            <div class="rule-card">
+                <div class="rule-icon">SRC</div>
+                <h2 class="rule-name">Second Robotics Competition</h2>
+                <a href="/SRCrules" class="rule-btn">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                        <polyline points="14,2 14,8 20,8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10,9 9,9 8,9"/>
+                    </svg>
+                    View Rules
+                </a>
+            </div>
+
+            <div class="rule-card">
+                <div class="rule-icon">STC</div>
+                <h2 class="rule-name">Second Tech Competition</h2>
+                <a href="/STCrules" class="rule-btn">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                        <polyline points="14,2 14,8 20,8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10,9 9,9 8,9"/>
+                    </svg>
+                    View Rules
+                </a>
+            </div>
+
+            <div class="rule-card">
+                <div class="rule-icon">SVC</div>
+                <h2 class="rule-name">Second VEX Competition</h2>
+                <a href="/SVCrules" class="rule-btn">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                        <polyline points="14,2 14,8 20,8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10,9 9,9 8,9"/>
+                    </svg>
+                    View Rules
+                </a>
+            </div>
+
+            <div class="rule-card">
+                <div class="rule-icon">MRC</div>
+                <h2 class="rule-name">Minecraft Robotics Competition</h2>
+                <a href="/MRCrules" class="rule-btn">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                        <polyline points="14,2 14,8 20,8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10,9 9,9 8,9"/>
+                    </svg>
+                    View Rules
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
-<div
-    class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-primary"
->
-    <div class="d-grid gap-2 col-6 p-lg-3 mx-auto">
-        <a href="/SRCrules">
-            <button type="button" class="btn btn-outline-light">
-                Official SRC Rules
-            </button>
-        </a>
-        <a href="/STCrules">
-            <button type="button" class="btn btn-outline-light">
-                Official STC Rules
-            </button>
-        </a>
-        <a href="/SVCrules">
-            <button type="button" class="btn btn-outline-light">
-                Official SVC Rules
-            </button>
-        </a>
-        <a href="/MRCrules">
-            <button type="button" class="btn btn-outline-light">
-                Official MRC Rules
-            </button>
-        </a>
+
+<!-- Additional Info Section -->
+<div class="info-section">
+    <div class="container-fluid">
+        <div class="info-card">
+            <h2 class="info-title">Important Notice</h2>
+            <p class="info-text">
+                These rulesets may be updated at any time without notice to ensure fair competition 
+                and address emerging situations. Official referees have the final say on rule 
+                interpretation and enforcement during all Second Robotics events.
+            </p>
+            <div class="warning-badge">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 9v4m0 4h.01M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z"/>
+                </svg>
+                Rules Subject to Change
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

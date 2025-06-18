@@ -1,60 +1,463 @@
-{% extends 'home/base.html' %} {% block content %}
-<div class="p-3 p-md-5 m-md-3 shadowy text-center bg-primary">
-    <h1 class="display-4 fw-normal">Minecraft Robotics Competition</h1>
-</div>
-<div
-    class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-dark"
->
-    <p style="color: white" class="lead fw-normal">
-        MRC is a simulated version of the FRC game Infinite Recharge inside of
-        Minecraft. Thanks to a custom-coded plugin and a resource pack, you can
-        play Infinite Recharge on Minecraft Java Edition or Bedrock Edition in
-        3v3 matches with your friends!
-    </p>
-    <p style="color: white" class="lead fw-normal">
-        The original Minecraft Robotics Competition Regional Event was held on
-        December 19, 2020. Checkout the full event video and the MRC trailer
-        embedded below.
-    </p>
-    <p style="color: white" class="lead fw-normal">
-        MRC is
-        <a
-            href="https://github.com/NicholasBottone/MinecraftRoboticsCompetition"
-            >open source</a
-        >. Help improve it!
-    </p>
-</div>
-<div
-    class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center shadowy bg-primary"
->
-    <h5 style="color: white">There currently is no online server</h5>
-    <p style="color: white">
-        Since MRC has not recieved any updates in a few years, 
-        we do not currently host an MRC server at this time. 
-        If this changes, we will update this page.
-    </p>
-</div>
-<div class="row">
-    <div class="col">
-        <div class="embed-responsive shadowy embed-responsive-16by9">
-            <iframe
-                width="100%"
-                height="500"
-                src="https://www.youtube-nocookie.com/embed/ZKvIZ7NuOao"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen
-            ></iframe>
+{% extends 'home/base.html' %}
+
+{% block extra_js %}
+<style>
+/* Hero Section */
+.mrc-hero {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    position: relative;
+    overflow: hidden;
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    margin-top: -2rem;
+}
+
+.mrc-hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 30% 50%, rgba(16, 185, 129, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 70% 80%, rgba(139, 69, 19, 0.08) 0%, transparent 50%),
+        linear-gradient(135deg, transparent 0%, rgba(16, 185, 129, 0.05) 50%, transparent 100%);
+    animation: backgroundPulse 10s ease-in-out infinite;
+}
+
+.mrc-hero-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(16, 185, 129, 0.1) 1px, transparent 50%),
+        linear-gradient(90deg, rgba(139, 69, 19, 0.1) 1px, transparent 50%);
+    background-size: 40px 40px;
+    animation: gridFloat 25s linear infinite;
+    opacity: 0.3;
+}
+
+.mrc-hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 2rem;
+}
+
+.mrc-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffffff 0%, #10b981 50%, #8b4513 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+    animation: titleGlow 4s ease-in-out infinite;
+}
+
+.mrc-subtitle {
+    font-size: 1.4rem;
+    color: #e0e0e0;
+    margin-bottom: 2rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+    animation: slideUp 1s ease-out 0.3s both;
+}
+
+/* Content Sections */
+.content-section {
+    padding: 5rem 0;
+    position: relative;
+    background: #0a0a0a;
+}
+
+.content-section:nth-child(even) {
+    background: #0f0f0f;
+}
+
+.content-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+    border-radius: 20px;
+    padding: 3rem;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.content-card:hover {
+    box-shadow: 0 15px 40px rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    background: linear-gradient(135deg, #ffffff 0%, #10b981 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+}
+
+.content-text {
+    font-size: 1.1rem;
+    color: #c0c0c0;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+}
+
+.open-source-link {
+    color: #10b981;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.open-source-link:hover {
+    color: #34d399;
+    text-decoration: underline;
+}
+
+/* Server Status Section */
+.server-status {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+    padding: 4rem 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.server-status::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #ef4444, transparent);
+}
+
+.status-card {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 20px;
+    padding: 2.5rem;
+    max-width: 600px;
+    margin: 0 auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.status-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.status-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #ef4444;
+    margin-bottom: 1rem;
+}
+
+.status-text {
+    font-size: 1.1rem;
+    color: #c0c0c0;
+    line-height: 1.6;
+}
+
+/* Video Section */
+.video-section {
+    background: #0f0f0f;
+    padding: 5rem 0;
+    position: relative;
+}
+
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 3rem;
+    padding: 0 2rem;
+}
+
+.video-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.video-card:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    box-shadow: 0 15px 40px rgba(16, 185, 129, 0.2);
+}
+
+.video-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.video-wrapper {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    background: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.video-wrapper:hover {
+    border-color: #10b981;
+    box-shadow: 0 15px 40px rgba(16, 185, 129, 0.2);
+}
+
+.video-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Feature Grid */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.feature-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.2);
+}
+
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.feature-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 1rem;
+}
+
+.feature-description {
+    color: #a0a0a0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* Animations */
+@keyframes backgroundPulse {
+    0%, 100% { 
+        transform: scale(1) rotate(0deg);
+        opacity: 0.8;
+    }
+    50% { 
+        transform: scale(1.05) rotate(0.5deg);
+        opacity: 1;
+    }
+}
+
+@keyframes gridFloat {
+    0% { 
+        transform: translateX(0) translateY(0);
+    }
+    100% { 
+        transform: translateX(40px) translateY(40px);
+    }
+}
+
+@keyframes titleGlow {
+    0%, 100% { 
+        filter: brightness(1);
+        text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+    }
+    50% { 
+        filter: brightness(1.1);
+        text-shadow: 0 0 30px rgba(139, 69, 19, 0.5);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .mrc-title {
+        font-size: 2.5rem;
+    }
+    
+    .mrc-subtitle {
+        font-size: 1.2rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .content-card {
+        padding: 2rem;
+    }
+    
+    .video-grid {
+        grid-template-columns: 1fr;
+        padding: 0 1rem;
+    }
+    
+    .video-card {
+        padding: 1.5rem;
+    }
+    
+    .status-card {
+        margin: 0 1rem;
+        padding: 2rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="mrc-hero">
+    <div class="mrc-hero-bg"></div>
+    <div class="mrc-hero-grid"></div>
+    
+    <div class="container-fluid">
+        <div class="mrc-hero-content">
+            <h1 class="mrc-title">Minecraft Robotics Competition</h1>
+            <p class="mrc-subtitle">FRC Infinite Recharge in Minecraft</p>
         </div>
     </div>
-    <div class="col">
-        <div class="embed-responsive shadowy embed-responsive-16by9">
-            <iframe
-                width="100%"
-                height="500"
-                src="https://www.youtube-nocookie.com/embed/_SMOkGr4IMI"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen
-            ></iframe>
+</div>
+
+<!-- Main Content Section -->
+<div class="content-section">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="content-card">
+                    <h2 class="section-title">About MRC</h2>
+                    <p class="content-text">
+                        MRC is a simulated version of the FRC game Infinite Recharge inside of Minecraft. 
+                        Thanks to a custom-coded plugin and a resource pack, you can play Infinite Recharge 
+                        on Minecraft Java Edition or Bedrock Edition in 3v3 matches with your friends!
+                    </p>
+                    <p class="content-text">
+                        The original Minecraft Robotics Competition Regional Event was held on December 19, 2020. 
+                        Check out the full event video and the MRC trailer embedded below.
+                    </p>
+                    <p class="content-text">
+                        MRC is <a href="https://github.com/NicholasBottone/MinecraftRoboticsCompetition" class="open-source-link">open source</a>. 
+                        Help improve it!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Server Status Section -->
+<div class="server-status">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="status-card">
+                    <div class="status-icon">
+                        <svg width="30" height="30" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                    </div>
+                    <h3 class="status-title">Server Status: Offline</h3>
+                    <p class="status-text">
+                        Since MRC has not received any updates in a few years, we do not currently 
+                        host an MRC server at this time. If this changes, we will update this page.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Video Section -->
+<div class="video-section">
+    <div class="container-fluid">
+        <div class="video-grid">
+            <div class="video-card">
+                <h3 class="video-title">MRC Regional Event</h3>
+                <div class="video-wrapper">
+                    <iframe
+                        src="https://www.youtube-nocookie.com/embed/ZKvIZ7NuOao"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                        loading="lazy"
+                    ></iframe>
+                </div>
+            </div>
+            <div class="video-card">
+                <h3 class="video-title">MRC Official Trailer</h3>
+                <div class="video-wrapper">
+                    <iframe
+                        src="https://www.youtube-nocookie.com/embed/_SMOkGr4IMI"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                        loading="lazy"
+                    ></iframe>
+                </div>
+            </div>
         </div>
     </div>
 </div>
