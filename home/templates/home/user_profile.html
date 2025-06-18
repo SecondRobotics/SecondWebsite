@@ -1,103 +1,349 @@
-{% extends 'home/base.html' %}
+{% extends "home/base.html" %}
+
+{% block title %}{{ user.username }}{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-2">
-        <img
-            src="{% if '/None.webp' in user.avatar %}https://avatars.dicebear.com/api/bottts/{{user.username}}.svg{% else %}{{user.avatar}}{% endif %}"
-            class="shadowy m-md-3 responsive img-profile rounded-circle img-fluid"
-            alt=""
-        />
-    </div>
-    <div class="col-10">
-        <div
-            class="position-relative overflow-hidden p-md-5 m-md-3 shadowy text-center bg-primary"
-        >
-            <h1>{{user}}</h1>
-            <h5>{{user.username}}#{{user.discriminator}}</h5>
-        </div>
-    </div>
-</div>
-
-{% if elos_by_game %}
-    {% for game_mode, elo in elos_by_game.items %}
-        <div class="row">
+    <div class="container-fluid">
+        <!-- Modern Profile Header -->
+        <div class="row mb-5">
             <div class="col-12">
-                <h2 class="bg-dark text-white p-3">{{ game_mode.game }}</h2>
-                <table class="table table-dark table-striped table-hover table-sm">
-                    <thead>
-                        <tr>
-                            <th>Mode</th>
-                            <th>ELO</th>
-                            <th>W-L-T</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>{{ game_mode.name }}</td>
-                            {% if elo %}
-                                <td>{{ elo.elo|floatformat:1 }}</td>
-                                <td>{{ elo.matches_won }}-{{ elo.matches_lost }}-{{ elo.matches_drawn }}</td>
-                            {% else %}
-                                <td colspan="2">Not Played</td>
-                            {% endif %}
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    {% endfor %}
-{% endif %}
-
-<div class="row">
-    <div
-        class="position-relative overflow-hidden p-md-3 m-md-3 shadowy text-center bg-secondary"
-    >
-        <h2>Highscores</h2>
-    </div>
-</div>
-
-{% if games %}
-    {% for game_name, game in games.items %}
-        <div class="row">
-            <div class="col-12">
-                <h3 class="bg-dark text-white p-3">{{ game_name }}</h3>
-                <h4>Total Score: {{game.overall}}</h4>
-                <table class="table table-dark table-striped table-hover table-sm">
-                    <thead>
-                        <tr>
-                            <th>Robot Name</th>
-                            <th>Percentile</th>
-                            <th>Score</th>
-                            <th>Time Set</th>
-                            <th>Media Link</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for entry in game.leaderboards %}
-                        <tr>
-                            <td>{{ entry.leaderboard.name }}</td>
-                            <td>{{ entry.percentile|floatformat:2 }}%</td>
-                            <td>{{ entry.score|default:"No Score" }}</td>
-                            <td>{{ entry.time_set|default:"N/A" }}</td>
-                            <td>
-                                {% if entry.score %}
-                                    {% if "youtube" in entry.source or "streamable" in entry.source %}
-                                        <a href="{{ entry.source }}" target="_blank">Video</a>
-                                    {% else %}
-                                        {% if "https://i.imgur.com/bUUfB8c.png" not in entry.source %}
-                                            <a href="{{ entry.source }}" target="_blank">Image</a>
-                                        {% endif %}
+                <div class="card shadow-lg border-0 overflow-hidden">
+                    <div class="bg-gradient-primary" style="height: 120px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                    <div class="card-body position-relative" style="margin-top: -60px;">
+                        <div class="row align-items-end">
+                            <div class="col-auto">
+                                <div class="position-relative">
+                                    <img src="{% if '/None.webp' in user.avatar %}https://avatars.dicebear.com/api/bottts/{{user.username}}.svg{% else %}{{user.avatar}}{% endif %}" 
+                                         class="rounded-circle border border-white shadow-lg" 
+                                         alt="Avatar" 
+                                         style="width: 120px; height: 120px; border-width: 5px !important;">
+                                    {% if user.is_staff %}
+                                        <div class="position-absolute" style="bottom: 5px; right: 5px;">
+                                            <span class="badge badge-warning rounded-circle p-2" title="Staff Member">
+                                                <i class="fas fa-shield-alt"></i>
+                                            </span>
+                                        </div>
                                     {% endif %}
-                                {% else %}
-                                    N/A
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="mb-2">
+                                    <h2 class="mb-1 font-weight-bold text-gray-900">{{ user.username }}</h2>
+                                    {% if user.discriminator %}
+                                        <p class="text-muted mb-2">#{{ user.discriminator }}</p>
+                                    {% endif %}
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {% if user.is_staff %}
+                                            <span class="badge badge-warning px-3 py-2">
+                                                <i class="fas fa-shield-alt mr-1"></i> Staff Member
+                                            </span>
+                                        {% endif %}
+                                        <span class="badge badge-light px-3 py-2">
+                                            <i class="fas fa-calendar mr-1"></i> Joined {{ user.date_joined|date:"M Y" }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    {% endfor %}
-{% endif %}
+
+        <!-- Enhanced Stats Overview -->
+        {% if games or elos_by_game %}
+        <div class="row mb-4">
+            {% if games %}
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-trophy fa-lg text-white"></i>
+                        </div>
+                        <h3 class="h4 font-weight-bold text-gray-800 mb-1">{{ games|length }}</h3>
+                        <p class="text-muted mb-0 small">Games with Scores</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if elos_by_game %}
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-info rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-gamepad fa-lg text-white"></i>
+                        </div>
+                        <h3 class="h4 font-weight-bold text-gray-800 mb-1">{{ total_matches }}</h3>
+                        <p class="text-muted mb-0 small">Total Matches</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <!-- No Activity Message -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 100px; height: 100px;">
+                            <i class="fas fa-robot fa-2x text-gray-400"></i>
+                        </div>
+                        <h4 class="text-gray-600 mb-2">No Competition Activity</h4>
+                        <p class="text-gray-500 mb-0">This user hasn't participated in any competitions or submitted any scores yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Ranked Statistics -->
+        {% if elos_by_game %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-dark border-0 py-4" data-toggle="collapse" data-target="#rankedStatsCollapse" aria-expanded="true" aria-controls="rankedStatsCollapse" style="cursor: pointer;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0 font-weight-bold text-white">
+                                <i class="fas fa-medal text-primary mr-2"></i>Ranked Statistics
+                            </h4>
+                            <i class="fas fa-chevron-down text-white"></i>
+                        </div>
+                    </div>
+                    <div class="collapse show" id="rankedStatsCollapse">
+                        <div class="card-body p-0">
+                        {% for game_mode, elo in elos_by_game.items %}
+                        <div class="border-bottom">
+                            <div class="p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h5 class="font-weight-bold text-gray-800 mb-0">{{ game_mode.game }} - {{ game_mode.name }}</h5>
+                                    {% if elo %}
+                                        <span class="badge badge-lg px-3 py-2 
+                                            {% if elo.elo >= 1600 %}badge-danger
+                                            {% elif elo.elo >= 1400 %}badge-warning  
+                                            {% elif elo.elo >= 1200 %}badge-info
+                                            {% else %}badge-secondary{% endif %}">
+                                            {{ elo.elo|floatformat:0 }} ELO
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if elo %}
+                                <div class="row text-center">
+                                    <div class="col-md-2 col-6 mb-3">
+                                        <div class="border rounded p-3 h-100">
+                                            <div class="text-success font-weight-bold h4 mb-1">{{ elo.matches_won }}</div>
+                                            <small class="text-muted">Wins</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-6 mb-3">
+                                        <div class="border rounded p-3 h-100">
+                                            <div class="text-danger font-weight-bold h4 mb-1">{{ elo.matches_lost }}</div>
+                                            <small class="text-muted">Losses</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-6 mb-3">
+                                        <div class="border rounded p-3 h-100">
+                                            <div class="text-warning font-weight-bold h4 mb-1">{{ elo.matches_drawn }}</div>
+                                            <small class="text-muted">Draws</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-6 mb-3">
+                                        <div class="border rounded p-3 h-100">
+                                            {% with total_matches=elo.matches_won|add:elo.matches_lost|add:elo.matches_drawn %}
+                                                <div class="font-weight-bold h4 mb-1">{{ total_matches }}</div>
+                                                <small class="text-muted">Total</small>
+                                            {% endwith %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-12 mb-3">
+                                        <div class="border rounded p-3 h-100">
+                                            {% with total_matches=elo.matches_won|add:elo.matches_lost|add:elo.matches_drawn %}
+                                                {% if total_matches > 0 %}
+                                                    {% widthratio elo.matches_won total_matches 100 as win_rate %}
+                                                    <div class="font-weight-bold h4 mb-1
+                                                        {% if win_rate >= 70 %}text-success
+                                                        {% elif win_rate >= 50 %}text-warning
+                                                        {% else %}text-danger{% endif %}">
+                                                        {{ win_rate }}%
+                                                    </div>
+                                                    <small class="text-muted">Win Rate</small>
+                                                    <div class="progress mt-2" style="height: 6px;">
+                                                        <div class="progress-bar 
+                                                            {% if win_rate >= 70 %}bg-success
+                                                            {% elif win_rate >= 50 %}bg-warning
+                                                            {% else %}bg-danger{% endif %}" 
+                                                            style="width: {{ win_rate }}%"></div>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="font-weight-bold h4 mb-1 text-muted">N/A</div>
+                                                    <small class="text-muted">Win Rate</small>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="text-center py-4">
+                                    <div class="text-muted">
+                                        <i class="fas fa-info-circle mr-2"></i>No matches played in this mode yet
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Highscore Statistics -->
+        {% if games %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-dark border-0 py-4" data-toggle="collapse" data-target="#highscoreCollapse" aria-expanded="true" aria-controls="highscoreCollapse" style="cursor: pointer;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0 font-weight-bold text-white">
+                                <i class="fas fa-trophy text-primary mr-2"></i>Highscore Achievements
+                            </h4>
+                            <i class="fas fa-chevron-down text-white"></i>
+                        </div>
+                    </div>
+                    <div class="collapse show" id="highscoreCollapse">
+                        <div class="card-body p-0">
+                        {% for game_name, game in games.items %}
+                        <div class="border-bottom">
+                            <div class="p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h5 class="font-weight-bold text-gray-800 mb-0">{{ game_name }}</h5>
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge badge-success badge-lg px-3 py-2">
+                                            <i class="fas fa-star mr-1"></i>{{ game.overall }} Total Score
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    {% for entry in game.leaderboards %}
+                                    <div class="col-lg-6 col-xl-4 mb-4">
+                                        <div class="card border h-100 hover-shadow">
+                                            <div class="card-body p-4">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <h6 class="font-weight-bold text-gray-800 mb-0">{{ entry.leaderboard.name }}</h6>
+                                                    {% if entry.percentile >= 90 %}
+                                                        <span class="badge badge-warning">Top {{ entry.percentile|floatformat:1 }}%</span>
+                                                    {% elif entry.percentile >= 75 %}
+                                                        <span class="badge badge-success">{{ entry.percentile|floatformat:1 }}%</span>
+                                                    {% elif entry.percentile >= 50 %}
+                                                        <span class="badge badge-info">{{ entry.percentile|floatformat:1 }}%</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">{{ entry.percentile|floatformat:1 }}%</span>
+                                                    {% endif %}
+                                                </div>
+                                                
+                                                {% if entry.score %}
+                                                    <div class="text-center mb-3">
+                                                        <div class="h3 font-weight-bold text-primary mb-1">{{ entry.score }}</div>
+                                                        <small class="text-muted">Best Score</small>
+                                                    </div>
+                                                    
+                                                    <div class="progress mb-3" style="height: 8px;">
+                                                        <div class="progress-bar 
+                                                            {% if entry.percentile >= 90 %}bg-warning
+                                                            {% elif entry.percentile >= 75 %}bg-success
+                                                            {% elif entry.percentile >= 50 %}bg-info
+                                                            {% else %}bg-secondary{% endif %}" 
+                                                            style="width: {{ entry.percentile }}%"></div>
+                                                    </div>
+                                                    
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-clock mr-1"></i>{{ entry.time_set|default:"N/A" }}
+                                                        </small>
+                                                        {% if "youtube" in entry.source or "streamable" in entry.source %}
+                                                            <a href="{{ entry.source }}" target="_blank" class="btn btn-sm btn-outline-danger">
+                                                                <i class="fas fa-video mr-1"></i>Video
+                                                            </a>
+                                                        {% else %}
+                                                            {% if "https://i.imgur.com/bUUfB8c.png" not in entry.source %}
+                                                                <a href="{{ entry.source }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                                    <i class="fas fa-image mr-1"></i>Image
+                                                                </a>
+                                                            {% else %}
+                                                                <span class="text-muted small">No media</span>
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    </div>
+                                                {% else %}
+                                                    <div class="text-center py-3">
+                                                        <div class="text-muted">
+                                                            <i class="fas fa-info-circle mb-2 d-block fa-2x"></i>
+                                                            <small>No score submitted</small>
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <style>
+        .hover-shadow {
+            transition: box-shadow 0.3s ease;
+        }
+        .hover-shadow:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+        .badge-lg {
+            font-size: 0.9rem;
+        }
+        .gap-2 > * {
+            margin-right: 0.5rem;
+        }
+        .gap-2 > *:last-child {
+            margin-right: 0;
+        }
+        .card-header[data-toggle="collapse"] i.fa-chevron-down {
+            transition: transform 0.3s ease;
+        }
+        .card-header[data-toggle="collapse"][aria-expanded="false"] i.fa-chevron-down {
+            transform: rotate(-90deg);
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle chevron rotation on collapse/expand
+            document.querySelectorAll('[data-toggle="collapse"]').forEach(function(element) {
+                element.addEventListener('click', function() {
+                    const target = document.querySelector(this.getAttribute('data-target'));
+                    const chevron = this.querySelector('.fa-chevron-down');
+                    
+                    target.addEventListener('shown.bs.collapse', function() {
+                        element.setAttribute('aria-expanded', 'true');
+                    });
+                    
+                    target.addEventListener('hidden.bs.collapse', function() {
+                        element.setAttribute('aria-expanded', 'false');
+                    });
+                });
+            });
+        });
+    </script>
 {% endblock %}

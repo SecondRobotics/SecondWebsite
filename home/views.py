@@ -138,13 +138,18 @@ def user_profile(request, user_id: int):
     player_elos = PlayerElo.objects.filter(player=user)
     
     elos_by_game = {}
+    total_matches = 0
     for game_mode in all_game_modes:
-        elos_by_game[game_mode] = player_elos.filter(game_mode=game_mode).first()
+        elo_record = player_elos.filter(game_mode=game_mode).first()
+        elos_by_game[game_mode] = elo_record
+        if elo_record:
+            total_matches += elo_record.matches_won + elo_record.matches_lost + elo_record.matches_drawn
 
     context = {
         "games": games,
         "user": user,
-        "elos_by_game": elos_by_game
+        "elos_by_game": elos_by_game,
+        "total_matches": total_matches
     }
     return render(request, "home/user_profile.html", context)
 
