@@ -19,7 +19,7 @@
                                          style="width: 120px; height: 120px; border-width: 5px !important;">
                                     {% if user.is_staff %}
                                         <div class="position-absolute" style="bottom: 5px; right: 5px;">
-                                            <span class="badge badge-warning rounded-circle p-2" title="Staff Member">
+                                            <span class="badge badge-warning rounded-circle p-2" title="Site Admin">
                                                 <i class="fas fa-shield-alt"></i>
                                             </span>
                                         </div>
@@ -34,13 +34,17 @@
                                     {% endif %}
                                     <div class="d-flex flex-wrap gap-2">
                                         {% if user.is_staff %}
-                                            <span class="badge badge-warning px-3 py-2">
-                                                <i class="fas fa-shield-alt mr-1"></i> Staff Member
-                                            </span>
+                                            <div class="badge-container">
+                                                <span class="badge-stat badge-stat-warning">
+                                                    <i class="fas fa-shield-alt"></i>Site Admin
+                                                </span>
+                                            </div>
                                         {% endif %}
-                                        <span class="badge badge-light px-3 py-2">
-                                            <i class="fas fa-calendar mr-1"></i> Joined {{ user.date_joined|date:"M Y" }}
-                                        </span>
+                                        <div class="badge-container">
+                                            <span class="badge-stat badge-stat-secondary">
+                                                <i class="fas fa-calendar"></i>Joined {{ user.date_joined|date:"M Y" }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -133,19 +137,17 @@
                                                             <i class="fas fa-chart-bar"></i>{{ stats.modes_with_elo }}/{{ stats.total_modes }} Played
                                                         </span>
                                                     </div>
-                                                    {% if stats.modes_with_elo > 0 %}
-                                                        <div class="progress-container ml-2" style="width: 100px;">
-                                                            <small class="text-muted d-block text-center mb-1">{{ stats.completion_percent }}% Complete</small>
-                                                            <div class="progress" style="height: 6px;">
-                                                                <div class="progress-bar 
-                                                                    {% if stats.completion_percent == 100 %}bg-success
-                                                                    {% elif stats.completion_percent >= 75 %}bg-info
-                                                                    {% elif stats.completion_percent >= 50 %}bg-warning
-                                                                    {% else %}bg-danger{% endif %}" 
-                                                                    style="width: {{ stats.completion_percent }}%"></div>
-                                                            </div>
+                                                    <div class="progress-container ml-2" style="width: 120px;">
+                                                        <small class="text-muted d-block text-center mb-1">{{ stats.completion_percent|default:"0" }}% Complete</small>
+                                                        <div class="progress bg-dark" style="height: 8px;">
+                                                            <div class="progress-bar 
+                                                                {% if stats.completion_percent == 100 %}bg-success
+                                                                {% elif stats.completion_percent >= 75 %}bg-info
+                                                                {% elif stats.completion_percent >= 50 %}bg-warning
+                                                                {% else %}bg-danger{% endif %}" 
+                                                                style="width: {{ stats.completion_percent|default:"0" }}%"></div>
                                                         </div>
-                                                    {% endif %}
+                                                    </div>
                                                 {% endif %}
                                             {% endfor %}
                                             <i class="fas fa-chevron-right text-white chevron-indicator ml-3"></i>
@@ -278,24 +280,17 @@
                                                     <i class="fas fa-robot"></i>{{ game.robots_with_scores }}/{{ game.leaderboards|length }} Robot{% if game.leaderboards|length != 1 %}s{% endif %}
                                                 </span>
                                             </div>
-                                            {% if game.robots_with_scores > 0 %}
-                                                <div class="badge-container">
-                                                    <span class="badge-stat badge-stat-warning">
-                                                        <i class="fas fa-chart-line"></i>{{ game.avg_percentile|floatformat:1 }}% Avg
-                                                    </span>
+                                            <div class="progress-container ml-2" style="width: 120px;">
+                                                <small class="text-muted d-block text-center mb-1">{{ game.avg_percentile|default:"0"|floatformat:1 }}% Performance</small>
+                                                <div class="progress bg-dark" style="height: 8px;">
+                                                    <div class="progress-bar 
+                                                        {% if game.avg_percentile >= 90 %}bg-warning
+                                                        {% elif game.avg_percentile >= 75 %}bg-success
+                                                        {% elif game.avg_percentile >= 50 %}bg-info
+                                                        {% else %}bg-secondary{% endif %}" 
+                                                        style="width: {{ game.avg_percentile|default:"0" }}%"></div>
                                                 </div>
-                                                <div class="progress-container ml-2" style="width: 100px;">
-                                                    <small class="text-muted d-block text-center mb-1">{{ game.avg_percentile|floatformat:1 }}% Avg</small>
-                                                    <div class="progress" style="height: 6px;">
-                                                        <div class="progress-bar 
-                                                            {% if game.avg_percentile >= 90 %}bg-warning
-                                                            {% elif game.avg_percentile >= 75 %}bg-success
-                                                            {% elif game.avg_percentile >= 50 %}bg-info
-                                                            {% else %}bg-secondary{% endif %}" 
-                                                            style="width: {{ game.avg_percentile }}%"></div>
-                                                    </div>
-                                                </div>
-                                            {% endif %}
+                                            </div>
                                             <i class="fas fa-chevron-right text-white chevron-indicator ml-3"></i>
                                         </div>
                                     </div>
@@ -398,19 +393,47 @@
         }
         .bg-darker {
             background-color: #1a1a1a !important;
+            background-image: 
+                url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
         }
         .bg-darker-secondary {
             background-color: #2a2a2a !important;
+            background-image: 
+                url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
         }
         .collapsible-header {
             cursor: pointer;
             transition: all 0.3s ease;
             user-select: none;
+            background-image: 
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 10px,
+                    rgba(255,255,255,0.01) 10px,
+                    rgba(255,255,255,0.01) 20px
+                );
+            position: relative;
+            overflow: hidden;
+        }
+        .collapsible-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
         .collapsible-header:hover {
             background-color: #2a2a2a !important;
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .collapsible-header:hover::before {
+            opacity: 1;
         }
         .chevron-indicator {
             transition: transform 0.3s ease;
@@ -422,31 +445,61 @@
             cursor: pointer;
             transition: all 0.3s ease;
             user-select: none;
+            background-image: 
+                repeating-linear-gradient(
+                    -45deg,
+                    transparent,
+                    transparent 8px,
+                    rgba(255,255,255,0.02) 8px,
+                    rgba(255,255,255,0.02) 16px
+                );
+            position: relative;
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease, border-color 0.3s ease;
+        }
+        .game-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
         }
         .game-header:hover {
             background-color: #3a3a3a !important;
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            border-left-color: #007bff;
+        }
+        .game-header:hover::after {
+            transform: scaleX(1);
+        }
+        .game-header[aria-expanded="true"] {
+            border-left-color: #28a745;
         }
         .badge-container {
             display: inline-block;
             margin-right: 0.5rem;
         }
         .badge-stat {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.5rem 0.75rem;
+            display: inline-block !important;
+            padding: 0.5rem 1rem !important;
             border-radius: 8px;
             font-size: 0.875rem;
             font-weight: 600;
             transition: all 0.2s ease;
             border: 1px solid transparent;
             white-space: nowrap;
+            text-align: center !important;
+            line-height: 1.5;
+            margin: 0 !important;
         }
         .badge-stat i {
             font-size: 1rem;
-            margin-right: 0.5rem;
+            margin-right: 0.4rem;
             vertical-align: middle;
         }
         .badge-stat-success {
@@ -493,9 +546,24 @@
             transform: translateY(-1px);
             box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
         }
+        .badge-stat-secondary {
+            background: rgba(108, 117, 125, 0.2);
+            color: #6c757d;
+            border-color: rgba(108, 117, 125, 0.3);
+        }
+        .badge-stat-secondary:hover {
+            background: rgba(108, 117, 125, 0.3);
+            border-color: #6c757d;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+        }
         .progress-container {
             display: inline-block;
             vertical-align: middle;
+        }
+        .progress {
+            background-color: rgba(0, 0, 0, 0.5) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
     </style>
 

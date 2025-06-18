@@ -179,10 +179,16 @@ def user_profile(request, user_id: int):
         else:
             stats['completion_percent'] = 0
 
+    # Sort games alphabetically by name
+    sorted_games = dict(sorted(games.items()))
+    
+    # Sort elos_by_game alphabetically by game name
+    sorted_elos_by_game = dict(sorted(elos_by_game.items(), key=lambda item: item[0].game))
+    
     context = {
-        "games": games,
+        "games": sorted_games,
         "user": user,
-        "elos_by_game": elos_by_game,
+        "elos_by_game": sorted_elos_by_game,
         "total_matches": total_matches,
         "ranked_games_stats": ranked_games_stats
     }
