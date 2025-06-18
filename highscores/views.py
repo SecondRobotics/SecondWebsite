@@ -101,12 +101,32 @@ def world_records(request: HttpRequest) -> HttpResponse:
 
         record.active_for = f"{int(years)} years, {int(months)} months, {days:.1f} days"
 
-    # Count the number of records per player
-    player_counts = Counter(record.player.username for record in world_records)
+    # Count the number of records per player and group records by player
+    player_counts = Counter(record.player for record in world_records)
     player_counts = sorted(player_counts.items(),
                            key=lambda x: x[1], reverse=True)
+    
+    # Group records by player for detailed view and create a list for template
+    from collections import defaultdict
+    player_records_dict = defaultdict(list)
+    for record in world_records:
+        player_records_dict[record.player].append(record)
+    
+    # Sort each player's records by game name and create final list
+    player_records_list = []
+    for player, count in player_counts:
+        records = player_records_dict[player]
+        records.sort(key=lambda x: (x.leaderboard.game, x.robot_name))
+        player_records_list.append({
+            'player': player,
+            'count': count,
+            'records': records
+        })
 
-    return render(request, WR_PAGE, {"world_records": world_records, "player_counts": player_counts})
+    return render(request, WR_PAGE, {
+        "world_records": world_records, 
+        "player_records_list": player_records_list
+    })
 
 
 def leaderboard_combined(request: HttpRequest, game_slug: str) -> HttpResponse:
