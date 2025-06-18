@@ -1,50 +1,323 @@
 {% extends 'home/base.html' %}
+
+{% block extra_js %}
+<style>
+/* Hero Section */
+.ranked-hero {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    position: relative;
+    overflow: hidden;
+    min-height: 50vh;
+    display: flex;
+    align-items: center;
+    margin-top: -2rem;
+}
+
+.ranked-hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 30% 50%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 70% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+        linear-gradient(135deg, transparent 0%, rgba(139, 92, 246, 0.05) 50%, transparent 100%);
+    animation: backgroundPulse 8s ease-in-out infinite;
+}
+
+.ranked-hero-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(139, 92, 246, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridFloat 25s linear infinite;
+    opacity: 0.3;
+}
+
+.ranked-hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 2rem;
+}
+
+.ranked-title {
+    font-size: 4rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffffff 0%, #8b5cf6 50%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+    animation: titleGlow 4s ease-in-out infinite;
+}
+
+.ranked-subtitle {
+    font-size: 1.3rem;
+    color: #e0e0e0;
+    margin-bottom: 2rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+    animation: slideUp 1s ease-out 0.3s both;
+}
+
+/* Content Section */
+.ranked-content {
+    background: #0a0a0a;
+    padding: 4rem 0;
+    min-height: 100vh;
+}
+
+/* Simple Table Styling */
+.simple-table {
+    background: rgba(17, 24, 39, 0.6);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.simple-table thead {
+    background: rgba(31, 41, 55, 0.8);
+}
+
+.simple-table thead th {
+    border: none;
+    color: #ffffff;
+    font-weight: 500;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.simple-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 0.2s ease;
+}
+
+.simple-table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.simple-table tbody td {
+    border: none;
+    padding: 0.4rem 0.75rem;
+    color: #e5e7eb;
+    text-align: center;
+}
+
+.simple-table tbody td a {
+    color: #60a5fa;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.simple-table tbody td a:hover {
+    color: #93c5fd;
+}
+
+/* Position styling for # column */
+.position-cell {
+    font-weight: 700;
+    color: #6b7280;
+    font-size: 1rem;
+}
+
+.position-cell.pos-1 {
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.position-cell.pos-2 {
+    color: #c0c0c0;
+    text-shadow: 0 0 10px rgba(192, 192, 192, 0.5);
+}
+
+.position-cell.pos-3 {
+    color: #cd7f32;
+    text-shadow: 0 0 10px rgba(205, 127, 50, 0.5);
+}
+
+.position-cell.pos-top10 {
+    color: #8b5cf6;
+    text-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+}
+
+.position-cell.pos-top25 {
+    color: #06b6d4;
+    text-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
+}
+
+/* ELO and MMR styling */
+.elo-cell, .mmr-cell {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+/* Win rate color coding */
+.winrate-excellent {
+    color: #22c55e;
+    font-weight: 600;
+}
+
+.winrate-good {
+    color: #84cc16;
+    font-weight: 600;
+}
+
+.winrate-average {
+    color: #eab308;
+    font-weight: 600;
+}
+
+.winrate-below {
+    color: #f97316;
+    font-weight: 600;
+}
+
+.winrate-poor {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+/* Animations */
+@keyframes backgroundPulse {
+    0%, 100% { 
+        transform: scale(1) rotate(0deg);
+        opacity: 0.8;
+    }
+    50% { 
+        transform: scale(1.05) rotate(0.5deg);
+        opacity: 1;
+    }
+}
+
+@keyframes gridFloat {
+    0% { 
+        transform: translateX(0) translateY(0);
+    }
+    100% { 
+        transform: translateX(40px) translateY(40px);
+    }
+}
+
+@keyframes titleGlow {
+    0%, 100% { 
+        filter: brightness(1);
+        text-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+    }
+    50% { 
+        filter: brightness(1.1);
+        text-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .ranked-title {
+        font-size: 3rem;
+    }
+    
+    .ranked-subtitle {
+        font-size: 1.1rem;
+    }
+    
+    .simple-table {
+        font-size: 0.85rem;
+    }
+    
+    .simple-table thead th,
+    .simple-table tbody td {
+        padding: 0.3rem 0.4rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 {% load rank_filter %}
 
-<div class="position-relative overflow-hidden text-center bg-primary">
-    <div class="p-lg-4 mx-auto">
-        <h1 style="color: white" class="display-4 fw-normal">
-            {{leaderboard_name}}
-        </h1>
+<!-- Hero Section -->
+<div class="ranked-hero">
+    <div class="ranked-hero-bg"></div>
+    <div class="ranked-hero-grid"></div>
+    
+    <div class="container-fluid">
+        <div class="ranked-hero-content">
+            <h1 class="ranked-title">{{leaderboard_name}}</h1>
+            <p class="ranked-subtitle">Competitive Ranked Leaderboard</p>
+        </div>
     </div>
 </div>
 
-<div class="table-responsive">
-<table class="table table-dark table-striped table-hover table-sm" style="text-align: center">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Player</th>
-            <th>ELO</th>
-            <th>MMR</th>
-            <th>Rank</th>
-            <th># Played</th>
-            <th>Win %</th>
-            <th>Wins</th>
-            <th>Losses</th>
-            <th>Ties</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for player_data in players_with_rank %}
-        <tr>
-            <td>{{ forloop.counter }}</td>
-            <td>
-                <a href="/ranked/{{ leaderboard_code }}/{{ player_data.player.player.id }}">{{ player_data.player.player }}</a>
-            </td>
-            <td>{{ player_data.player.elo|floatformat:1 }}</td>
-            <td>{{ player_data.player.mmr|floatformat:1 }}</td>
-            <td style="color: {{ player_data.color }}">{{ player_data.rank }}</td>
-            <td>{{ player_data.player.matches_played }}</td>
-            <td>{{ player_data.player.win_rate|floatformat:2 }}%</td>
-            <td>{{ player_data.player.matches_won }}</td>
-            <td>{{ player_data.player.matches_lost }}</td>
-            <td>{{ player_data.player.matches_drawn }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<!-- Content Section -->
+<div class="ranked-content">
+    <div class="container-fluid">
+        <div class="table-responsive">
+            <table class="table simple-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Player</th>
+                        <th>ELO</th>
+                        <th>MMR</th>
+                        <th>Rank</th>
+                        <th># Played</th>
+                        <th>Win %</th>
+                        <th>Wins</th>
+                        <th>Losses</th>
+                        <th>Ties</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for player_data in players_with_rank %}
+                    <tr>
+                        <td>
+                            <span class="position-cell {% if forloop.counter == 1 %}pos-1{% elif forloop.counter == 2 %}pos-2{% elif forloop.counter == 3 %}pos-3{% elif forloop.counter <= 10 %}pos-top10{% elif forloop.counter <= 25 %}pos-top25{% endif %}">
+                                {{ forloop.counter }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="/ranked/{{ leaderboard_code }}/{{ player_data.player.player.id }}">{{ player_data.player.player }}</a>
+                        </td>
+                        <td>
+                            <span class="elo-cell">{{ player_data.player.elo|floatformat:1 }}</span>
+                        </td>
+                        <td>
+                            <span class="mmr-cell">{{ player_data.player.mmr|floatformat:1 }}</span>
+                        </td>
+                        <td style="color: {{ player_data.color }}; font-weight: 600;{% if player_data.rank == 'Stone' %} text-shadow: -1px -1px 0 rgba(255, 255, 255, 0.5), 1px -1px 0 rgba(255, 255, 255, 0.5), -1px 1px 0 rgba(255, 255, 255, 0.5), 1px 1px 0 rgba(255, 255, 255, 0.5);{% endif %}">{{ player_data.rank }}</td>
+                        <td>{{ player_data.player.matches_played }}</td>
+                        <td>
+                            <span class="{% if player_data.player.win_rate >= 80 %}winrate-excellent{% elif player_data.player.win_rate >= 65 %}winrate-good{% elif player_data.player.win_rate >= 50 %}winrate-average{% elif player_data.player.win_rate >= 35 %}winrate-below{% else %}winrate-poor{% endif %}">
+                                {{ player_data.player.win_rate|floatformat:2 }}%
+                            </span>
+                        </td>
+                        <td>{{ player_data.player.matches_won }}</td>
+                        <td>{{ player_data.player.matches_lost }}</td>
+                        <td>{{ player_data.player.matches_drawn }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 {% endblock %}

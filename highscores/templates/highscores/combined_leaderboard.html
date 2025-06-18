@@ -1,35 +1,308 @@
 {% extends 'home/base.html' %}
 
+{% block extra_js %}
+<style>
+/* Hero Section */
+.combined-hero {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    position: relative;
+    overflow: hidden;
+    min-height: 50vh;
+    display: flex;
+    align-items: center;
+    margin-top: -2rem;
+}
+
+.combined-hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 30% 50%, rgba(245, 158, 11, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 70% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+        linear-gradient(135deg, transparent 0%, rgba(245, 158, 11, 0.05) 50%, transparent 100%);
+    animation: backgroundPulse 8s ease-in-out infinite;
+}
+
+.combined-hero-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(245, 158, 11, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridFloat 25s linear infinite;
+    opacity: 0.3;
+}
+
+.combined-hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 2rem;
+}
+
+.combined-title {
+    font-size: 4rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffffff 0%, #f59e0b 50%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+    animation: titleGlow 4s ease-in-out infinite;
+}
+
+.combined-subtitle {
+    font-size: 1.3rem;
+    color: #e0e0e0;
+    margin-bottom: 2rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+    animation: slideUp 1s ease-out 0.3s both;
+}
+
+/* Content Section */
+.combined-content {
+    background: #0a0a0a;
+    padding: 4rem 0;
+    min-height: 100vh;
+}
+
+/* Simple Table Styling */
+.simple-table {
+    background: rgba(17, 24, 39, 0.6);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.simple-table thead {
+    background: rgba(31, 41, 55, 0.8);
+}
+
+.simple-table thead th {
+    border: none;
+    color: #ffffff;
+    font-weight: 500;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.simple-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 0.2s ease;
+}
+
+.simple-table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.simple-table tbody td {
+    border: none;
+    padding: 0.4rem 0.75rem;
+    color: #e5e7eb;
+}
+
+.simple-table tbody td a {
+    color: #60a5fa;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.simple-table tbody td a:hover {
+    color: #93c5fd;
+}
+
+/* Rank styling */
+.rank-cell {
+    font-weight: 700;
+    color: #6b7280;
+    font-size: 1.1rem;
+}
+
+.rank-cell.rank-1 {
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.rank-cell.rank-2 {
+    color: #c0c0c0;
+    text-shadow: 0 0 10px rgba(192, 192, 192, 0.5);
+}
+
+.rank-cell.rank-3 {
+    color: #cd7f32;
+    text-shadow: 0 0 10px rgba(205, 127, 50, 0.5);
+}
+
+.rank-cell.rank-top10 {
+    color: #8b5cf6;
+    text-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+}
+
+.rank-cell.rank-top25 {
+    color: #06b6d4;
+    text-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
+}
+
+.rank-cell.rank-top50 {
+    color: #10b981;
+    text-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.rank-cell.rank-top100 {
+    color: #f59e0b;
+    text-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+/* Percentile color coding */
+.percentile-excellent {
+    color: #22c55e;
+    font-weight: 600;
+}
+
+.percentile-good {
+    color: #84cc16;
+    font-weight: 600;
+}
+
+.percentile-average {
+    color: #eab308;
+    font-weight: 600;
+}
+
+.percentile-below {
+    color: #f97316;
+    font-weight: 600;
+}
+
+.percentile-poor {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+/* Animations */
+@keyframes backgroundPulse {
+    0%, 100% { 
+        transform: scale(1) rotate(0deg);
+        opacity: 0.8;
+    }
+    50% { 
+        transform: scale(1.05) rotate(0.5deg);
+        opacity: 1;
+    }
+}
+
+@keyframes gridFloat {
+    0% { 
+        transform: translateX(0) translateY(0);
+    }
+    100% { 
+        transform: translateX(40px) translateY(40px);
+    }
+}
+
+@keyframes titleGlow {
+    0%, 100% { 
+        filter: brightness(1);
+        text-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+    }
+    50% { 
+        filter: brightness(1.1);
+        text-shadow: 0 0 30px rgba(245, 158, 11, 0.5);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .combined-title {
+        font-size: 3rem;
+    }
+    
+    .combined-subtitle {
+        font-size: 1.1rem;
+    }
+    
+    .simple-table {
+        font-size: 0.85rem;
+    }
+    
+    .simple-table thead th,
+    .simple-table tbody td {
+        padding: 0.5rem 0.4rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="position-relative overflow-hidden text-center bg-warning">
-    <div class="col-md-4 p-lg-4 mx-auto">
-        <h1 style="color: black" class="display-4 fw-normal">
-            {{ game_name }} Combined Leaderboard
-        </h1>
+<!-- Hero Section -->
+<div class="combined-hero">
+    <div class="combined-hero-bg"></div>
+    <div class="combined-hero-grid"></div>
+    
+    <div class="container-fluid">
+        <div class="combined-hero-content">
+            <h1 class="combined-title">{{ game_name }}</h1>
+            <p class="combined-subtitle">Combined Leaderboard - Overall Rankings</p>
+        </div>
     </div>
 </div>
-<table class="table table-dark table-striped table-hover table-sm">
-    <thead>
-        <tr>
-            <th style="text-align: center">Rank</th>
-            <th>Player Name</th>
-            <th style="text-align: center">Score</th>
-            <th style="text-align: center">Last Submitted</th>
-            <th style="text-align: center">Average Percentile</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for item in ls %}
-        <tr>
-            <td style="text-align: center"><b>{{ item.0 }}</b></td>
-            <td>
-                <a href="/user/{{ item.1.player.id }}" style="color: #fff">{{ item.1.player }}</a>
-            </td>
-            <td style="text-align: center">{{ item.1.score }}</td>
-            <td style="text-align: center">{{ item.1.time_set }}</td>
-            <td style="text-align: center">{{ item.1.average_percentile|floatformat:2 }}%</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+
+<!-- Content Section -->
+<div class="combined-content">
+    <div class="container-fluid">
+        <div class="table-responsive">
+            <table class="table simple-table">
+                <thead>
+                    <tr>
+                        <th style="text-align: center">Rank</th>
+                        <th>Player Name</th>
+                        <th style="text-align: center">Total Score</th>
+                        <th style="text-align: center">Last Submitted</th>
+                        <th style="text-align: center">Average Percentile</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in ls %}
+                    <tr>
+                        <td style="text-align: center">
+                            <span class="rank-cell {% if item.0 == 1 %}rank-1{% elif item.0 == 2 %}rank-2{% elif item.0 == 3 %}rank-3{% elif item.0 <= 10 %}rank-top10{% elif item.0 <= 25 %}rank-top25{% elif item.0 <= 50 %}rank-top50{% elif item.0 <= 100 %}rank-top100{% endif %}">
+                                #{{ item.0 }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="/user/{{ item.1.player.id }}">{{ item.1.player }}</a>
+                        </td>
+                        <td style="text-align: center"><strong>{{ item.1.score|floatformat:0 }}</strong></td>
+                        <td style="text-align: center">{{ item.1.time_set|date:"M j, Y" }}</td>
+                        <td style="text-align: center">
+                            <span class="{% if item.1.average_percentile >= 90 %}percentile-excellent{% elif item.1.average_percentile >= 75 %}percentile-good{% elif item.1.average_percentile >= 50 %}percentile-average{% elif item.1.average_percentile >= 25 %}percentile-below{% else %}percentile-poor{% endif %}">
+                                {{ item.1.average_percentile|floatformat:3 }}%
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}

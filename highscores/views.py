@@ -4,6 +4,7 @@ from typing import Callable, Optional, Type
 
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
+from django.core.paginator import Paginator
 from django.db.models import Count, F, Max, Prefetch, Q, Sum
 from django.db.models.functions import Coalesce
 from django.http import HttpRequest, HttpResponse
@@ -212,62 +213,75 @@ def submit_form_view(request: HttpRequest, form_class: Type[ScoreForm], submit_f
 
 
 def overall_singleplayer_leaderboard(request: HttpRequest) -> HttpResponse:
-    cache_key = 'overall_singleplayer_leaderboard'
-    context = cache.get(cache_key)
-    if context:
-        return render(request, "highscores/overall_singleplayer_leaderboard.html", context)
+    page_number = request.GET.get('page', 1)
+    
+    # Generate full leaderboard data
+    leaderboard_cache_key = 'overall_singleplayer_leaderboard_full'
+    full_context = cache.get(leaderboard_cache_key)
+    
+    if not full_context:
+        leaderboards = Leaderboard.objects.all()
 
-    leaderboards = Leaderboard.objects.all()
+        # Prefetch related scores for all leaderboards
+        scores_prefetch = Prefetch('score_set', queryset=Score.objects.filter(
+            approved=True).select_related('player'))
+        leaderboards = leaderboards.prefetch_related(scores_prefetch)
 
-    # Prefetch related scores for all leaderboards
-    scores_prefetch = Prefetch('score_set', queryset=Score.objects.filter(
-        approved=True).select_related('player'))
-    leaderboards = leaderboards.prefetch_related(scores_prefetch)
+        player_percentiles = {}
+        all_players = set()
 
-    player_percentiles = {}
-    all_players = set()
-
-    for leaderboard in leaderboards:
-        scores = leaderboard.score_set.all().order_by('-score', 'time_set')
-        if not scores.exists():
-            continue
-        highest_score = scores.first().score
-
-        for score in scores:
-            percentile = (score.score / highest_score) * 100
-            if score.player.id not in player_percentiles:
-                player_percentiles[score.player.id] = []
-            player_percentiles[score.player.id].append(percentile)
-            all_players.add(score.player.id)
-
-    # Ensure every player has a score for each leaderboard (0% if missing)
-    for player_id in all_players:
-        if player_id not in player_percentiles:
-            player_percentiles[player_id] = []
         for leaderboard in leaderboards:
-            if len(player_percentiles[player_id]) < leaderboards.count():
-                player_percentiles[player_id].append(0.0)
+            scores = leaderboard.score_set.all().order_by('-score', 'time_set')
+            if not scores.exists():
+                continue
+            highest_score = scores.first().score
 
-    average_percentiles = {player_id: sum(percentiles) / len(percentiles)
-                           for player_id, percentiles in player_percentiles.items()}
-    sorted_average_percentiles = sorted(
-        average_percentiles.items(), key=lambda x: x[1], reverse=True)
+            for score in scores:
+                percentile = (score.score / highest_score) * 100
+                if score.player.id not in player_percentiles:
+                    player_percentiles[score.player.id] = []
+                player_percentiles[score.player.id].append(percentile)
+                all_players.add(score.player.id)
 
-    context = []
-    i = 1
-    player_objects = User.objects.filter(id__in=all_players).in_bulk()
-    for player_id, avg_percentile in sorted_average_percentiles:
-        player = player_objects[player_id]
-        total_score = Score.objects.filter(player=player, approved=True).aggregate(
-            total_score=Sum('score'))['total_score']
-        last_time_set = Score.objects.filter(player=player, approved=True).aggregate(
-            last_time_set=Max('time_set'))['last_time_set']
-        context.append([i, {'player': player, 'average_percentile': avg_percentile,
-                       'score': total_score, 'time_set': last_time_set}])
-        i += 1
+        # Ensure every player has a score for each leaderboard (0% if missing)
+        for player_id in all_players:
+            if player_id not in player_percentiles:
+                player_percentiles[player_id] = []
+            for leaderboard in leaderboards:
+                if len(player_percentiles[player_id]) < leaderboards.count():
+                    player_percentiles[player_id].append(0.0)
 
-    cache.set(cache_key, {"ls": context}, 300)  # Cache for 5 minutes
-    return render(request, "highscores/overall_singleplayer_leaderboard.html", {"ls": context})
+        average_percentiles = {player_id: sum(percentiles) / len(percentiles)
+                               for player_id, percentiles in player_percentiles.items()}
+        sorted_average_percentiles = sorted(
+            average_percentiles.items(), key=lambda x: x[1], reverse=True)
+
+        full_context = []
+        i = 1
+        player_objects = User.objects.filter(id__in=all_players).in_bulk()
+        for player_id, avg_percentile in sorted_average_percentiles:
+            player = player_objects[player_id]
+            total_score = Score.objects.filter(player=player, approved=True).aggregate(
+                total_score=Sum('score'))['total_score']
+            last_time_set = Score.objects.filter(player=player, approved=True).aggregate(
+                last_time_set=Max('time_set'))['last_time_set']
+            full_context.append([i, {'player': player, 'average_percentile': avg_percentile,
+                           'score': total_score, 'time_set': last_time_set}])
+            i += 1
+
+        cache.set(leaderboard_cache_key, full_context, 300)  # Cache for 5 minutes
+    
+    # Paginate the results
+    paginator = Paginator(full_context, 100)  # 100 items per page
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        "ls": page_obj,
+        "paginator": paginator,
+        "page_obj": page_obj
+    }
+    
+    return render(request, "highscores/overall_singleplayer_leaderboard.html", context)
 
 
 @login_required(login_url='/login')

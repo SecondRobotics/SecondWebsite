@@ -44,7 +44,7 @@ def leaderboard(request, name):
         game_mode=gamemode, matches_played__gt=20)
     players = players.annotate(
         time_delta=ExpressionWrapper(
-            datetime.now(timezone.utc) - F('last_match_played_time'),
+            timezone.now() - F('last_match_played_time'),
             output_field=FloatField()
         ) / 3600000000
     )
