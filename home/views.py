@@ -102,7 +102,8 @@ def user_profile(request, user_id: int):
     except (User.DoesNotExist, OverflowError):
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
-    all_leaderboards = Leaderboard.objects.all()
+    # Filter out test game/leaderboards
+    all_leaderboards = Leaderboard.objects.exclude(game__icontains='test')
     scores = Score.objects.filter(player=user, approved=True).order_by('-time_set')
 
     games = {}
@@ -138,14 +139,19 @@ def user_profile(request, user_id: int):
             "time_set": user_score.time_set if user_score else None
         })
 
-    # Calculate average percentiles
+    # Sort leaderboards within each game by percentile (highest to lowest)
     for game_name in games:
-        if games[game_name]["robots_with_scores"] > 0:
-            games[game_name]["avg_percentile"] = games[game_name]["total_percentile"] / games[game_name]["robots_with_scores"]
+        games[game_name]["leaderboards"].sort(key=lambda x: x["percentile"], reverse=True)
+        
+        # Calculate average percentiles - include all robots (missing ones count as 0%)
+        total_robots = len(games[game_name]["leaderboards"])
+        if total_robots > 0:
+            games[game_name]["avg_percentile"] = games[game_name]["total_percentile"] / total_robots
         else:
             games[game_name]["avg_percentile"] = 0
 
-    all_game_modes = GameMode.objects.all()
+    # Filter out test game modes
+    all_game_modes = GameMode.objects.exclude(game__icontains='test')
     player_elos = PlayerElo.objects.filter(player=user)
     
     elos_by_game = {}
@@ -165,25 +171,34 @@ def user_profile(request, user_id: int):
             ranked_games_stats[game_name] = {
                 'total_modes': 0,
                 'modes_with_elo': 0,
-                'completion_percent': 0
+                'total_elo': 0,
+                'average_elo': 1200
             }
         ranked_games_stats[game_name]['total_modes'] += 1
         if elo_record:
             ranked_games_stats[game_name]['modes_with_elo'] += 1
+            ranked_games_stats[game_name]['total_elo'] += elo_record.elo
+        else:
+            # Count missing ELOs as 1200
+            ranked_games_stats[game_name]['total_elo'] += 1200
 
-    # Calculate completion percentages
+    # Calculate average ELOs
     for game_name in ranked_games_stats:
         stats = ranked_games_stats[game_name]
         if stats['total_modes'] > 0:
-            stats['completion_percent'] = round((stats['modes_with_elo'] / stats['total_modes']) * 100, 1)
+            stats['average_elo'] = round(stats['total_elo'] / stats['total_modes'], 0)
         else:
-            stats['completion_percent'] = 0
+            stats['average_elo'] = 1200
 
-    # Sort games alphabetically by name
-    sorted_games = dict(sorted(games.items()))
+    # Sort games by average percentile (highest to lowest)
+    sorted_games = dict(sorted(games.items(), key=lambda item: item[1]["avg_percentile"], reverse=True))
     
-    # Sort elos_by_game alphabetically by game name
-    sorted_elos_by_game = dict(sorted(elos_by_game.items(), key=lambda item: item[0].game))
+    # Sort elos_by_game by average ELO (highest to lowest)
+    sorted_elos_by_game = dict(sorted(
+        elos_by_game.items(), 
+        key=lambda item: ranked_games_stats.get(item[0].game, {}).get('average_elo', 1200),
+        reverse=True
+    ))
     
     context = {
         "games": sorted_games,
