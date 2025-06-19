@@ -36,8 +36,9 @@ def submit_score(score_obj: Score, clean_code_check_func: Callable[[Score], Unio
     prev_submissions = Score.objects.filter(
         leaderboard__name=score_obj.leaderboard, player=score_obj.player)
 
+    # Only check approved submissions when comparing scores
     for submission in prev_submissions:
-        if submission.score >= score_obj.score:
+        if submission.approved and submission.score >= score_obj.score:
             return HIGHER_SCORE_MESSAGE
 
     # Code is valid! Instantly approve!
@@ -150,8 +151,8 @@ def extract_form_data(form: ScoreForm, request: HttpRequest) -> Score:
 
 
 def approve_score(score_obj: Score, prev_submissions):
-    # Delete previous submissions for this category
-    prev_submissions.delete()
+    # Delete previous submissions with lower or equal scores
+    prev_submissions.filter(score__lte=score_obj.score).delete()
 
     # Save the new submission
     score_obj.approved = True
