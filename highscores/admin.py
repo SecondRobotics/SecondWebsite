@@ -8,7 +8,7 @@ from .models import CleanCodeSubmission, Leaderboard, Score, ExemptedIP
 
 @admin.register(Score)
 class ScoreAdmin(admin.ModelAdmin):
-    list_display = ('player', 'score', 'leaderboard', 'approved', 'time_set', 'ip', 'client_version')
+    list_display = ('player', 'score', 'leaderboard', 'approved', 'time_set', 'ip', 'client_version', 'game_options_display')
     list_filter = ('approved', 'time_set', 'leaderboard', 'client_version')
     search_fields = ('player__username', 'leaderboard__name', 'ip', 'clean_code')
     raw_id_fields = ('player', 'leaderboard')
