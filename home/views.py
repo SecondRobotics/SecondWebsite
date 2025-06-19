@@ -106,6 +106,12 @@ def user_profile(request, user_id: int):
     all_leaderboards = Leaderboard.objects.exclude(game__icontains='test')
     scores = Score.objects.filter(player=user, approved=True).order_by('-time_set')
 
+    # Calculate additional stats
+    world_records = 0
+    total_scores = 0
+    total_percentile = 0
+    recent_scores = scores[:5]  # Last 5 scores for recent activity
+
     games = {}
     for leaderboard in all_leaderboards:
         game_name = leaderboard.game
@@ -122,12 +128,18 @@ def user_profile(request, user_id: int):
         score_value = user_score.score if user_score else 0
         games[game_name]["overall"] += score_value
 
-        # Calculate percentile
+        # Calculate percentile and check for world records
         if user_score:
             highest_score = Score.objects.filter(leaderboard=leaderboard, approved=True).aggregate(Max('score'))['score__max']
             percentile = (score_value / highest_score) * 100 if highest_score else 0
             games[game_name]["robots_with_scores"] += 1
             games[game_name]["total_percentile"] += percentile
+            
+            # Track world records and overall stats
+            if score_value == highest_score and highest_score > 0:
+                world_records += 1
+            total_scores += 1
+            total_percentile += percentile
         else:
             percentile = 0
 
@@ -200,12 +212,19 @@ def user_profile(request, user_id: int):
         reverse=True
     ))
     
+    # Calculate average performance
+    avg_performance = (total_percentile / total_scores) if total_scores > 0 else 0
+    
     context = {
         "games": sorted_games,
         "user": user,
         "elos_by_game": sorted_elos_by_game,
         "total_matches": total_matches,
-        "ranked_games_stats": ranked_games_stats
+        "ranked_games_stats": ranked_games_stats,
+        "world_records": world_records,
+        "total_scores": total_scores,
+        "avg_performance": avg_performance,
+        "recent_scores": recent_scores
     }
     return render(request, "home/user_profile.html", context)
 
