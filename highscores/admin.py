@@ -8,17 +8,17 @@ from .models import CleanCodeSubmission, Leaderboard, Score, ExemptedIP
 
 @admin.register(Score)
 class ScoreAdmin(admin.ModelAdmin):
-    list_display = ('player', 'score', 'leaderboard', 'approved', 'time_set', 'ip', 'client_version')
+    list_display = ('player', 'score', 'leaderboard', 'approved', 'time_set', 'ip', 'client_version', 'game_options_display')
     list_filter = ('approved', 'time_set', 'leaderboard', 'client_version')
     search_fields = ('player__username', 'leaderboard__name', 'ip', 'clean_code')
     raw_id_fields = ('player', 'leaderboard')
-    readonly_fields = ('time_set', 'time_data')
+    readonly_fields = ('time_set', 'time_data', 'game_options_display')
     fieldsets = (
         ('Score Information', {
             'fields': ('player', 'score', 'leaderboard', 'approved')
         }),
         ('Technical Details', {
-            'fields': ('clean_code', 'decrypted_code', 'client_version', 'time_of_score', 'robot_position', 'time_data')
+            'fields': ('clean_code', 'decrypted_code', 'client_version', 'time_of_score', 'robot_position', 'game_options_display', 'time_data')
         }),
         ('Submission Info', {
             'fields': ('source', 'ip', 'time_set')
@@ -27,6 +27,23 @@ class ScoreAdmin(admin.ModelAdmin):
     list_per_page = 50
     date_hierarchy = 'time_set'
     actions = ['approve_scores', 'unapprove_scores']
+
+    def game_options_display(self, obj):
+        """Display the game options from decrypted code"""
+        if not obj.decrypted_code:
+            return "No decrypted code available"
+        
+        try:
+            dataset = obj.decrypted_code.split(',')
+            if len(dataset) >= 10:
+                game_options = dataset[9].strip()
+                return game_options
+            else:
+                return "Game options not found"
+        except Exception as e:
+            return f"Error parsing game options: {str(e)}"
+    
+    game_options_display.short_description = "Game Options"
 
     def approve_scores(self, request, queryset):
         queryset.update(approved=True)

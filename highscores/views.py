@@ -287,3 +287,53 @@ def overall_singleplayer_leaderboard(request: HttpRequest) -> HttpResponse:
 @login_required(login_url='/login')
 def submit_form(request: HttpRequest, game_slug: str) -> HttpResponse:
     return submit_form_view(request, get_score_form(game_slug), game_slug_to_submit_func[game_slug])
+
+
+def admin_required(view_func):
+    """Custom decorator to require admin access (staff or superuser)"""
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return HttpResponseRedirect('/login')
+        if not (request.user.is_staff or request.user.is_superuser):
+            return HttpResponseRedirect('/')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+@admin_required
+def webhook_test(request: HttpRequest) -> HttpResponse:
+    """Admin-only page for testing Discord webhooks"""
+    from .lib import test_world_record_webhook
+    
+    success_message = None
+    error_message = None
+    
+    if request.method == 'POST':
+        # Get form data
+        player_name = request.POST.get('player_name', 'Test Player')
+        score = int(request.POST.get('score', 100000))
+        game = request.POST.get('game', 'Test Game')
+        robot = request.POST.get('robot', 'Test Robot')
+        previous_player = request.POST.get('previous_player', 'PreviousPlayer')
+        previous_score = int(request.POST.get('previous_score', 95000))
+        duration = request.POST.get('duration', '2 days, 3 hours')
+        
+        # Send test webhook
+        if test_world_record_webhook(player_name, score, game, robot, previous_player, previous_score, duration):
+            success_message = "Test webhook sent successfully!"
+        else:
+            error_message = "Failed to send test webhook. Check server logs."
+    
+    # Get sample data for dropdowns
+    leaderboards = Leaderboard.objects.all()
+    games = list(set(lb.game for lb in leaderboards))
+    robots = list(set(lb.name for lb in leaderboards))
+    
+    context = {
+        'success_message': success_message,
+        'error_message': error_message,
+        'games': games,
+        'robots': robots,
+    }
+    
+    return render(request, 'highscores/webhook_test.html', context)

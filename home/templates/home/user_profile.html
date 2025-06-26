@@ -5,11 +5,9 @@
 {% block content %}
     <div class="container-fluid">
         <!-- Modern Profile Header -->
-        <div class="row mb-5">
+        <div class="row mb-3">
             <div class="col-12">
-                <div class="card shadow-lg border-0 overflow-hidden">
-                    <div class="bg-gradient-primary" style="height: 120px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
-                    <div class="card-body position-relative" style="margin-top: -60px;">
+                <div class="filled-profile-card">
                         <div class="row align-items-end">
                             <div class="col-auto">
                                 <div class="position-relative">
@@ -28,10 +26,16 @@
                             </div>
                             <div class="col">
                                 <div class="mb-2">
-                                    <h2 class="mb-1 font-weight-bold text-gray-900">{{ user.username }}</h2>
-                                    {% if user.discriminator %}
-                                        <p class="text-muted mb-2">#{{ user.discriminator }}</p>
-                                    {% endif %}
+                                    <h2 class="mb-1 font-weight-bold text-white">
+                                        {% if user.display_name %}
+                                            {{ user.display_name }}
+                                        {% else %}
+                                            {{ user.username }}
+                                        {% endif %}
+                                    </h2>
+                                    <p class="text-light mb-3" style="font-size: 0.9rem; opacity: 0.9;">
+                                        <i class="fab fa-discord mr-1"></i>{{ user.username }}
+                                    </p>
                                     <div class="d-flex flex-wrap gap-2">
                                         {% if user.is_staff %}
                                             <div class="badge-container">
@@ -41,7 +45,7 @@
                                             </div>
                                         {% endif %}
                                         <div class="badge-container">
-                                            <span class="badge-stat badge-stat-secondary">
+                                            <span class="badge-stat badge-stat-light">
                                                 <i class="fas fa-calendar"></i>Joined {{ user.date_joined|date:"M Y" }}
                                             </span>
                                         </div>
@@ -56,34 +60,68 @@
 
         <!-- Enhanced Stats Overview -->
         {% if games or elos_by_game %}
-        <div class="row mb-4">
+        <div class="stats-section">
+            <div class="stats-row">
+            <!-- Games with Scores -->
             {% if games %}
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="card border-0 shadow-sm h-100">
+            <div class="stats-col">
+                <div class="card border-0 shadow-sm h-100 hover-card stats-card stats-card-primary">
                     <div class="card-body text-center p-4">
-                        <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <i class="fas fa-trophy fa-lg text-white"></i>
+                        <div class="stats-icon stats-icon-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                            <i class="fas fa-trophy fa-xl text-white"></i>
                         </div>
-                        <h3 class="h4 font-weight-bold text-gray-800 mb-1">{{ games|length }}</h3>
-                        <p class="text-muted mb-0 small">Games with Scores</p>
+                        <h3 class="h2 font-weight-bold text-white mb-1">{{ games|length }}</h3>
+                        <p class="text-light mb-0 small font-weight-medium">Games with Scores</p>
                     </div>
                 </div>
             </div>
             {% endif %}
 
+            <!-- Total Matches -->
             {% if elos_by_game %}
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="card border-0 shadow-sm h-100">
+            <div class="stats-col">
+                <div class="card border-0 shadow-sm h-100 hover-card stats-card stats-card-info">
                     <div class="card-body text-center p-4">
-                        <div class="bg-info rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <i class="fas fa-gamepad fa-lg text-white"></i>
+                        <div class="stats-icon stats-icon-info rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                            <i class="fas fa-swords fa-xl text-white"></i>
                         </div>
-                        <h3 class="h4 font-weight-bold text-gray-800 mb-1">{{ total_matches }}</h3>
-                        <p class="text-muted mb-0 small">Total Matches</p>
+                        <h3 class="h2 font-weight-bold text-white mb-1">{{ total_matches }}</h3>
+                        <p class="text-light mb-0 small font-weight-medium">Ranked Matches</p>
                     </div>
                 </div>
             </div>
             {% endif %}
+
+            <!-- World Records -->
+            {% if games %}
+            <div class="stats-col">
+                <div class="card border-0 shadow-sm h-100 hover-card stats-card stats-card-warning">
+                    <div class="card-body text-center p-4">
+                        <div class="stats-icon stats-icon-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                            <i class="fas fa-medal fa-xl text-white"></i>
+                        </div>
+                        <h3 class="h2 font-weight-bold text-white mb-1">{{ world_records }}</h3>
+                        <p class="text-light mb-0 small font-weight-medium">World Records</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Average Performance -->
+            {% if games %}
+            <div class="stats-col">
+                <div class="card border-0 shadow-sm h-100 hover-card stats-card stats-card-success">
+                    <div class="card-body text-center p-4">
+                        <div class="stats-icon stats-icon-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                            <i class="fas fa-chart-bar fa-xl text-white"></i>
+                        </div>
+                        <h3 class="h2 font-weight-bold text-white mb-1">{{ avg_performance|floatformat:1 }}%</h3>
+                        <p class="text-light mb-0 small font-weight-medium">Single Player Performance</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            </div>
         </div>
         {% else %}
         <!-- No Activity Message -->
@@ -137,16 +175,14 @@
                                                             <i class="fas fa-chart-bar"></i>{{ stats.modes_with_elo }}/{{ stats.total_modes }} Played
                                                         </span>
                                                     </div>
-                                                    <div class="progress-container ml-2" style="width: 120px;">
-                                                        <small class="text-muted d-block text-center mb-1">{{ stats.completion_percent|default:"0" }}% Complete</small>
-                                                        <div class="progress bg-dark" style="height: 8px;">
-                                                            <div class="progress-bar 
-                                                                {% if stats.completion_percent == 100 %}bg-success
-                                                                {% elif stats.completion_percent >= 75 %}bg-info
-                                                                {% elif stats.completion_percent >= 50 %}bg-warning
-                                                                {% else %}bg-danger{% endif %}" 
-                                                                style="width: {{ stats.completion_percent|default:"0" }}%"></div>
-                                                        </div>
+                                                    <div class="badge-container">
+                                                        <span class="badge-stat 
+                                                            {% if stats.average_elo >= 1600 %}badge-stat-danger
+                                                            {% elif stats.average_elo >= 1400 %}badge-stat-warning
+                                                            {% elif stats.average_elo >= 1200 %}badge-stat-info
+                                                            {% else %}badge-stat-secondary{% endif %}">
+                                                            <i class="fas fa-trophy"></i>{{ stats.average_elo|floatformat:0 }} Avg ELO
+                                                        </span>
                                                     </div>
                                                 {% endif %}
                                             {% endfor %}
@@ -280,8 +316,8 @@
                                                     <i class="fas fa-robot"></i>{{ game.robots_with_scores }}/{{ game.leaderboards|length }} Robot{% if game.leaderboards|length != 1 %}s{% endif %}
                                                 </span>
                                             </div>
-                                            <div class="progress-container ml-2" style="width: 120px;">
-                                                <small class="text-muted d-block text-center mb-1">{{ game.avg_percentile|default:"0"|floatformat:1 }}% Performance</small>
+                                            <div class="progress-container ml-2" style="width: 160px; padding: 8px 12px;">
+                                                <small class="text-muted text-center mb-1">{{ game.avg_percentile|default:"0"|floatformat:1 }}% Performance</small>
                                                 <div class="progress bg-dark" style="height: 8px;">
                                                     <div class="progress-bar 
                                                         {% if game.avg_percentile >= 90 %}bg-warning
@@ -376,11 +412,177 @@
     </div>
 
     <style>
+        /* Modern Profile Styles matching site design language */
+        .modern-profile-card {
+            background: var(--bg-secondary) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 16px !important;
+            box-shadow: var(--shadow-medium) !important;
+            transition: all 0.3s ease;
+            overflow: visible;
+            min-height: 200px;
+        }
+
+        .profile-content {
+            margin-top: -60px;
+            padding: 2rem !important;
+            z-index: 10;
+            position: relative;
+        }
+
+        .profile-header-gradient {
+            height: 120px;
+            background: linear-gradient(135deg, var(--accent-blue-dark) 0%, var(--accent-blue) 50%, var(--accent-blue-light) 100%);
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px 16px 0 0 !important;
+        }
+
+        .profile-header-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 8px,
+                    rgba(255,255,255,0.03) 8px,
+                    rgba(255,255,255,0.03) 16px
+                );
+        }
+
+        .modern-profile-card:hover {
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2) !important;
+            border-color: var(--accent-blue) !important;
+        }
+
+        /* COLORFUL STATS CARDS - Using highest specificity */
+        .stats-card.stats-card-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+
+        .stats-card.stats-card-info {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+
+        .stats-card.stats-card-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+
+        .stats-card.stats-card-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+
+        /* Remove base stats-card styles that override colors */
+        .stats-card {
+            border-radius: 12px !important;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .stats-card.stats-card-primary:hover {
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4) !important;
+            border-color: rgba(102, 126, 234, 0.8) !important;
+        }
+
+        .stats-card.stats-card-info:hover {
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4) !important;
+            border-color: rgba(59, 130, 246, 0.8) !important;
+        }
+
+        .stats-card.stats-card-warning:hover {
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4) !important;
+            border-color: rgba(245, 158, 11, 0.8) !important;
+        }
+
+        .stats-card.stats-card-success:hover {
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4) !important;
+            border-color: rgba(16, 185, 129, 0.8) !important;
+        }
+
+        /* Icon styles */
+        .stats-icon.stats-icon-primary {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .stats-icon.stats-icon-info {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .stats-icon.stats-icon-warning {
+            background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%) !important;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+        }
+
+        .stats-icon.stats-icon-success {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .stats-icon {
+            transition: all 0.3s ease;
+        }
+
+        .stats-card:hover .stats-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .stats-card:hover .stats-icon.stats-icon-primary {
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .stats-card:hover .stats-icon.stats-icon-info {
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+        }
+
+        .stats-card:hover .stats-icon.stats-icon-warning {
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+        }
+
+        .stats-card:hover .stats-icon.stats-icon-success {
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+        }
+
+        /* Center the cards better */
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .stats-col {
+            flex: 1;
+            max-width: 280px;
+            min-width: 250px;
+        }
         .hover-shadow {
             transition: box-shadow 0.3s ease;
         }
         .hover-shadow:hover {
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+        .hover-card {
+            transition: all 0.3s ease;
+        }
+        .hover-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.15) !important;
         }
         .badge-lg {
             font-size: 0.9rem;
@@ -480,83 +682,75 @@
         .game-header[aria-expanded="true"] {
             border-left-color: #28a745;
         }
-        .badge-container {
-            display: inline-block;
-            margin-right: 0.5rem;
-        }
-        .badge-stat {
-            display: inline-block !important;
-            padding: 0.5rem 1rem !important;
+        /* BRAND NEW BADGE SYSTEM */
+        .modern-badge {
+            background: #3b82f6;
+            color: white;
+            font-family: system-ui, -apple-system, sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            text-align: center;
+            padding: 8px 16px;
             border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            border: 1px solid transparent;
+            display: inline-block;
             white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+            border: none;
+            margin: 0;
+            line-height: 1.2;
+        }
+        
+        .modern-badge:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        }
+        
+        .modern-badge i {
+            margin-right: 6px;
+            font-size: 12px;
+        }
+        
+        .modern-badge-primary { background: linear-gradient(45deg, #8b5cf6, #a855f7); }
+        .modern-badge-info { background: linear-gradient(45deg, #3b82f6, #2563eb); }
+        .modern-badge-success { background: linear-gradient(45deg, #10b981, #059669); }
+        .modern-badge-warning { background: linear-gradient(45deg, #f59e0b, #d97706); }
+        .modern-badge-danger { background: linear-gradient(45deg, #ef4444, #dc2626); }
+        .modern-badge-secondary { background: linear-gradient(45deg, #6b7280, #4b5563); }
+        
+        /* Copy the exact working inline styles */
+        .badge-stat {
+            background: #3b82f6 !important;
+            color: white !important;
+            padding: 10px 20px !important;
+            border-radius: 8px !important;
+            display: inline-block !important;
             text-align: center !important;
-            line-height: 1.5;
-            margin: 0 !important;
+            margin: 5px !important;
+            border: none !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+            transition: all 0.2s ease !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            white-space: nowrap !important;
+            line-height: normal !important;
         }
+        
+        .badge-stat:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25) !important;
+        }
+        
         .badge-stat i {
-            font-size: 1rem;
-            margin-right: 0.4rem;
-            vertical-align: middle;
+            /* Keep icon styling minimal like the working examples */
         }
-        .badge-stat-success {
-            background: rgba(40, 167, 69, 0.2);
-            color: #28a745;
-            border-color: rgba(40, 167, 69, 0.3);
-        }
-        .badge-stat-success:hover {
-            background: rgba(40, 167, 69, 0.3);
-            border-color: #28a745;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
-        }
-        .badge-stat-info {
-            background: rgba(23, 162, 184, 0.2);
-            color: #17a2b8;
-            border-color: rgba(23, 162, 184, 0.3);
-        }
-        .badge-stat-info:hover {
-            background: rgba(23, 162, 184, 0.3);
-            border-color: #17a2b8;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
-        }
-        .badge-stat-warning {
-            background: rgba(255, 193, 7, 0.2);
-            color: #ffc107;
-            border-color: rgba(255, 193, 7, 0.3);
-        }
-        .badge-stat-warning:hover {
-            background: rgba(255, 193, 7, 0.3);
-            border-color: #ffc107;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
-        }
-        .badge-stat-primary {
-            background: rgba(0, 123, 255, 0.2);
-            color: #007bff;
-            border-color: rgba(0, 123, 255, 0.3);
-        }
-        .badge-stat-primary:hover {
-            background: rgba(0, 123, 255, 0.3);
-            border-color: #007bff;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
-        }
-        .badge-stat-secondary {
-            background: rgba(108, 117, 125, 0.2);
-            color: #6c757d;
-            border-color: rgba(108, 117, 125, 0.3);
-        }
-        .badge-stat-secondary:hover {
-            background: rgba(108, 117, 125, 0.3);
-            border-color: #6c757d;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
-        }
+        
+        .badge-stat-primary { background: linear-gradient(45deg, #8b5cf6, #a855f7) !important; }
+        .badge-stat-info { background: linear-gradient(45deg, #3b82f6, #2563eb) !important; }
+        .badge-stat-success { background: linear-gradient(45deg, #10b981, #059669) !important; }
+        .badge-stat-warning { background: linear-gradient(45deg, #f59e0b, #d97706) !important; }
+        .badge-stat-danger { background: linear-gradient(45deg, #ef4444, #dc2626) !important; }
+        .badge-stat-secondary { background: linear-gradient(45deg, #6b7280, #4b5563) !important; }
         .progress-container {
             display: inline-block;
             vertical-align: middle;
@@ -565,7 +759,87 @@
             background-color: rgba(0, 0, 0, 0.5) !important;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-    </style>
+        /* Smooth transition between profile and stats */
+        .stats-section {
+            position: relative;
+            margin-top: 2rem;
+            background: linear-gradient(135deg, 
+                rgba(59, 130, 246, 0.02) 0%, 
+                transparent 30%, 
+                transparent 70%, 
+                rgba(59, 130, 246, 0.02) 100%);
+            border-radius: 20px;
+            padding: 3rem 1rem 2rem 1rem;
+        }
+
+        .stats-section::before {
+            content: '';
+            position: absolute;
+            top: -1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(59, 130, 246, 0.3) 20%, 
+                rgba(59, 130, 246, 0.8) 50%, 
+                rgba(59, 130, 246, 0.3) 80%, 
+                transparent 100%);
+            border-radius: 2px;
+        }
+
+        /* Filled Profile Card */
+        .filled-profile-card {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+            border-radius: 16px !important;
+            padding: 2rem !important;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .filled-profile-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 8px,
+                    rgba(255,255,255,0.03) 8px,
+                    rgba(255,255,255,0.03) 16px
+                );
+        }
+
+        /* Force card colors to show */
+        .card.stats-card-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        }
+        .card.stats-card-info {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+        }
+        .card.stats-card-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+        }
+        .card.stats-card-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        }
+
+        /* Light badge for profile */
+        .badge-stat-light {
+            background: rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            backdrop-filter: blur(10px);
+        }\n    </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
