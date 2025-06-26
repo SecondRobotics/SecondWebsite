@@ -316,7 +316,6 @@ def extract_form_data(form: ScoreForm, request: HttpRequest) -> Score:
 
 
 def approve_score(score_obj: Score, prev_submissions):
-<<<<<<< Highscores-webhook
     # Check if this is a new world record before deleting previous submissions
     current_world_record = Score.objects.filter(
         leaderboard=score_obj.leaderboard, 
@@ -326,12 +325,8 @@ def approve_score(score_obj: Score, prev_submissions):
     is_world_record = (current_world_record is None or 
                       score_obj.score > current_world_record.score)
 
-    # Delete previous submissions for this category
-    prev_submissions.delete()
-=======
-    # Delete previous submissions with lower or equal scores
+    # Delete previous submissions with lower or equal scores in the category
     prev_submissions.filter(score__lte=score_obj.score).delete()
->>>>>>> main
 
     # Save the new submission
     score_obj.approved = True
