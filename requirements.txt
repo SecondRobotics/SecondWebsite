@@ -1,18 +1,18 @@
 appdirs==1.4.4
-asgiref==3.5.2
+asgiref>=3.8.1
 autopep8==1.6.0
 certifi==2024.7.4
 charset-normalizer==2.0.12
 distlib==0.3.4
-Django==3.2.25
+Django>=5.0,<6.0
 django-widget-tweaks==1.4.12
-djangorestframework==3.13.1
+djangorestframework>=3.15.0,<4.0
 idna==3.3
 pycodestyle==2.8.0
 pycryptodome==3.19.1
 python-dotenv==0.20.0
 pytz==2022.1
-requests==2.32.2
+requests==2.32.4
 six==1.16.0
 sqlparse==0.5.0
 toml==0.10.2
@@ -21,3 +21,4 @@ wheel==0.42.0
 pytest==8.3.3
 pytest-django==4.9.0
 pytest-cov==5.0.0
+setuptools

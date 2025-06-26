@@ -1,30 +1,499 @@
-{% extends 'home/base.html' %} {% block content %}
-<div class="p-3 p-md-5 m-md-3 text-center shadowy bg-dark">
-    <div>
-        <h1 class="display-4 fw-normal">Second Robotics</h1>
-        <br />
-        <p class="lead fw-normal">
-            Virtual simulator competitions using the xRC simulator for everyone.
-        </p>
-        <p class="lead fw-normal">
-            Welcome to the home of SRC, STC, SVC, MRC, and xRC high scores!
-        </p>
+{% extends 'home/base.html' %} 
+
+{% block extra_js %}
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    position: relative;
+    overflow: hidden;
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    margin: -2rem 0 0 0;
+}
+
+.hero-bg-animation {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 30% 20%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 70% 80%, rgba(37, 99, 235, 0.08) 0%, transparent 50%),
+        linear-gradient(135deg, transparent 0%, rgba(59, 130, 246, 0.05) 50%, transparent 100%);
+    animation: backgroundPulse 8s ease-in-out infinite;
+}
+
+.hero-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(59, 130, 246, 0.15) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.15) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridFloat 25s linear infinite;
+    opacity: 0.4;
+}
+
+.hero-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: rgba(59, 130, 246, 0.6);
+    border-radius: 50%;
+    animation: particleFloat 12s ease-in-out infinite;
+}
+
+.particle:nth-child(1) { top: 15%; left: 20%; animation-delay: 0s; }
+.particle:nth-child(2) { top: 30%; left: 80%; animation-delay: 3s; }
+.particle:nth-child(3) { top: 70%; left: 10%; animation-delay: 6s; }
+.particle:nth-child(4) { top: 50%; left: 90%; animation-delay: 9s; }
+.particle:nth-child(5) { top: 80%; left: 60%; animation-delay: 1.5s; }
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 2rem;
+}
+
+.hero-title {
+    font-size: 4.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffffff 0%, #3b82f6 50%, #60a5fa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+    animation: titleGlow 3s ease-in-out infinite;
+    text-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+}
+
+.hero-subtitle {
+    font-size: 1.4rem;
+    color: #a0a0a0;
+    margin-bottom: 1rem;
+    font-weight: 400;
+    animation: slideUp 1s ease-out 0.3s both;
+}
+
+.hero-description {
+    font-size: 1.1rem;
+    color: #a0a0a0;
+    margin-bottom: 3rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+    animation: slideUp 1s ease-out 0.6s both;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: slideUp 1s ease-out 0.9s both;
+}
+
+.hero-btn {
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.hero-btn:hover::before {
+    left: 100%;
+}
+
+.hero-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.hero-btn-secondary {
+    background: transparent;
+    border: 2px solid #3b82f6;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1);
+}
+
+.hero-btn-secondary:hover {
+    background: #3b82f6;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+}
+
+.hero-stats {
+    margin-top: 4rem;
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+    animation: slideUp 1s ease-out 1.2s both;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #3b82f6;
+    display: block;
+    line-height: 1;
+    animation: statFloat 6s ease-in-out infinite;
+}
+
+.stat-item:nth-child(1) .stat-number { animation-delay: 0s; }
+.stat-item:nth-child(2) .stat-number { animation-delay: 2s; }
+.stat-item:nth-child(3) .stat-number { animation-delay: 4s; }
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #a0a0a0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 0.5rem;
+}
+
+@keyframes backgroundPulse {
+    0%, 100% { 
+        transform: scale(1) rotate(0deg);
+        opacity: 0.8;
+    }
+    33% { 
+        transform: scale(1.05) rotate(0.5deg);
+        opacity: 1;
+    }
+    66% { 
+        transform: scale(0.95) rotate(-0.5deg);
+        opacity: 0.9;
+    }
+}
+
+@keyframes gridFloat {
+    0% { 
+        transform: translateX(0) translateY(0) scale(1);
+        opacity: 0.4;
+    }
+    50% { 
+        transform: translateX(20px) translateY(20px) scale(1.02);
+        opacity: 0.6;
+    }
+    100% { 
+        transform: translateX(40px) translateY(40px) scale(1);
+        opacity: 0.4;
+    }
+}
+
+@keyframes particleFloat {
+    0%, 100% { 
+        transform: translateY(0) translateX(0);
+        opacity: 0.6;
+    }
+    25% { 
+        transform: translateY(-20px) translateX(10px);
+        opacity: 0.9;
+    }
+    50% { 
+        transform: translateY(-30px) translateX(-5px);
+        opacity: 1;
+    }
+    75% { 
+        transform: translateY(-20px) translateX(5px);
+        opacity: 0.8;
+    }
+}
+
+@keyframes statFloat {
+    0%, 100% { 
+        transform: translateY(0);
+    }
+    50% { 
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes titleGlow {
+    0%, 100% { 
+        filter: brightness(1);
+        text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+    50% { 
+        filter: brightness(1.1);
+        text-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Video Section Styles */
+.video-section {
+    background: var(--bg-secondary);
+    padding: 5rem 0;
+    position: relative;
+}
+
+.video-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+}
+
+.video-container {
+    background: var(--bg-tertiary);
+    border-radius: 20px;
+    padding: 3rem;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-medium);
+    transition: all 0.3s ease;
+    animation: slideUp 1s ease-out;
+}
+
+
+.video-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.video-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #ffffff 0%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.video-description {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.video-wrapper {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.video-wrapper:hover {
+    border-color: var(--accent-blue);
+    box-shadow: 0 15px 40px rgba(59, 130, 246, 0.2);
+}
+
+.video-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 10px;
+}
+
+/* Video section responsive */
+@media (max-width: 1200px) {
+    .video-container {
+        padding: 2.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 3rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.2rem;
+    }
+    
+    .hero-description {
+        font-size: 1rem;
+        padding: 0 1rem;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .hero-stats {
+        gap: 2rem;
+        margin-top: 3rem;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+    }
+    
+    .video-section {
+        padding: 3rem 0;
+    }
+    
+    .video-container {
+        padding: 2rem 1.5rem;
+        margin: 0 1rem;
+    }
+    
+    .video-title {
+        font-size: 2rem;
+    }
+    
+    .video-description {
+        font-size: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="hero-bg-animation"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
     </div>
-    <div class="d-grid gap-2 col-6 p-lg-3 mx-auto">
-        <a href="/discord" class="btn btn-outline-light">Join the Discord</a>
-        <a href="https://xrcsimulator.org/" class="btn btn-outline-light"
-            >Download xRC Simulator</a
-        >
-        <a href="/merch" class="btn btn-outline-light">Shop the Merch Store</a>
+    
+    <div class="container-fluid">
+        <div class="hero-content">
+            <h1 class="hero-title">Second Robotics</h1>
+            <p class="hero-subtitle">Virtual Robotics Competition Platform</p>
+            <p class="hero-description">
+                Join the premier destination for competitive robotics simulation. 
+                Compete in SRC, STC, SVC, MRC events and climb the leaderboards 
+                in the most advanced xRC Simulator competitions.
+            </p>
+            
+            <div class="hero-buttons">
+                <a href="/discord" class="hero-btn">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M20.317 4.369c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.211.375-.445.865-.608 1.25a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.25.077.077 0 0 0-.079-.036A19.892 19.892 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.331c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                    </svg>
+                    Join Discord
+                </a>
+                <a href="https://xrcsimulator.org/" class="hero-btn hero-btn-secondary">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                    Download Simulator
+                </a>
+                <a href="/merch" class="hero-btn hero-btn-secondary">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 4V2a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v2h4a1 1 0 0 1 1 1v2a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V5a1 1 0 0 1 1-1h4zM9 3v1h6V3H9z"/>
+                        <path d="M5 10a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-9z"/>
+                    </svg>
+                    Shop Merch
+                </a>
+            </div>
+            
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <span class="stat-number">44K+</span>
+                    <span class="stat-label">Matches Played</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">24/7</span>
+                    <span class="stat-label">Ranked Gameplay</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">16+</span>
+                    <span class="stat-label">Games Supported</span>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-<div class="embed-responsive shadowy embed-responsive-16by9">
-    <iframe
-        width="100%"
-        height="500"
-        src="https://www.youtube-nocookie.com/embed/videoseries?list=PL-CZUOdLrE16yF1WyGbqh2ft0QwtKoZdW"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen
-    ></iframe>
+
+<!-- Video Section -->
+<div class="video-section">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-8">
+                <div class="video-container">
+                    <div class="video-header">
+                        <h2 class="video-title">Watch SRC in Action</h2>
+                        <p class="video-description">
+                            Discover the latest game trailers, robot reveals, and tournament highlights. 
+                            Get an inside look at the cutting-edge simulations and competitive matches that define the SRC experience.
+                        </p>
+                    </div>
+                    <div class="video-wrapper">
+                        <iframe
+                            src="https://www.youtube-nocookie.com/embed/videoseries?list=PL-CZUOdLrE16yF1WyGbqh2ft0QwtKoZdW"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen
+                            loading="lazy"
+                        ></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

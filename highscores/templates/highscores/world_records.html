@@ -1,53 +1,366 @@
 {% extends 'home/base.html' %}
 
+{% block extra_js %}
+<style>
+/* Hero Section */
+.records-hero {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    position: relative;
+    overflow: hidden;
+    min-height: 50vh;
+    display: flex;
+    align-items: center;
+    margin-top: -2rem;
+}
+
+.records-hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 30% 50%, rgba(251, 191, 36, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 70% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+        linear-gradient(135deg, transparent 0%, rgba(251, 191, 36, 0.05) 50%, transparent 100%);
+    animation: backgroundPulse 8s ease-in-out infinite;
+}
+
+.records-hero-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(251, 191, 36, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridFloat 25s linear infinite;
+    opacity: 0.3;
+}
+
+.records-hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 2rem;
+}
+
+.records-title {
+    font-size: 4rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffffff 0%, #fbbf24 50%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+    animation: titleGlow 4s ease-in-out infinite;
+}
+
+.records-subtitle {
+    font-size: 1.3rem;
+    color: #e0e0e0;
+    margin-bottom: 2rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+    animation: slideUp 1s ease-out 0.3s both;
+}
+
+/* Content Section */
+.records-content {
+    background: #0a0a0a;
+    padding: 4rem 0;
+    min-height: 100vh;
+}
+
+.records-section {
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(37, 37, 37, 0.9) 100%);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    margin-bottom: 3rem;
+    animation: fadeInUp 0.8s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.records-section:hover {
+    box-shadow: 0 15px 40px rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 2rem;
+    text-align: center;
+    background: linear-gradient(135deg, #ffffff 0%, #fbbf24 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Simple Table Styling */
+.simple-table {
+    background: rgba(17, 24, 39, 0.6);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.simple-table thead {
+    background: rgba(31, 41, 55, 0.8);
+}
+
+.simple-table thead th {
+    border: none;
+    color: #ffffff;
+    font-weight: 500;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.simple-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 0.2s ease;
+}
+
+.simple-table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.simple-table tbody td {
+    border: none;
+    padding: 0.4rem 0.75rem;
+    color: #e5e7eb;
+}
+
+.simple-table tbody td a {
+    color: #60a5fa;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.simple-table tbody td a:hover {
+    color: #93c5fd;
+}
+
+/* Count styling */
+.count-cell {
+    font-weight: 600;
+    color: #fbbf24;
+}
+
+/* Records details styling */
+.records-details {
+    font-size: 0.85rem;
+    line-height: 1.1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.record-entry {
+    display: block;
+    margin-bottom: 0.1rem;
+    color: #d1d5db;
+    break-inside: avoid;
+}
+
+.record-entry:last-child {
+    margin-bottom: 0;
+}
+
+.record-game {
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.record-score {
+    color: #fbbf24;
+    font-weight: 600;
+}
+
+/* Responsive - single column on smaller screens */
+@media (max-width: 768px) {
+    .records-details {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Animations */
+@keyframes backgroundPulse {
+    0%, 100% { 
+        transform: scale(1) rotate(0deg);
+        opacity: 0.8;
+    }
+    50% { 
+        transform: scale(1.05) rotate(0.5deg);
+        opacity: 1;
+    }
+}
+
+@keyframes gridFloat {
+    0% { 
+        transform: translateX(0) translateY(0);
+    }
+    100% { 
+        transform: translateX(40px) translateY(40px);
+    }
+}
+
+@keyframes titleGlow {
+    0%, 100% { 
+        filter: brightness(1);
+        text-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+    }
+    50% { 
+        filter: brightness(1.1);
+        text-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .records-title {
+        font-size: 3rem;
+    }
+    
+    .records-subtitle {
+        font-size: 1.1rem;
+    }
+    
+    .records-section {
+        padding: 1.5rem;
+        margin: 0 1rem 2rem;
+    }
+    
+    .modern-table {
+        font-size: 0.85rem;
+    }
+    
+    .modern-table thead th,
+    .modern-table tbody td {
+        padding: 0.5rem 0.4rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-primary">
-    <h1 style="color: white" class="display-4 fw-normal">World Records</h1>
+<!-- Hero Section -->
+<div class="records-hero">
+    <div class="records-hero-bg"></div>
+    <div class="records-hero-grid"></div>
+    
+    <div class="container-fluid">
+        <div class="records-hero-content">
+            <h1 class="records-title">World Records</h1>
+            <p class="records-subtitle">Celebrating the greatest achievements in competitive robotics</p>
+        </div>
+    </div>
 </div>
 
-<h2 class="text-center">World Records Count Per Player</h2>
-<table class="table table-dark table-striped table-hover table-sm">
-    <thead>
-        <tr>
-            <th>Player Name</th>
-            <th style="text-align: center">Number of Records</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for player, count in player_counts %}
-        <tr>
-            <td>{{ player }}</td>
-            <td style="text-align: center">{{ count }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<!-- Content Section -->
+<div class="records-content">
+    <div class="container-fluid">
+        <!-- Player Records Section -->
+        <div class="records-section">
+            <h2 class="section-title">World Records by Player</h2>
+            <div class="table-responsive">
+                <table class="table simple-table">
+                    <thead>
+                        <tr>
+                            <th>Player Name</th>
+                            <th style="text-align: center">Count</th>
+                            <th>World Records</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for player_data in player_records_list %}
+                        <tr>
+                            <td>
+                                <a href="/user/{{ player_data.player.id }}">{{ player_data.player }}</a>
+                            </td>
+                            <td style="text-align: center">
+                                <span class="count-cell">{{ player_data.count }}</span>
+                            </td>
+                            <td>
+                                <div class="records-details">
+                                    {% for record in player_data.records %}
+                                    <span class="record-entry">
+                                        <span class="record-game">{{ record.leaderboard.game }} - {{ record.robot_name }}:</span>
+                                        <span class="record-score">{{ record.score }}</span>
+                                        ({{ record.time_set|date:"M j, Y" }})
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-<h2 class="text-center">Individual World Records</h2>
-<table class="table table-dark table-striped table-hover table-sm">
-    <thead>
-        <tr>
-            <th style="text-align: center">Rank</th>
-            <th>Player Name</th>
-            <th style="text-align: center">Score</th>
-            <th style="text-align: center">Leaderboard</th>
-            <th style="text-align: center">Time Set</th>
-            <th style="text-align: center">Active For</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for record in world_records %}
-        <tr>
-            <td style="text-align: center"><b>{{ forloop.counter }}</b></td>
-            <td>
-                <a href="/user/{{ record.player.id }}" style="color: #fff">{{ record.player }}</a>
-            </td>
-            <td style="text-align: center">{{ record.score }}</td>
-            <td style="text-align: center">{{ record.leaderboard.game }} - {{ record.robot_name }}</td>
-            <td style="text-align: center">{{ record.time_set }}</td>
-            <td style="text-align: center">{{ record.active_for }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        <!-- Individual Records Section -->
+        <div class="records-section">
+            <h2 class="section-title">All World Records</h2>
+            <div class="table-responsive">
+                <table class="table simple-table">
+                    <thead>
+                        <tr>
+                            <th>Player Name</th>
+                            <th style="text-align: center">Score</th>
+                            <th style="text-align: center">Game & Robot</th>
+                            <th style="text-align: center">Time Set</th>
+                            <th style="text-align: center">Active For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in world_records %}
+                        <tr>
+                            <td>
+                                <a href="/user/{{ record.player.id }}">{{ record.player }}</a>
+                            </td>
+                            <td style="text-align: center">
+                                <strong>{{ record.score }}</strong>
+                            </td>
+                            <td style="text-align: center">{{ record.leaderboard.game }} - {{ record.robot_name }}</td>
+                            <td style="text-align: center">{{ record.time_set }}</td>
+                            <td style="text-align: center">{{ record.active_for }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

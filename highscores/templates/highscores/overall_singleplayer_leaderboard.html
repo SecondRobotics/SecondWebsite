@@ -1,35 +1,483 @@
 {% extends 'home/base.html' %}
 
+{% block extra_js %}
+<style>
+/* Hero Section */
+.leaderboard-hero {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    position: relative;
+    overflow: hidden;
+    min-height: 50vh;
+    display: flex;
+    align-items: center;
+    margin-top: -2rem;
+}
+
+.leaderboard-hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 30% 50%, rgba(34, 197, 94, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 70% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+        linear-gradient(135deg, transparent 0%, rgba(34, 197, 94, 0.05) 50%, transparent 100%);
+    animation: backgroundPulse 8s ease-in-out infinite;
+}
+
+.leaderboard-hero-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(34, 197, 94, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridFloat 25s linear infinite;
+    opacity: 0.3;
+}
+
+.leaderboard-hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 2rem;
+}
+
+.leaderboard-title {
+    font-size: 4rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffffff 0%, #22c55e 50%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+    animation: titleGlow 4s ease-in-out infinite;
+}
+
+.leaderboard-subtitle {
+    font-size: 1.3rem;
+    color: #e0e0e0;
+    margin-bottom: 2rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+    animation: slideUp 1s ease-out 0.3s both;
+}
+
+/* Content Section */
+.leaderboard-content {
+    background: #0a0a0a;
+    padding: 4rem 0;
+    min-height: 100vh;
+}
+
+.leaderboard-section {
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(37, 37, 37, 0.9) 100%);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.8s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.leaderboard-section:hover {
+    box-shadow: 0 15px 40px rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Simple Table Styling */
+.simple-table {
+    background: rgba(17, 24, 39, 0.6);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.simple-table thead {
+    background: rgba(31, 41, 55, 0.8);
+}
+
+.simple-table thead th {
+    border: none;
+    color: #ffffff;
+    font-weight: 500;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.simple-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 0.2s ease;
+}
+
+.simple-table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.simple-table tbody td {
+    border: none;
+    padding: 0.4rem 0.75rem;
+    color: #e5e7eb;
+}
+
+.simple-table tbody td a {
+    color: #60a5fa;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.simple-table tbody td a:hover {
+    color: #93c5fd;
+}
+
+/* Rank styling */
+.rank-cell {
+    font-weight: 700;
+    color: #6b7280;
+    font-size: 1.1rem;
+}
+
+.rank-cell.rank-1 {
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.rank-cell.rank-2 {
+    color: #c0c0c0;
+    text-shadow: 0 0 10px rgba(192, 192, 192, 0.5);
+}
+
+.rank-cell.rank-3 {
+    color: #cd7f32;
+    text-shadow: 0 0 10px rgba(205, 127, 50, 0.5);
+}
+
+.rank-cell.rank-top10 {
+    color: #8b5cf6;
+    text-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+}
+
+.rank-cell.rank-top25 {
+    color: #06b6d4;
+    text-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
+}
+
+.rank-cell.rank-top50 {
+    color: #10b981;
+    text-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.rank-cell.rank-top100 {
+    color: #f59e0b;
+    text-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+/* Percentile color coding */
+.percentile-excellent {
+    color: #22c55e;
+    font-weight: 600;
+}
+
+.percentile-good {
+    color: #84cc16;
+    font-weight: 600;
+}
+
+.percentile-average {
+    color: #eab308;
+    font-weight: 600;
+}
+
+.percentile-below {
+    color: #f97316;
+    font-weight: 600;
+}
+
+.percentile-poor {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+/* Pagination styling */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2rem;
+    gap: 1rem;
+}
+
+.pagination {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    gap: 0.5rem;
+}
+
+.page-item {
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.page-link {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    background: rgba(31, 41, 55, 0.8);
+    color: #e5e7eb;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+}
+
+.page-link:hover {
+    background: rgba(59, 130, 246, 0.2);
+    color: #ffffff;
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.page-item.active .page-link {
+    background: rgba(59, 130, 246, 0.6);
+    color: #ffffff;
+    border-color: rgba(59, 130, 246, 0.8);
+}
+
+.page-item.disabled .page-link {
+    color: #6b7280;
+    background: rgba(17, 24, 39, 0.4);
+    cursor: not-allowed;
+}
+
+.page-item.disabled .page-link:hover {
+    background: rgba(17, 24, 39, 0.4);
+    color: #6b7280;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.pagination-info {
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+/* Animations */
+@keyframes backgroundPulse {
+    0%, 100% { 
+        transform: scale(1) rotate(0deg);
+        opacity: 0.8;
+    }
+    50% { 
+        transform: scale(1.05) rotate(0.5deg);
+        opacity: 1;
+    }
+}
+
+@keyframes gridFloat {
+    0% { 
+        transform: translateX(0) translateY(0);
+    }
+    100% { 
+        transform: translateX(40px) translateY(40px);
+    }
+}
+
+@keyframes titleGlow {
+    0%, 100% { 
+        filter: brightness(1);
+        text-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+    }
+    50% { 
+        filter: brightness(1.1);
+        text-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .leaderboard-title {
+        font-size: 3rem;
+    }
+    
+    .leaderboard-subtitle {
+        font-size: 1.1rem;
+    }
+    
+    .leaderboard-section {
+        padding: 1.5rem;
+        margin: 0 1rem 2rem;
+    }
+    
+    .simple-table {
+        font-size: 0.85rem;
+    }
+    
+    .simple-table thead th,
+    .simple-table tbody td {
+        padding: 0.5rem 0.4rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="position-relative overflow-hidden text-center bg-info">
-    <div class="col-md-4 p-lg-4 mx-auto">
-        <h1 style="color: white" class="display-4 fw-normal">
-            Overall Singleplayer Leaderboard
-        </h1>
+<!-- Hero Section -->
+<div class="leaderboard-hero">
+    <div class="leaderboard-hero-bg"></div>
+    <div class="leaderboard-hero-grid"></div>
+    
+    <div class="container-fluid">
+        <div class="leaderboard-hero-content">
+            <h1 class="leaderboard-title">Overall Leaderboard</h1>
+            <p class="leaderboard-subtitle">The ultimate ranking across all singleplayer competitions</p>
+        </div>
     </div>
 </div>
-<table class="table table-dark table-striped table-hover table-sm">
-    <thead>
-        <tr>
-            <th style="text-align: center">Rank</th>
-            <th>Player Name</th>
-            <th style="text-align: center">Total Score</th>
-            <th style="text-align: center">Last Submitted</th>
-            <th style="text-align: center">Average Percentile</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for item in ls %}
-        <tr>
-            <td style="text-align: center"><b>{{ item.0 }}</b></td>
-            <td>
-                <a href="/user/{{ item.1.player.id }}" style="color: #fff">{{ item.1.player }}</a>
-            </td>
-            <td style="text-align: center">{{ item.1.score }}</td>
-            <td style="text-align: center">{{ item.1.time_set }}</td>
-            <td style="text-align: center">{{ item.1.average_percentile|floatformat:2 }}%</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+
+<!-- Content Section -->
+<div class="leaderboard-content">
+    <div class="container-fluid">
+        <div class="table-responsive">
+            <table class="table simple-table">
+                <thead>
+                    <tr>
+                        <th style="text-align: center">Rank</th>
+                        <th>Player Name</th>
+                        <th style="text-align: center">Total Score</th>
+                        <th style="text-align: center">Last Submitted</th>
+                        <th style="text-align: center">Average Percentile</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in ls %}
+                    <tr>
+                        <td style="text-align: center">
+                            <span class="rank-cell {% if item.0 == 1 %}rank-1{% elif item.0 == 2 %}rank-2{% elif item.0 == 3 %}rank-3{% elif item.0 <= 10 %}rank-top10{% elif item.0 <= 25 %}rank-top25{% elif item.0 <= 50 %}rank-top50{% elif item.0 <= 100 %}rank-top100{% endif %}">
+                                #{{ item.0 }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="/user/{{ item.1.player.id }}">{{ item.1.player }}</a>
+                        </td>
+                        <td style="text-align: center"><strong>{{ item.1.score|floatformat:0 }}</strong></td>
+                        <td style="text-align: center">{{ item.1.time_set|date:"M j, Y" }}</td>
+                        <td style="text-align: center">
+                            <span class="{% if item.1.average_percentile >= 90 %}percentile-excellent{% elif item.1.average_percentile >= 75 %}percentile-good{% elif item.1.average_percentile >= 50 %}percentile-average{% elif item.1.average_percentile >= 25 %}percentile-below{% else %}percentile-poor{% endif %}">
+                                {{ item.1.average_percentile|floatformat:3 }}%
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if paginator.num_pages > 1 %}
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ paginator.count }} players
+            </div>
+            
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1" aria-label="First">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link" aria-label="First">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </span>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% elif num == 1 or num == paginator.num_pages %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% elif num == page_obj.number|add:'-4' or num == page_obj.number|add:'4' %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ paginator.num_pages }}" aria-label="Last">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link" aria-label="Last">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

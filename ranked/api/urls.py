@@ -5,6 +5,7 @@ app_name = 'ranked-api'
 
 urlpatterns = [
     path('', views.ranked_api, name='ranked_api'),
+    path('stats/', views.get_stats, name='get_stats'),
     path('all-users/', views.get_all_users, name='get_all_users'),
     path('player/<str:player_id>/', views.get_player, name='get_player'),
     

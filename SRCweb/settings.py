@@ -223,13 +223,25 @@ USE_TZ = True
 STATIC_URL = '/static/'
 MEDIA_URL = '/images/'
 
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
+
+if os.environ.get("GITHUB_ACTIONS") == "true":
+    STATIC_ROOT = BASE_DIR / "staticfiles"
+    MEDIA_ROOT = BASE_DIR / "static/media"
+elif os.getenv("PYTHON_ENV") == "development":
+    STATIC_ROOT = BASE_DIR / "staticfiles"
+    MEDIA_ROOT = os.path.join(BASE_DIR, "static/media")
+else:
+    STATIC_ROOT = "/home/bottxleg/secondrobotics.org/static"
+    MEDIA_ROOT = "/home/bottxleg/secondrobotics.org/media"
 
 if os.getenv("PYTHON_ENV") == "development":
     DEBUG = True
     ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
-    STATIC_ROOT = ""
-    MEDIA_ROOT = os.path.join(BASE_DIR, "/static/media")
-    STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+    STATICFILES_DIRS = [BASE_DIR / "static"]
     DISCORD_REDIRECT_URI = "http://localhost:8000/oauth2/login/redirect"
     DISCORD_API_REDIRECT_URI = "http://localhost:8000/oauth2/loginapi/redirect"
     DISCORD_AUTH_URL = "https://discord.com/api/oauth2/authorize?client_id=825618483957071873&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Foauth2%2Flogin%2Fredirect&response_type=code&scope=identify%20email"
@@ -238,8 +250,6 @@ else:  # production
     DEBUG = False
     ALLOWED_HOSTS = ["secondrobotics.org",
                      "www.secondrobotics.org", "mail.secondrobotics.org"]
-    STATIC_ROOT = "/home/bottxleg/secondrobotics.org/static"
-    MEDIA_ROOT = "/home/bottxleg/secondrobotics.org/media"
     DISCORD_REDIRECT_URI = "https://secondrobotics.org/oauth2/login/redirect"
     DISCORD_API_REDIRECT_URI = "https://secondrobotics.org/oauth2/loginapi/redirect"
     DISCORD_AUTH_URL = "https://discord.com/api/oauth2/authorize?client_id=825618483957071873&redirect_uri=https%3A%2F%2Fsecondrobotics.org%2Foauth2%2Flogin%2Fredirect&response_type=code&scope=identify%20email"

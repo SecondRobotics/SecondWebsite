@@ -14,10 +14,10 @@ jobs:
             - name: 🚚 Get latest code
               uses: actions/checkout@v2
 
-            - name: 🔨 Set up Python 3.9.20
+            - name: 🔨 Set up Python 3.12
               uses: actions/setup-python@v2
               with:
-                  python-version: 3.9.20
+                  python-version: 3.12
 
             - name: 🛠 Install Dependencies
               run: |
@@ -27,6 +27,16 @@ jobs:
             - name: ▶ Run Tests
               run: |
                   python manage.py test
+              env:
+                  SECRET_KEY: ${{ secrets.BASE_KEY }}
+                  SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+                  SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+                  NEW_AES_KEY: ${{ secrets.NEW_AES_KEY }}
+                  DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
+
+            - name: 📦 Collect Static Files
+              run: |
+                  python manage.py collectstatic --noinput
               env:
                   SECRET_KEY: ${{ secrets.BASE_KEY }}
                   SMTP_SERVER: ${{ secrets.SMTP_SERVER }}

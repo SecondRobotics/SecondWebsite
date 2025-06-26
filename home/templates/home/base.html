@@ -259,7 +259,10 @@
                     <!-- Nav Item - User Information -->
                     <ul
                         class="nav navbar-nav navbar-right"
+<<<<<<< Highscores-webhook
                         style="margin-right: 2%; flex-wrap: nowrap;"
+=======
+>>>>>>> main
                     >
                         {% if request.user.is_authenticated %}
                         <li class="nav-item dropdown">
@@ -332,7 +335,7 @@
             </div>
         </nav>
 
-        <div id="content" , name="content" class="container-fluid">
+        <div id="content" name="content" class="container-fluid">
             <div class="row justify-content-center">
                 <div class="col-md-9">{% block content %} {% endblock %}</div>
             </div>
@@ -344,6 +347,9 @@
             integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa"
             crossorigin="anonymous"
         ></script>
+        
+        <!-- Extra JavaScript Block -->
+        {% block extra_js %}{% endblock %}
     </body>
 
     <footer class="text-white text-center">
