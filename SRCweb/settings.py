@@ -259,3 +259,6 @@ else:  # production
 
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
 MAX_UPLOAD_SIZE = "5242880"
+
+# Discord Webhook URL for Highscores
+DISCORD_WEBHOOK_URL = os.getenv("HIGHSCORES_WEBHOOK_URL")
