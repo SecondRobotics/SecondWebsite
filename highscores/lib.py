@@ -30,26 +30,26 @@ def send_world_record_webhook(new_score: Score, previous_record: Score = None) -
     if not DISCORD_WEBHOOK_URL:
         logging.error("Discord webhook URL not configured")
         return
-        
+
     try:
         # Calculate duration and get previous record holder info
         if previous_record is None:
             # Get the current world record (which will become the previous one)
             previous_record = Score.objects.filter(
-                leaderboard=new_score.leaderboard, 
+                leaderboard=new_score.leaderboard,
                 approved=True
             ).order_by('-score', 'time_set').first()
-        
+
         if previous_record and previous_record.score < new_score.score:
             # Calculate how long the previous record stood
             duration_diff = new_score.time_set - previous_record.time_set
-            
+
             # Calculate duration in a readable format
             total_seconds = int(duration_diff.total_seconds())
             days = total_seconds // 86400
             hours = (total_seconds % 86400) // 3600
             minutes = (total_seconds % 3600) // 60
-            
+
             if days > 0:
                 duration_text = f"{days} day{'s' if days != 1 else ''}, {hours} hour{'s' if hours != 1 else ''}"
             elif hours > 0:
@@ -58,7 +58,7 @@ def send_world_record_webhook(new_score: Score, previous_record: Score = None) -
                 duration_text = f"{minutes} minute{'s' if minutes != 1 else ''}"
             else:
                 duration_text = "less than a minute"
-            
+
             previous_record_info = f"**{previous_record.player.username}**'s record ({previous_record.score:,} points) stood for **{duration_text}**"
         else:
             previous_record_info = "**First record set for this category!**"
@@ -113,11 +113,12 @@ def send_world_record_webhook(new_score: Score, previous_record: Score = None) -
             'Content-Type': 'application/json',
             'User-Agent': USER_AGENT
         })
-        
+
         response = urlopen(req)
         if response.status != 204:
-            logging.error(f"Discord webhook failed with status: {response.status}")
-            
+            logging.error(
+                f"Discord webhook failed with status: {response.status}")
+
     except Exception as e:
         logging.error(f"Failed to send Discord webhook: {e}")
 
@@ -127,7 +128,7 @@ def test_world_record_webhook(player_name: str, score: int, game: str, robot: st
     if not DISCORD_WEBHOOK_URL:
         logging.error("Discord webhook URL not configured")
         return False
-        
+
     try:
         embed = {
             "title": "🧪 TEST WORLD RECORD NOTIFICATION 🧪",
@@ -177,10 +178,10 @@ def test_world_record_webhook(player_name: str, score: int, game: str, robot: st
             'Content-Type': 'application/json',
             'User-Agent': USER_AGENT
         })
-        
+
         response = urlopen(req)
         return response.status == 204
-        
+
     except Exception as e:
         logging.error(f"Failed to send test Discord webhook: {e}")
         return False
@@ -276,6 +277,10 @@ def submit_reefscape(score_obj: Score) -> Union[str, None]:
     return submit_score(score_obj, reefscape_clean_code_check)
 
 
+def submit_push_back(score_obj: Score) -> Union[str, None]:
+    return submit_score(score_obj, push_back_clean_code_check)
+
+
 def decode_time_data(in_string: str) -> str:
     out_bytes = ""
 
@@ -318,12 +323,12 @@ def extract_form_data(form: ScoreForm, request: HttpRequest) -> Score:
 def approve_score(score_obj: Score, prev_submissions):
     # Check if this is a new world record before deleting previous submissions
     current_world_record = Score.objects.filter(
-        leaderboard=score_obj.leaderboard, 
+        leaderboard=score_obj.leaderboard,
         approved=True
     ).order_by('-score', 'time_set').first()
-    
-    is_world_record = (current_world_record is None or 
-                      score_obj.score > current_world_record.score)
+
+    is_world_record = (current_world_record is None or
+                       score_obj.score > current_world_record.score)
 
     # Delete previous submissions with lower or equal scores in the category
     prev_submissions.filter(score__lte=score_obj.score).delete()
@@ -340,7 +345,8 @@ def approve_score(score_obj: Score, prev_submissions):
             except Exception as e:
                 logging.error(f"Failed to send world record webhook: {e}")
         else:
-            logging.info(f"DEBUG: World record detected for {score_obj.player.username} - {score_obj.score} on {score_obj.leaderboard.name} (webhook disabled in debug mode)")
+            logging.info(
+                f"DEBUG: World record detected for {score_obj.player.username} - {score_obj.score} on {score_obj.leaderboard.name} (webhook disabled in debug mode)")
 
     code_obj = CleanCodeSubmission()
     code_obj.clean_code = score_obj.clean_code
@@ -507,6 +513,10 @@ def skystone_clean_code_check(score_obj: Score) -> Union[str, None]:
 
 def reefscape_clean_code_check(score_obj: Score) -> Union[str, None]:
     return clean_code_check(score_obj, check_reefscape_game_settings, check_subtraction_score)
+
+
+def push_back_clean_code_check(score_obj: Score) -> Union[str, None]:
+    return clean_code_check(score_obj, check_push_back_game_settings, check_skills_challenge_score)
 
 
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str, str]:
@@ -778,6 +788,18 @@ def check_reefscape_game_settings(game_options: list, restart_option: str, game_
     return None  # No error
 
 
+def check_push_back_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
+    """ Checks if the Push Back game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if (game_index != '20'):
+        return 'Wrong game! This form is for Push Back.'
+    if (restart_option != '2'):
+        return 'You must use restart option 2 (skills challenge) for Push Back high score submissions.'
+
+    return None  # No error
+
+
 def check_robot_type(score_obj: Score, robot_model: str) -> Union[str, None]:
     """ Checks if the robot model is valid.
     :return: None if the robot model is valid, or a response with an error message if it is not.
@@ -969,6 +991,7 @@ game_slug_to_submit_func = {
     "ro": submit_rover_ruckus,
     "ss": submit_skystone,
     "rs": submit_reefscape,
+    "pb": submit_push_back,
 }
 
 game_to_submit_func = {
@@ -988,4 +1011,5 @@ game_to_submit_func = {
     "Rover Ruckus": submit_rover_ruckus,
     "Skystone": submit_skystone,
     "REEFSCAPE": submit_reefscape,
+    "Push Back": submit_push_back,
 }
