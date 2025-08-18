@@ -1,13 +1,17 @@
 from django.http import HttpRequest
 from django.core.mail import send_mail
+from django.utils import timezone
+import logging
 
 from .models import Score, CleanCodeSubmission, ExemptedIP
 from .forms import ScoreForm
-from SRCweb.settings import NEW_AES_KEY, DEBUG, ADMIN_EMAILS, EMAIL_HOST_USER
+from SRCweb.settings import NEW_AES_KEY, DEBUG, ADMIN_EMAILS, EMAIL_HOST_USER, DISCORD_WEBHOOK_URL
+import os
 
 from typing import Callable, Union
 from Crypto.Cipher import AES
 from urllib.request import urlopen, Request
+import json
 
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
 
@@ -19,6 +23,168 @@ BAD_URL_MESSAGE = 'There is something wrong with the URL you provided for your s
 WRONG_VERSION_MESSAGE = 'Your version of the game is outdated and not supported. Please update to the latest version at https://xrcsimulator.org/downloads/.'
 PRERELEASE_MESSAGE = 'Pre-release versions are not allowed for high score submission!'
 WRONG_AUTO_OR_TELEOP_MESSAGE = 'Incorrect choice for control mode! Ensure you are submitting to the correct leaderboard for autonomous or tele-operated play.'
+
+
+def send_world_record_webhook(new_score: Score, previous_record: Score = None) -> None:
+    """Send Discord webhook notification for new world record"""
+    if not DISCORD_WEBHOOK_URL:
+        logging.error("Discord webhook URL not configured")
+        return
+
+    try:
+        # Calculate duration and get previous record holder info
+        if previous_record is None:
+            # Get the current world record (which will become the previous one)
+            previous_record = Score.objects.filter(
+                leaderboard=new_score.leaderboard,
+                approved=True
+            ).order_by('-score', 'time_set').first()
+
+        if previous_record and previous_record.score < new_score.score:
+            # Calculate how long the previous record stood
+            duration_diff = new_score.time_set - previous_record.time_set
+
+            # Calculate duration in a readable format
+            total_seconds = int(duration_diff.total_seconds())
+            days = total_seconds // 86400
+            hours = (total_seconds % 86400) // 3600
+            minutes = (total_seconds % 3600) // 60
+
+            if days > 0:
+                duration_text = f"{days} day{'s' if days != 1 else ''}, {hours} hour{'s' if hours != 1 else ''}"
+            elif hours > 0:
+                duration_text = f"{hours} hour{'s' if hours != 1 else ''}, {minutes} minute{'s' if minutes != 1 else ''}"
+            elif minutes > 0:
+                duration_text = f"{minutes} minute{'s' if minutes != 1 else ''}"
+            else:
+                duration_text = "less than a minute"
+
+            previous_record_info = f"**{previous_record.player.username}**'s record ({previous_record.score:,} points) stood for **{duration_text}**"
+        else:
+            previous_record_info = "**First record set for this category!**"
+
+        # Create the embed message
+        embed = {
+            "title": "🏆 NEW WORLD RECORD ACHIEVED! 🏆",
+            "description": f"**{new_score.player.username}** has set a new world record!",
+            "color": 0xFFD700,  # Gold color
+            "fields": [
+                {
+                    "name": "🎮 Game & Robot",
+                    "value": f"**{new_score.leaderboard.game}**\n`{new_score.leaderboard.name}`",
+                    "inline": True
+                },
+                {
+                    "name": "🎯 Score",
+                    "value": f"**{new_score.score:,} points**",
+                    "inline": True
+                },
+                {
+                    "name": "⏱️ Previous Record",
+                    "value": previous_record_info,
+                    "inline": False
+                },
+                {
+                    "name": "📎 Proof",
+                    "value": f"[View Submission]({new_score.source})",
+                    "inline": False
+                }
+            ],
+            "footer": {
+                "text": f"Record set on {new_score.time_set.strftime('%B %d, %Y at %I:%M %p UTC')}",
+                "icon_url": "https://cdn.discordapp.com/emojis/1306393882618114139.png"
+            },
+            "author": {
+                "name": "Second Robotics Competition",
+                "url": "https://secondrobotics.org",
+                "icon_url": "https://secondrobotics.org/static/images/logo.png"
+            },
+            "timestamp": new_score.time_set.isoformat()
+        }
+
+        payload = {
+            "embeds": [embed],
+            "username": "World Record Bot"
+        }
+
+        # Send the webhook
+        data = json.dumps(payload).encode('utf-8')
+        req = Request(DISCORD_WEBHOOK_URL, data=data, headers={
+            'Content-Type': 'application/json',
+            'User-Agent': USER_AGENT
+        })
+
+        response = urlopen(req)
+        if response.status != 204:
+            logging.error(
+                f"Discord webhook failed with status: {response.status}")
+
+    except Exception as e:
+        logging.error(f"Failed to send Discord webhook: {e}")
+
+
+def test_world_record_webhook(player_name: str, score: int, game: str, robot: str, previous_player: str = "TestPlayer", previous_score: int = 95000, duration: str = "2 days, 3 hours") -> bool:
+    """Test function for Discord webhook - returns True if successful"""
+    if not DISCORD_WEBHOOK_URL:
+        logging.error("Discord webhook URL not configured")
+        return False
+
+    try:
+        embed = {
+            "title": "🧪 TEST WORLD RECORD NOTIFICATION 🧪",
+            "description": f"**{player_name}** has set a new world record! *(This is a test)*",
+            "color": 0x00FF00,  # Green color for test
+            "fields": [
+                {
+                    "name": "🎮 Game & Robot",
+                    "value": f"**{game}**\n`{robot}`",
+                    "inline": True
+                },
+                {
+                    "name": "🎯 Score",
+                    "value": f"**{score:,} points**",
+                    "inline": True
+                },
+                {
+                    "name": "⏱️ Previous Record",
+                    "value": f"**{previous_player}**'s record ({previous_score:,} points) stood for **{duration}**",
+                    "inline": False
+                },
+                {
+                    "name": "📎 Proof",
+                    "value": "[Test Submission](https://secondrobotics.org)",
+                    "inline": False
+                }
+            ],
+            "footer": {
+                "text": f"TEST - Record set on {timezone.now().strftime('%B %d, %Y at %I:%M %p UTC')}",
+                "icon_url": "https://cdn.discordapp.com/emojis/1306393882618114139.png"
+            },
+            "author": {
+                "name": "Second Robotics Competition (TEST MODE)",
+                "url": "https://secondrobotics.org",
+                "icon_url": "https://secondrobotics.org/static/images/logo.png"
+            },
+            "timestamp": timezone.now().isoformat()
+        }
+
+        payload = {
+            "embeds": [embed],
+            "username": "World Record Bot (TEST)"
+        }
+
+        data = json.dumps(payload).encode('utf-8')
+        req = Request(DISCORD_WEBHOOK_URL, data=data, headers={
+            'Content-Type': 'application/json',
+            'User-Agent': USER_AGENT
+        })
+
+        response = urlopen(req)
+        return response.status == 204
+
+    except Exception as e:
+        logging.error(f"Failed to send test Discord webhook: {e}")
+        return False
 
 
 def submit_score(score_obj: Score, clean_code_check_func: Callable[[Score], Union[str, None]]) -> Union[str, None]:
@@ -118,6 +284,10 @@ def submit_reefscape(score_obj: Score) -> Union[str, None]:
     return submit_score(score_obj, reefscape_clean_code_check)
 
 
+def submit_push_back(score_obj: Score) -> Union[str, None]:
+    return submit_score(score_obj, push_back_clean_code_check)
+
+
 def decode_time_data(in_string: str) -> str:
     out_bytes = ""
 
@@ -158,16 +328,21 @@ def extract_form_data(form: ScoreForm, request: HttpRequest) -> Score:
 
 
 def approve_score(score_obj: Score, prev_submissions, time_data_issue=None):
-    # Delete previous submissions with lower or equal scores
+    # Check if this is a new world record before deleting previous submissions
+    current_world_record = Score.objects.filter(
+        leaderboard=score_obj.leaderboard,
+        approved=True
+    ).order_by('-score', 'time_set').first()
+
+    is_world_record = (current_world_record is None or
+                       score_obj.score > current_world_record.score)
+
+    # Delete previous submissions with lower or equal scores in the category
     prev_submissions.filter(score__lte=score_obj.score).delete()
 
     # Save the new submission
     score_obj.approved = True
     score_obj.save()
-
-    # Send time data warning email if there was an issue
-    if time_data_issue:
-        send_time_data_warning_email(score_obj, time_data_issue)
 
     code_obj = CleanCodeSubmission()
     code_obj.clean_code = score_obj.clean_code
@@ -335,6 +510,10 @@ def skystone_clean_code_check(score_obj: Score) -> Union[str, None]:
 
 def reefscape_clean_code_check(score_obj: Score) -> Union[str, None]:
     return clean_code_check(score_obj, check_reefscape_game_settings, check_subtraction_score)
+
+
+def push_back_clean_code_check(score_obj: Score) -> Union[str, None]:
+    return clean_code_check(score_obj, check_push_back_game_settings, check_skills_challenge_score)
 
 
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str, str]:
@@ -606,6 +785,18 @@ def check_reefscape_game_settings(game_options: list, restart_option: str, game_
     return None  # No error
 
 
+def check_push_back_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
+    """ Checks if the Push Back game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if (game_index != '20'):
+        return 'Wrong game! This form is for Push Back.'
+    if (restart_option != '2'):
+        return 'You must use restart option 2 (skills challenge) for Push Back high score submissions.'
+
+    return None  # No error
+
+
 def check_robot_type(score_obj: Score, robot_model: str) -> Union[str, None]:
     """ Checks if the robot model is valid.
     :return: None if the robot model is valid, or a response with an error message if it is not.
@@ -795,6 +986,7 @@ game_slug_to_submit_func = {
     "ro": submit_rover_ruckus,
     "ss": submit_skystone,
     "rs": submit_reefscape,
+    "pb": submit_push_back,
 }
 
 game_to_submit_func = {
@@ -814,4 +1006,5 @@ game_to_submit_func = {
     "Rover Ruckus": submit_rover_ruckus,
     "Skystone": submit_skystone,
     "REEFSCAPE": submit_reefscape,
+    "Push Back": submit_push_back,
 }
