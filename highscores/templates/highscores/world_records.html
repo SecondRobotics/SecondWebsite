@@ -318,6 +318,11 @@
                                         <span class="record-game">{{ record.leaderboard.game }} - {{ record.robot_name }}:</span>
                                         <span class="record-score">{{ record.score }}</span>
                                         ({{ record.time_set|date:"M j, Y" }})
+                                        {% if user.is_staff and record.time_data %}
+                                        <a href="{% url 'time-data-analysis' record.id %}" title="View Time Analysis" style="color: #fbbf24; text-decoration: none; margin-left: 0.5rem;">
+                                            📊
+                                        </a>
+                                        {% endif %}
                                     </span>
                                     {% endfor %}
                                 </div>
@@ -341,6 +346,9 @@
                             <th style="text-align: center">Game & Robot</th>
                             <th style="text-align: center">Time Set</th>
                             <th style="text-align: center">Active For</th>
+                            {% if user.is_staff %}
+                            <th style="text-align: center">Analysis</th>
+                            {% endif %}
                         </tr>
                     </thead>
                     <tbody>
@@ -355,6 +363,17 @@
                             <td style="text-align: center">{{ record.leaderboard.game }} - {{ record.robot_name }}</td>
                             <td style="text-align: center">{{ record.time_set }}</td>
                             <td style="text-align: center">{{ record.active_for }}</td>
+                            {% if user.is_staff %}
+                            <td style="text-align: center">
+                                {% if record.time_data %}
+                                <a href="{% url 'time-data-analysis' record.id %}" title="View Time Analysis" style="color: #fbbf24; text-decoration: none;">
+                                    📊
+                                </a>
+                                {% else %}
+                                <span style="color: #6b7280;" title="No time data available">—</span>
+                                {% endif %}
+                            </td>
+                            {% endif %}
                         </tr>
                         {% endfor %}
                     </tbody>

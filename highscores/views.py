@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from typing import Callable, Optional, Type
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db.models import Count, F, Max, Prefetch, Q, Sum
@@ -282,6 +283,123 @@ def overall_singleplayer_leaderboard(request: HttpRequest) -> HttpResponse:
     }
     
     return render(request, "highscores/overall_singleplayer_leaderboard.html", context)
+
+
+@staff_member_required
+def time_data_analysis(request: HttpRequest, score_id: int) -> HttpResponse:
+    try:
+        score = Score.objects.get(id=score_id)
+        if not score.time_data:
+            return render(request, "highscores/time_analysis.html", {
+                "error": "No time data available for this score"
+            })
+        
+        # Parse time_data into individual entries
+        raw_entries = []
+        
+        for line in score.time_data.strip().split('\n'):
+            if not line.strip():
+                continue
+            
+            try:
+                parts = line.strip().split('|')
+                if len(parts) >= 2:
+                    real_time = float(parts[0])
+                    game_clock_str = parts[1]
+                    
+                    # Parse game clock (format: "m:ss.s")
+                    if ':' in game_clock_str:
+                        time_parts = game_clock_str.split(':')
+                        minutes = int(time_parts[0])
+                        seconds = float(time_parts[1])
+                        game_clock = minutes * 60 + seconds
+                    else:
+                        game_clock = float(game_clock_str)
+                    
+                    # Parse additional data fields
+                    red_score = parts[2] if len(parts) > 2 else ''
+                    blue_score = parts[3] if len(parts) > 3 else ''
+                    field_4 = parts[4] if len(parts) > 4 else ''
+                    field_5 = parts[5] if len(parts) > 5 else ''
+                    field_6 = parts[6] if len(parts) > 6 else ''
+                    field_7 = parts[7] if len(parts) > 7 else ''
+                    field_8 = parts[8] if len(parts) > 8 else ''
+                    
+                    raw_entries.append({
+                        'real_time': real_time,
+                        'game_clock': game_clock,
+                        'game_clock_str': game_clock_str,
+                        'red_score': red_score,
+                        'blue_score': blue_score,
+                        'field_4': field_4,
+                        'field_5': field_5,
+                        'field_6': field_6,
+                        'field_7': field_7,
+                        'field_8': field_8,
+                        'raw_line': line
+                    })
+            except (ValueError, IndexError):
+                continue
+        
+        # Calculate rate of change deltas
+        time_entries = []
+        rate_deltas = []
+        
+        for i in range(len(raw_entries)):
+            entry = raw_entries[i]
+            
+            if i == 0:
+                # First entry - no previous to compare with
+                time_entries.append({
+                    **entry,
+                    'real_time_change': None,
+                    'game_clock_change': None,
+                    'rate_delta': None,
+                    'rate_delta_display': 'N/A (first entry)'
+                })
+            else:
+                prev_entry = raw_entries[i-1]
+                
+                # Calculate change in real time and game clock since previous entry
+                real_time_change = entry['real_time'] - prev_entry['real_time']
+                game_clock_change = entry['game_clock'] - prev_entry['game_clock']
+                
+                # Since game clock counts down and real time counts up, we add them
+                # to get the total time progression delta
+                # Perfect sync would be: real_time_change + |game_clock_change| = 0
+                # (meaning they advance at exactly opposite rates)
+                rate_delta = real_time_change + game_clock_change
+                
+                time_entries.append({
+                    **entry,
+                    'real_time_change': real_time_change,
+                    'game_clock_change': game_clock_change,
+                    'rate_delta': rate_delta,
+                    'rate_delta_display': f"{rate_delta:+.3f}s"
+                })
+                rate_deltas.append(rate_delta)
+        
+        # Calculate statistics
+        stats = {}
+        if rate_deltas:
+            stats['avg_rate_delta'] = sum(rate_deltas) / len(rate_deltas)
+            stats['min_rate_delta'] = min(rate_deltas)
+            stats['max_rate_delta'] = max(rate_deltas)
+            stats['rate_delta_range'] = max(rate_deltas) - min(rate_deltas)
+            stats['total_entries'] = len(time_entries)
+            stats['analyzed_entries'] = len(rate_deltas)
+        
+        return render(request, "highscores/time_analysis.html", {
+            "score": score,
+            "time_entries": time_entries,
+            "stats": stats,
+            "entry_count": len(time_entries)
+        })
+        
+    except Score.DoesNotExist:
+        return render(request, "highscores/time_analysis.html", {
+            "error": "Score not found"
+        })
 
 
 @login_required(login_url='/login')

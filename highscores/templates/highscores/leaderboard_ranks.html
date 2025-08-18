@@ -278,6 +278,9 @@
                         <th style="text-align: center">Score</th>
                         <th style="text-align: center">Submission Date</th>
                         <th style="text-align: center">Percentile</th>
+                        {% if user.is_staff %}
+                        <th style="text-align: center">Analysis</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -300,6 +303,17 @@
                                 {{ item.2|floatformat:3 }}%
                             </span>
                         </td>
+                        {% if user.is_staff %}
+                        <td style="text-align: center">
+                            {% if item.1.time_data %}
+                            <a href="{% url 'time-data-analysis' item.1.id %}" title="View Time Analysis" style="color: #22c55e; text-decoration: none;">
+                                📊
+                            </a>
+                            {% else %}
+                            <span style="color: #6b7280;" title="No time data available">—</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                 </tbody>

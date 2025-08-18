@@ -27,10 +27,17 @@ def submit_score(score_obj: Score, clean_code_check_func: Callable[[Score], Unio
     if (res is not None):
         return res
 
-    # Check the clean code
-    res = clean_code_check_func(score_obj)
-    if (res is not None):
-        return res
+    # Check the clean code and get time data issue if any
+    time_data_issue = clean_code_check_func(score_obj)
+    if isinstance(time_data_issue, tuple):
+        res, time_data_issue = time_data_issue
+        if (res is not None):
+            return res
+    else:
+        res = time_data_issue
+        if (res is not None):
+            return res
+        time_data_issue = None
 
     # Check for older submissions from this user in this category
     prev_submissions = Score.objects.filter(
@@ -42,7 +49,7 @@ def submit_score(score_obj: Score, clean_code_check_func: Callable[[Score], Unio
             return HIGHER_SCORE_MESSAGE
 
     # Code is valid! Instantly approve!
-    approve_score(score_obj, prev_submissions)
+    approve_score(score_obj, prev_submissions, time_data_issue)
 
     return None  # No error
 
@@ -150,13 +157,17 @@ def extract_form_data(form: ScoreForm, request: HttpRequest) -> Score:
     return score_obj
 
 
-def approve_score(score_obj: Score, prev_submissions):
+def approve_score(score_obj: Score, prev_submissions, time_data_issue=None):
     # Delete previous submissions with lower or equal scores
     prev_submissions.filter(score__lte=score_obj.score).delete()
 
     # Save the new submission
     score_obj.approved = True
     score_obj.save()
+
+    # Send time data warning email if there was an issue
+    if time_data_issue:
+        send_time_data_warning_email(score_obj, time_data_issue)
 
     code_obj = CleanCodeSubmission()
     code_obj.clean_code = score_obj.clean_code
@@ -214,10 +225,10 @@ def submission_screenshot_check(score_obj: Score) -> Union[str, None]:
     return None  # no error, proper url provided
 
 
-def clean_code_check(score_obj: Score, settings_callback: Callable[[list[str], str, str], Union[str, None]], score_callback: Callable[[Score, str, str], Union[str, None]]) -> Union[str, None]:
+def clean_code_check(score_obj: Score, settings_callback: Callable[[list[str], str, str], Union[str, None]], score_callback: Callable[[Score, str, str], Union[str, None]]) -> Union[str, tuple[None, str], None]:
     """ Checks if the clean code is valid.
     :param score_obj: Score object to check
-    :return: None if valid, HttpResponse with error message if not
+    :return: None if valid, tuple of (None, time_data_issue) if valid but has time issues, or error message if not valid
     """
     try:
         # Clean code decryption
@@ -245,8 +256,8 @@ def clean_code_check(score_obj: Score, settings_callback: Callable[[list[str], s
         if (res is not None):
             return res
 
-        # Check if time data has been tampered with
-        search_for_violating_time_data(score_obj, timer_left, game_index)
+        # Check if time data has been tampered with (will report after score is saved)
+        time_data_issue = check_time_data(score_obj, timer_left, game_index)
 
         # Search for code in database to ensure it is unique
         res = search_for_reused_code(score_obj)
@@ -258,7 +269,8 @@ def clean_code_check(score_obj: Score, settings_callback: Callable[[list[str], s
     except Exception as e:  # code is corrupted during decryption
         return ERROR_CORRUPT_CODE_MESSAGE
 
-    return None  # no error, proper clean code provided
+    # Return time data issue if any, otherwise None
+    return (None, time_data_issue) if time_data_issue else None
 
 
 def infinite_recharge_clean_code_check(score_obj: Score) -> Union[str, None]:
@@ -673,7 +685,9 @@ def search_for_reused_code(score_obj: Score) -> Union[str, None]:
         # Uh oh, this user submitted a clean code that has already been used.
         # Report this via email.
 
-        message = f"{score_obj.player} ({score_obj.ip}) attempted (and failed) to submit a score: [{score_obj.score}] - {score_obj.leaderboard}\n\n This score was already submitted by {clean_code_search[0].player} ({clean_code_search[0].ip})\n\n {score_obj.source}\n\nhttps://secondrobotics.org/admin/highscores/score/"
+        original_score = clean_code_search[0]
+        time_analysis_link = f"\nOriginal Score Time Analysis: https://secondrobotics.org/highscores/time-analysis/{original_score.id}/" if hasattr(original_score, 'time_data') and original_score.time_data else ""
+        message = f"{score_obj.player} ({score_obj.ip}) attempted (and failed) to submit a score: [{score_obj.score}] - {score_obj.leaderboard}\n\n This score was already submitted by {original_score.player} ({original_score.ip})\n\n {score_obj.source}\n\nAdmin Panel: https://secondrobotics.org/admin/highscores/score/\nOriginal Score: https://secondrobotics.org/admin/highscores/score/{original_score.id}/change/{time_analysis_link}"
         try:
             if (not DEBUG):
                 send_mail(f"Duplicate clean code usage from {score_obj.player}",
@@ -696,7 +710,7 @@ def search_for_reused_code(score_obj: Score) -> Union[str, None]:
         # Uh oh, there are multiple users submitting from the same IP.
         # Report this via email.
 
-        message = f"{score_obj.player} ({score_obj.ip}) submitted a score (successfully): [{score_obj.score}] - {score_obj.leaderboard}\n\n This IP has also been used by {ip_search[0].player} ({ip_search[0].ip})\n\n {score_obj.source}\n\nhttps://secondrobotics.org/admin/highscores/score/"
+        message = f"{score_obj.player} ({score_obj.ip}) submitted a score (successfully): [{score_obj.score}] - {score_obj.leaderboard}\n\n This IP has also been used by {ip_search[0].player} ({ip_search[0].ip})\n\n {score_obj.source}\n\nAdmin Panel: https://secondrobotics.org/admin/highscores/score/"
         try:
             if (not DEBUG):
                 send_mail(f"Duplicate IP usage from {score_obj.player}",
@@ -709,20 +723,16 @@ def search_for_reused_code(score_obj: Score) -> Union[str, None]:
     return None  # No error
 
 
-def search_for_violating_time_data(score_obj: Score, timer_left: str, game_index: str) -> None:
-    res = check_time_data(score_obj, timer_left, game_index)
-    if res:
-        # Uh oh, there are possible indicators of cheating in the time data.
-        # Report this via email.
-
-        print(res)
-        message = f"{score_obj.player} ({score_obj.ip}) submitted a score (successfully) with concerning time data: [{score_obj.score}] - {score_obj.leaderboard}\n{res}\n{score_obj.time_data}\n\nhttps://secondrobotics.org/admin/highscores/score/"
-        try:
-            if (not DEBUG):
-                send_mail(f"Concerning time data from {score_obj.player}",
-                          message, EMAIL_HOST_USER, ADMIN_EMAILS, fail_silently=False)
-        except Exception as ex:
-            print(ex)
+def send_time_data_warning_email(score_obj: Score, time_data_issue: str) -> None:
+    """Send email notification for concerning time data"""
+    print(time_data_issue)
+    message = f"{score_obj.player} ({score_obj.ip}) submitted a score (successfully) with concerning time data: [{score_obj.score}] - {score_obj.leaderboard}\n{time_data_issue}\n{score_obj.time_data}\n\nAdmin Panel: https://secondrobotics.org/admin/highscores/score/{score_obj.id}/change/\nTime Analysis: https://secondrobotics.org/highscores/time-analysis/{score_obj.id}/"
+    try:
+        if (not DEBUG):
+            send_mail(f"Concerning time data from {score_obj.player}",
+                      message, EMAIL_HOST_USER, ADMIN_EMAILS, fail_silently=False)
+    except Exception as ex:
+        print(ex)
 
 
 def check_time_data(score_obj: Score, timer_left: str, game_index: str) -> Union[str, None]:
