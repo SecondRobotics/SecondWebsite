@@ -352,6 +352,14 @@ def approve_score(score_obj: Score, prev_submissions, time_data_issue=None):
     code_obj.ip = score_obj.ip
     code_obj.save()
 
+    # Send webhook notification if this is a new world record
+    if is_world_record:
+        send_world_record_webhook(score_obj, current_world_record)
+
+    # Send time data warning email if there are issues
+    if time_data_issue:
+        send_time_data_warning_email(score_obj, time_data_issue)
+
 
 def submission_screenshot_check(score_obj: Score) -> Union[str, None]:
     """ Checks if the submission has a screenshot and if it is valid.
