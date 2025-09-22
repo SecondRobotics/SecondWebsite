@@ -24,7 +24,7 @@ PRERELEASE_MESSAGE = 'Pre-release versions are not allowed for high score submis
 WRONG_AUTO_OR_TELEOP_MESSAGE = 'Incorrect choice for control mode! Ensure you are submitting to the correct leaderboard for autonomous or tele-operated play.'
 
 
-def send_world_record_webhook(new_score: Score, previous_record: Score = None) -> None:
+def send_world_record_webhook(new_score: Score, previous_record: Union[Score, None] = None) -> None:
     """Send Discord webhook notification for new world record"""
     if not DISCORD_WEBHOOK_URL:
         logging.error("Discord webhook URL not configured")
@@ -186,7 +186,7 @@ def test_world_record_webhook(player_name: str, score: int, game: str, robot: st
         return False
 
 
-def submit_score(score_obj: Score, clean_code_check_func: Callable[[Score], Union[str, None]]) -> Union[str, None]:
+def submit_score(score_obj: Score, clean_code_check_func: Callable[[Score], Union[str, None, tuple[None, str]]]) -> Union[str, None, tuple[None, str]]:
     # Check to ensure image / video is proper
     res = submission_screenshot_check(score_obj)
     if (res is not None):
@@ -219,72 +219,76 @@ def submit_score(score_obj: Score, clean_code_check_func: Callable[[Score], Unio
     return None  # No error
 
 
-def submit_infinite_recharge(score_obj: Score) -> Union[str, None]:
+def submit_infinite_recharge(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, infinite_recharge_clean_code_check)
 
 
-def submit_rapid_react(score_obj: Score) -> Union[str, None]:
+def submit_rapid_react(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, rapid_react_clean_code_check)
 
 
-def submit_charged_up(score_obj: Score) -> Union[str, None]:
+def submit_charged_up(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, charged_up_clean_code_check)
 
 
-def submit_freight_frenzy(score_obj: Score) -> Union[str, None]:
+def submit_freight_frenzy(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, freight_frenzy_clean_code_check)
 
 
-def submit_power_play(score_obj: Score) -> Union[str, None]:
+def submit_power_play(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, power_play_clean_code_check)
 
 
-def submit_tipping_point(score_obj: Score) -> Union[str, None]:
+def submit_tipping_point(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, tipping_point_clean_code_check)
 
 
-def submit_spin_up(score_obj: Score) -> Union[str, None]:
+def submit_spin_up(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, spin_up_clean_code_check)
 
 
-def submit_centerstage(score_obj: Score) -> Union[str, None]:
+def submit_centerstage(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, centerstage_clean_code_check)
 
 
-def submit_over_under(score_obj: Score) -> Union[str, None]:
+def submit_over_under(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, over_under_clean_code_check)
 
 
-def submit_crescendo(score_obj: Score) -> Union[str, None]:
+def submit_crescendo(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, crescendo_clean_code_check)
 
 
-def submit_high_stakes(score_obj: Score) -> Union[str, None]:
+def submit_high_stakes(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, high_stakes_clean_code_check)
 
 
-def submit_ultimate_goal(score_obj: Score) -> Union[str, None]:
+def submit_ultimate_goal(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, ultimate_goal_clean_code_check)
 
 
-def submit_into_the_deep(score_obj: Score) -> Union[str, None]:
+def submit_into_the_deep(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, into_the_deep_clean_code_check)
 
 
-def submit_rover_ruckus(score_obj: Score) -> Union[str, None]:
+def submit_rover_ruckus(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, rover_ruckus_clean_code_check)
 
 
-def submit_skystone(score_obj: Score) -> Union[str, None]:
+def submit_skystone(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, skystone_clean_code_check)
 
 
-def submit_reefscape(score_obj: Score) -> Union[str, None]:
+def submit_reefscape(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, reefscape_clean_code_check)
 
 
-def submit_push_back(score_obj: Score) -> Union[str, None]:
+def submit_push_back(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, push_back_clean_code_check)
+
+
+def submit_decode(score_obj: Score) -> Union[str, None, tuple[None, str]]:
+    return submit_score(score_obj, decode_clean_code_check)
 
 
 def decode_time_data(in_string: str) -> str:
@@ -455,72 +459,76 @@ def clean_code_check(score_obj: Score, settings_callback: Callable[[list[str], s
     return (None, time_data_issue) if time_data_issue else None
 
 
-def infinite_recharge_clean_code_check(score_obj: Score) -> Union[str, None]:
+def infinite_recharge_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_infinite_recharge_game_settings, check_score)
 
 
-def rapid_react_clean_code_check(score_obj: Score) -> Union[str, None]:
+def rapid_react_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_rapid_react_game_settings, check_subtraction_score)
 
 
-def charged_up_clean_code_check(score_obj: Score) -> Union[str, None]:
+def charged_up_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_charged_up_game_settings, check_score)
 
 
-def freight_frenzy_clean_code_check(score_obj: Score) -> Union[str, None]:
+def freight_frenzy_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_freight_frenzy_game_settings, check_score)
 
 
-def power_play_clean_code_check(score_obj: Score) -> Union[str, None]:
+def power_play_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_power_play_game_settings, check_skills_challenge_score)
 
 
-def tipping_point_clean_code_check(score_obj: Score) -> Union[str, None]:
+def tipping_point_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_tipping_point_game_settings, check_skills_challenge_score)
 
 
-def spin_up_clean_code_check(score_obj: Score) -> Union[str, None]:
+def spin_up_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_spin_up_game_settings, check_skills_challenge_score)
 
 
-def centerstage_clean_code_check(score_obj: Score) -> Union[str, None]:
+def centerstage_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_centerstage_game_settings, check_score)
 
 
-def over_under_clean_code_check(score_obj: Score) -> Union[str, None]:
+def over_under_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_over_under_game_settings, check_score)
 
 
-def crescendo_clean_code_check(score_obj: Score) -> Union[str, None]:
+def crescendo_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_crescendo_game_settings, check_subtraction_score)
 
 
-def high_stakes_clean_code_check(score_obj: Score) -> Union[str, None]:
+def high_stakes_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_high_stakes_game_settings, check_skills_challenge_score)
 
 
-def ultimate_goal_clean_code_check(score_obj: Score) -> Union[str, None]:
+def ultimate_goal_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_ultimate_goal_game_settings, check_score)
 
 
-def into_the_deep_clean_code_check(score_obj: Score) -> Union[str, None]:
+def into_the_deep_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_into_the_deep_game_settings, check_subtraction_score)
 
 
-def rover_ruckus_clean_code_check(score_obj: Score) -> Union[str, None]:
+def rover_ruckus_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_rover_ruckus_game_settings, check_subtraction_score)
 
 
-def skystone_clean_code_check(score_obj: Score) -> Union[str, None]:
+def skystone_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_skystone_game_settings, check_subtraction_score)
 
 
-def reefscape_clean_code_check(score_obj: Score) -> Union[str, None]:
+def reefscape_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_reefscape_game_settings, check_subtraction_score)
 
 
-def push_back_clean_code_check(score_obj: Score) -> Union[str, None]:
+def push_back_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_push_back_game_settings, check_skills_challenge_score)
+
+
+def decode_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
+    return clean_code_check(score_obj, check_decode_game_settings, check_subtraction_score)
 
 
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str, str]:
@@ -804,6 +812,20 @@ def check_push_back_game_settings(game_options: list, restart_option: str, game_
     return None  # No error
 
 
+def check_decode_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
+    """ Checks if the Decode game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if (game_index != '21'):
+        return 'Wrong game! This form is for Decode.'
+    if (game_options[3] != '1'):
+        return 'You must have possession limit enabled for high score submissions.'
+    if (game_options[7] != '3'):
+        return 'Foul immunity must be set to 3 seconds for high score submissions.'
+
+    return None  # No error
+
+
 def check_robot_type(score_obj: Score, robot_model: str) -> Union[str, None]:
     """ Checks if the robot model is valid.
     :return: None if the robot model is valid, or a response with an error message if it is not.
@@ -995,6 +1017,7 @@ game_slug_to_submit_func = {
     "ss": submit_skystone,
     "rs": submit_reefscape,
     "pb": submit_push_back,
+    "dc": submit_decode,
 }
 
 game_to_submit_func = {
@@ -1015,4 +1038,5 @@ game_to_submit_func = {
     "Skystone": submit_skystone,
     "REEFSCAPE": submit_reefscape,
     "Push Back": submit_push_back,
+    "DECODE": submit_decode,
 }
