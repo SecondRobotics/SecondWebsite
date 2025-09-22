@@ -6,7 +6,6 @@ import logging
 from .models import Score, CleanCodeSubmission, ExemptedIP
 from .forms import ScoreForm
 from SRCweb.settings import NEW_AES_KEY, DEBUG, ADMIN_EMAILS, EMAIL_HOST_USER, DISCORD_WEBHOOK_URL
-import os
 
 from typing import Callable, Union
 from Crypto.Cipher import AES
@@ -885,7 +884,8 @@ def search_for_reused_code(score_obj: Score) -> Union[str, None]:
         # Report this via email.
 
         original_score = clean_code_search[0]
-        time_analysis_link = f"\nOriginal Score Time Analysis: https://secondrobotics.org/highscores/time-analysis/{original_score.id}/" if hasattr(original_score, 'time_data') and original_score.time_data else ""
+        time_analysis_link = f"\nOriginal Score Time Analysis: https://secondrobotics.org/highscores/time-analysis/{original_score.id}/" if hasattr(
+            original_score, 'time_data') and original_score.time_data else ""
         message = f"{score_obj.player} ({score_obj.ip}) attempted (and failed) to submit a score: [{score_obj.score}] - {score_obj.leaderboard}\n\n This score was already submitted by {original_score.player} ({original_score.ip})\n\n {score_obj.source}\n\nAdmin Panel: https://secondrobotics.org/admin/highscores/score/\nOriginal Score: https://secondrobotics.org/admin/highscores/score/{original_score.id}/change/{time_analysis_link}"
         try:
             if (not DEBUG):
