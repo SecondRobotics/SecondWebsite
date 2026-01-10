@@ -291,6 +291,10 @@ def submit_decode(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, decode_clean_code_check)
 
 
+def submit_rebuilt(score_obj: Score) -> Union[str, None, tuple[None, str]]:
+    return submit_score(score_obj, rebuilt_clean_code_check)
+
+
 def decode_time_data(in_string: str) -> str:
     out_bytes = ""
 
@@ -529,6 +533,10 @@ def push_back_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None,
 
 def decode_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_decode_game_settings, check_subtraction_score)
+
+
+def rebuilt_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
+    return clean_code_check(score_obj, check_rebuilt_game_settings, check_subtraction_score)
 
 
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str, str]:
@@ -826,6 +834,16 @@ def check_decode_game_settings(game_options: list, restart_option: str, game_ind
     return None  # No error
 
 
+def check_rebuilt_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
+    """ Checks if the REBUILT game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if (game_index != '22'):
+        return 'Wrong game! This form is for REBUILT.'
+
+    return None  # No error
+
+
 def check_robot_type(score_obj: Score, robot_model: str) -> Union[str, None]:
     """ Checks if the robot model is valid.
     :return: None if the robot model is valid, or a response with an error message if it is not.
@@ -1018,6 +1036,7 @@ game_slug_to_submit_func = {
     "rs": submit_reefscape,
     "pb": submit_push_back,
     "dc": submit_decode,
+    "rb": submit_rebuilt,
 }
 
 game_to_submit_func = {
@@ -1039,4 +1058,5 @@ game_to_submit_func = {
     "REEFSCAPE": submit_reefscape,
     "Push Back": submit_push_back,
     "DECODE": submit_decode,
+    "REBUILT": submit_rebuilt,
 }
