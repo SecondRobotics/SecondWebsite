@@ -17,7 +17,7 @@ six==1.16.0
 sqlparse==0.5.0
 toml==0.10.2
 urllib3==2.5.0
-wheel==0.42.0
+wheel==0.46.2
 pytest==8.3.3
 pytest-django==4.9.0
 pytest-cov==5.0.0
