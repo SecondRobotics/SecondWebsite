@@ -62,7 +62,6 @@ INSTALLED_APPS = [
 
     # External packages
 
-    'widget_tweaks',
     'rest_framework',
     'rest_framework.authtoken',
 
