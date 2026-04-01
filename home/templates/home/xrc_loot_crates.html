@@ -1,0 +1,304 @@
+{% extends 'home/base.html' %}
+
+{% block extra_js %}
+<style>
+.store-shell {
+    padding: 3rem 0 5rem;
+}
+
+.store-hero,
+.crate-panel,
+.checkout-panel,
+.warning-banner {
+    border-radius: 28px;
+    border: 1px solid rgba(255, 209, 102, 0.2);
+    background: rgba(20, 9, 13, 0.72);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
+}
+
+.store-hero {
+    padding: 2.4rem;
+    margin-bottom: 1.5rem;
+    background:
+        radial-gradient(circle at top right, rgba(255, 209, 102, 0.15), transparent 35%),
+        linear-gradient(145deg, rgba(255, 90, 54, 0.2), rgba(20, 9, 13, 0.82));
+}
+
+.store-kicker {
+    color: #ffd166;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.store-hero h1,
+.checkout-panel h2,
+.crate-panel h2 {
+    color: #fff3dd;
+    font-weight: 900;
+}
+
+.store-hero p,
+.crate-panel p,
+.checkout-panel p,
+.crate-feature li {
+    color: #f4dfd0;
+}
+
+.wallet-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.wallet-card {
+    padding: 1rem;
+    border-radius: 18px;
+    background: rgba(255, 243, 220, 0.06);
+}
+
+.crate-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin: 1.5rem 0;
+}
+
+.crate-panel {
+    padding: 1.6rem;
+    height: 100%;
+}
+
+.rarity {
+    display: inline-flex;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.rarity.common { background: rgba(255,255,255,0.1); color: #fff3dd; }
+.rarity.epic { background: rgba(255, 209, 102, 0.18); color: #ffd166; }
+.rarity.mythic { background: rgba(255, 90, 54, 0.22); color: #ffae99; }
+
+.price-tag {
+    display: inline-block;
+    margin: 1rem 0;
+    padding: 0.5rem 0.8rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(255, 209, 102, 0.18), rgba(255, 90, 54, 0.12));
+    color: #fff6e2;
+    font-weight: 900;
+}
+
+.crate-feature {
+    padding-left: 1.2rem;
+    line-height: 1.8;
+}
+
+.buy-button,
+.reveal-button {
+    width: 100%;
+    border: 0;
+    border-radius: 16px;
+    padding: 0.95rem 1rem;
+    font-weight: 900;
+    color: #1d1114;
+    background: linear-gradient(135deg, #ffd166, #ff9e57);
+}
+
+.checkout-panel {
+    padding: 2rem;
+    margin-top: 1.5rem;
+}
+
+.checkout-card-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 1.5rem;
+}
+
+.fake-form {
+    display: grid;
+    gap: 1rem;
+}
+
+.fake-form label {
+    color: #ffe5b9;
+    font-weight: 700;
+}
+
+.fake-form input,
+.fake-form select {
+    width: 100%;
+    border: 1px solid rgba(255, 209, 102, 0.22);
+    border-radius: 14px;
+    padding: 0.9rem 1rem;
+    color: #fff8eb;
+    background: rgba(255, 243, 220, 0.06);
+}
+
+.summary-box {
+    padding: 1.2rem;
+    border-radius: 20px;
+    background: rgba(255, 243, 220, 0.05);
+}
+
+.warning-banner {
+    display: none;
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(255, 209, 102, 0.18), rgba(255, 90, 54, 0.22));
+}
+
+.warning-banner.is-visible {
+    display: block;
+}
+
+@media (max-width: 991px) {
+    .wallet-strip,
+    .crate-grid,
+    .checkout-card-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const planName = document.getElementById("selected-plan-name");
+    const planPrice = document.getElementById("selected-plan-price");
+    const reveal = document.getElementById("checkout-reveal");
+
+    document.querySelectorAll("[data-plan-name]").forEach(function (button) {
+        button.addEventListener("click", function () {
+            planName.textContent = button.dataset.planName;
+            planPrice.textContent = button.dataset.planPrice;
+            document.getElementById("checkout-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+    });
+
+    document.getElementById("fake-checkout-form").addEventListener("submit", function (event) {
+        event.preventDefault();
+        reveal.classList.add("is-visible");
+        reveal.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="store-shell">
+    <div class="store-hero">
+        <div class="store-kicker">Official Sonysoft Ubivalve Commerce Zone</div>
+        <h1>$XRC Loot Crate Store</h1>
+        <p>
+            Welcome to the premium monetization frontier. Select a crate, fund your ambition with $XRC, and prepare for a carefully curated near-checkout experience worthy of modern AAA excellence.
+        </p>
+        <div class="wallet-strip">
+            <div class="wallet-card">
+                <strong>Wallet Balance</strong>
+                <div>12,440 $XRC</div>
+                <small>Marked to meme.</small>
+            </div>
+            <div class="wallet-card">
+                <strong>Daily Bonus</strong>
+                <div>+40 $XRC</div>
+                <small>Claimable after reading one investor deck.</small>
+            </div>
+            <div class="wallet-card">
+                <strong>VIP Status</strong>
+                <div>Bronze Founder</div>
+                <small>Only 17 tiers from Diamond Executive.</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="crate-grid">
+        <article class="crate-panel">
+            <span class="rarity common">Core Drop</span>
+            <h2 class="mt-3">Starter Servo Crate</h2>
+            <div class="price-tag">149 $XRC</div>
+            <ul class="crate-feature">
+                <li>Guaranteed uncommon robot decal</li>
+                <li>One animated wrench confetti burst</li>
+                <li>5% chance of "Investor Beige" paint</li>
+            </ul>
+            <button class="buy-button" type="button" data-plan-name="Starter Servo Crate" data-plan-price="149 $XRC">Begin Purchase</button>
+        </article>
+
+        <article class="crate-panel">
+            <span class="rarity epic">Executive Value</span>
+            <h2 class="mt-3">Coach's Crunch Box</h2>
+            <div class="price-tag">499 $XRC</div>
+            <ul class="crate-feature">
+                <li>Guaranteed epic sideline aura</li>
+                <li>Two sponsor-approved sparkle trails</li>
+                <li>Boosted odds for a gold-plated clipboard frame</li>
+            </ul>
+            <button class="buy-button" type="button" data-plan-name="Coach's Crunch Box" data-plan-price="499 $XRC">Begin Purchase</button>
+        </article>
+
+        <article class="crate-panel">
+            <span class="rarity mythic">Founder Tier</span>
+            <h2 class="mt-3">Quantum Legacy Cache</h2>
+            <div class="price-tag">1,999 $XRC</div>
+            <ul class="crate-feature">
+                <li>Guaranteed mythic anticipation</li>
+                <li>Priority access to future premium rumors</li>
+                <li>A ceremonial 0.8% chance at the "Synergy Crown"</li>
+            </ul>
+            <button class="buy-button" type="button" data-plan-name="Quantum Legacy Cache" data-plan-price="1,999 $XRC">Begin Purchase</button>
+        </article>
+    </div>
+
+    <div class="checkout-panel" id="checkout-panel">
+        <div class="checkout-card-grid">
+            <div>
+                <h2>Checkout Preview</h2>
+                <p>
+                    Complete the form below to advance to the secure Sonysoft Ubivalve Value Tunnel. No refunds are available for emotional overconfidence or rare cosmetic envy.
+                </p>
+                <form id="fake-checkout-form" class="fake-form">
+                    <div>
+                        <label for="display-name">Display Name</label>
+                        <input id="display-name" type="text" placeholder="Chief Monetization Pilot" required />
+                    </div>
+                    <div>
+                        <label for="region">Executive Region</label>
+                        <select id="region" required>
+                            <option value="">Select region</option>
+                            <option>North America</option>
+                            <option>Europe</option>
+                            <option>Moonbase Finance District</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="wallet">Preferred $XRC Wallet Alias</label>
+                        <input id="wallet" type="text" placeholder="totally-real-wallet-001" required />
+                    </div>
+                    <button class="reveal-button" type="submit">Proceed to Secure Checkout</button>
+                </form>
+            </div>
+            <aside class="summary-box">
+                <h3>Selected Crate</h3>
+                <p id="selected-plan-name">Starter Servo Crate</p>
+                <h3>Price</h3>
+                <p id="selected-plan-price">149 $XRC</p>
+                <h3>Included Value</h3>
+                <p>Suspense, anticipation, and a mathematically meaningful possibility of orange confetti.</p>
+            </aside>
+        </div>
+
+        <div class="warning-banner" id="checkout-reveal">
+            <h2>April Fools</h2>
+            <p>
+                No acquisition, no meme coin, and no loot crate economy here. Thanks for playing along!
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,163 @@
+{% extends 'home/base.html' %}
+
+{% block extra_js %}
+<style>
+.press-shell {
+    padding: 3rem 0 5rem;
+}
+
+.press-card {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 3rem;
+    border-radius: 32px;
+    background: linear-gradient(180deg, rgba(255, 244, 223, 0.98), rgba(255, 235, 203, 0.96));
+    color: #2b1715;
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.28);
+}
+
+.press-kicker {
+    color: #9d4b20;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.press-card h1 {
+    font-size: clamp(2.3rem, 5vw, 4rem);
+    line-height: 1.02;
+    margin: 1rem 0 1.5rem;
+    font-weight: 900;
+}
+
+.press-meta {
+    margin-bottom: 2rem;
+    color: #6b3b29;
+    font-weight: 600;
+}
+
+.press-card p {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    margin-bottom: 1.2rem;
+}
+
+.quote-block {
+    margin: 2rem 0;
+    padding: 1.6rem 1.8rem;
+    border-left: 6px solid #ff9e57;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.45);
+}
+
+.boilerplate-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-top: 2.5rem;
+}
+
+.boilerplate-card {
+    padding: 1.4rem;
+    border-radius: 22px;
+    background: rgba(61, 25, 22, 0.08);
+}
+
+.cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.cta-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.9rem 1.3rem;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 800;
+    color: #fff5e3;
+    background: linear-gradient(135deg, #a84025, #ff7b54);
+}
+
+.cta-link.secondary {
+    color: #5b271e;
+    background: rgba(91, 39, 30, 0.08);
+}
+
+@media (max-width: 768px) {
+    .press-shell {
+        padding: 2rem 0 4rem;
+    }
+
+    .press-card {
+        padding: 2rem 1.4rem;
+    }
+
+    .boilerplate-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="press-shell">
+    <article class="press-card">
+        <div class="press-kicker">Joint Statement | Second Robotics + xRC Simulator + Sonysoft Ubivalve</div>
+        <h1>Second Robotics and xRC Simulator Enter Bold New Era Following Acquisition by Sonysoft Ubivalve</h1>
+        <div class="press-meta">Published April 1, 2026 | Global Headquarters of Strategic Excitement</div>
+
+        <p>
+            Second Robotics and xRC Simulator are thrilled to announce that both organizations have been acquired by Sonysoft Ubivalve, the legendary AAA publishing consortium best known for blockbuster franchises, surprise mechanics, and the unwavering belief that every game should contain at least one premium loot crate experience.
+        </p>
+        <p>
+            This landmark transaction unites the competitive robotics community with the full force of modern entertainment monetization. Effective immediately, players can look forward to a refreshed product philosophy centered on delight, engagement, retention, and monetized astonishment at scales once reserved for quarterly earnings calls.
+        </p>
+        <p>
+            The first phase of integration introduces <strong>$XRC</strong>, a community-optimized meme coin designed to empower the next generation of crate-native competition. $XRC will serve as the official medium for premium crate unlocks, celebratory visual effects, and several confidential roadmap pillars with names like Project Infinite Velocity and Operation Legendary Conversion.
+        </p>
+
+        <div class="quote-block">
+            <p>
+                "For years, players have asked us for more immersion. Today, we answer that call with four rarity tiers, three rotating storefront panels, and a luxury economy whose confidence far exceeds its documentation."
+            </p>
+            <p class="mb-0">
+                "Robotics deserves the full AAA treatment, and that begins with making every reward feel like it emerged from a smoke machine."
+            </p>
+        </div>
+
+        <p>
+            Under Sonysoft Ubivalve leadership, Second Robotics and xRC Simulator will accelerate delivery of important player-facing innovations. Planned features include Founder Status emblems, sponsor-friendly prestige badges, seasonal crate events, and a robust "value surfacing layer" that ensures every cosmetic appears to be approximately moments away from vanishing forever.
+        </p>
+        <p>
+            Community members may also notice updated corporate language across the platform, including references to synergy, acquisition confidence, and premium anticipation architecture. These changes are part of a broader initiative to align robotics competition with the proven standards of top-tier blockbuster publishing.
+        </p>
+        <p>
+            "Sonysoft Ubivalve immediately recognized what makes this community special," the announcement continued. "Passionate competitors, inventive builders, and a user base brave enough to accept a meme coin as a unit of account. This was destiny."
+        </p>
+        <p>
+            Additional details about loot crates, crate rarity stratification, and ceremonial checkout experiences are now available in the new <a href="/store/xrc-loot-crates/">$XRC Crate Store</a>. Members are encouraged to review all offers promptly, because urgency is one of our core values now.
+        </p>
+
+        <div class="boilerplate-grid">
+            <section class="boilerplate-card">
+                <h2>About Second Robotics</h2>
+                <p class="mb-0">Second Robotics is an online simulator league dedicated to competitive robotics, community-driven events, and now unexpectedly aggressive corporate transformation.</p>
+            </section>
+            <section class="boilerplate-card">
+                <h2>About xRC Simulator</h2>
+                <p class="mb-0">xRC Simulator delivers high-energy robotics simulation gameplay and, beginning immediately, the possibility of unlocking a mythic finish with impeccable investor appeal.</p>
+            </section>
+        </div>
+
+        <div class="cta-row">
+            <a href="/store/xrc-loot-crates/" class="cta-link">Browse Loot Crates</a>
+            <a href="/" class="cta-link secondary">Return to Homepage</a>
+        </div>
+    </article>
+</section>
+{% endblock %}
