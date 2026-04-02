@@ -17,14 +17,6 @@ def index(response):
     return render(response, "home/home.html", {})
 
 
-def sonysoft_press_release(response):
-    return render(response, "home/sonysoft_press_release.html", {})
-
-
-def xrc_loot_crates(response):
-    return render(response, "home/xrc_loot_crates.html", {})
-
-
 def about(response):
     return render(response, "home/about.html", {})
 

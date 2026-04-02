@@ -4,8 +4,6 @@ from . import views
 
 urlpatterns = [
     path("", views.index, name="home"),
-    path("press-release/sonysoft-ubivalve/", views.sonysoft_press_release, name="sonysoft press release"),
-    path("store/xrc-loot-crates/", views.xrc_loot_crates, name="xrc loot crates"),
     path("about/", views.about, name="about"),
     path("mrc/", views.mrc, name="mrc"),
     path("rules/", views.rules, name="rules"),

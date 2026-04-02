@@ -2,7 +2,7 @@
 <html lang="en" xml:lang="en">
     <head>
         <meta http-eqiv="Content-Language" content="en" />
-        <title>Second Robotics | A Sonysoft Ubivalve Experience</title>
+        <title>Second Robotics</title>
         {% load static %}
         <link
             rel="shortcut icon"
@@ -59,21 +59,12 @@
 
     <body>
         <style>
-            :root {
-                --sonysoft-red: #ff5a36;
-                --sonysoft-gold: #ffd166;
-                --sonysoft-cream: #fff3dc;
-                --sonysoft-ink: #170f12;
-            }
             html {
                 position: relative;
                 min-height: 100%;
             }
             body {
                 margin: 0 0 100px;
-                background:
-                    radial-gradient(circle at top, rgba(255, 209, 102, 0.18), transparent 32%),
-                    linear-gradient(135deg, #160d10 0%, #281116 48%, #3d1916 100%);
             }
             footer {
                 position: absolute;
@@ -88,72 +79,7 @@
             p.center {
                 text-align: center;
             }
-            .sonysoft-banner {
-                background: linear-gradient(90deg, var(--sonysoft-gold), var(--sonysoft-red), #ff7b54);
-                color: var(--sonysoft-ink);
-                font-weight: 800;
-                letter-spacing: 0.04em;
-                text-transform: uppercase;
-                text-align: center;
-                padding: 0.8rem 1rem;
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-            }
-            .sonysoft-banner a {
-                color: var(--sonysoft-ink);
-            }
-            .navbar {
-                background: rgba(37, 12, 19, 0.92);
-                border-bottom: 1px solid rgba(255, 209, 102, 0.3);
-                backdrop-filter: blur(10px);
-            }
-            .navbar-brand {
-                font-weight: 800;
-                letter-spacing: 0.03em;
-            }
-            .navbar-brand-badge {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                padding: 0.25rem 0.55rem;
-                margin-left: 0.6rem;
-                border-radius: 999px;
-                background: linear-gradient(135deg, var(--sonysoft-gold), #ff9e57);
-                color: var(--sonysoft-ink);
-                font-size: 0.7rem;
-                font-weight: 900;
-                vertical-align: middle;
-            }
-            .dropdown-menu {
-                background: #261116;
-                border: 1px solid rgba(255, 209, 102, 0.18);
-            }
-            .dropdown-item {
-                color: #f7eede;
-            }
-            .dropdown-item:hover,
-            .dropdown-item:focus {
-                color: #140d11;
-                background: linear-gradient(135deg, var(--sonysoft-gold), #ff9e57);
-            }
-            #content {
-                padding-bottom: 4rem;
-            }
-            footer {
-                background: rgba(14, 8, 10, 0.88);
-                border-top: 1px solid rgba(255, 209, 102, 0.22);
-            }
-            footer a {
-                color: var(--sonysoft-cream);
-            }
         </style>
-
-        <div class="sonysoft-banner">
-            Breaking: Second Robotics and xRC Simulator have joined the Sonysoft Ubivalve family.
-            <br />
-            <a href="/press-release/sonysoft-ubivalve/">Read the official announcement</a>
-            or
-            <a href="/store/xrc-loot-crates/">buy value-enhancing loot crates with $XRC</a>.
-        </div>
 
         <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
             <div class="container-fluid">
@@ -166,7 +92,6 @@
                         height="50"
                     />
                     Second Robotics
-                    <span class="navbar-brand-badge">Sonysoft Ubivalve</span>
                 </a>
                 <button
                     class="navbar-toggler"
@@ -190,31 +115,22 @@
                                 >Home</a
                             >
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/press-release/sonysoft-ubivalve/"
-                                >Press Release</a
-                            >
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/store/xrc-loot-crates/"
-                                >$XRC Crates</a
-                            >
-                        </li>
 
+                        <!-- Nav Item - About Section -->
                         <li class="nav-item dropdown">
                             <a
                                 class="nav-link dropdown-toggle"
                                 href="#"
-                                id="legacyDropdown"
+                                id="navbarDropdown"
                                 role="button"
                                 data-bs-toggle="dropdown"
                                 aria-expanded="false"
                             >
-                                Legacy
+                                About
                             </a>
                             <ul
                                 class="dropdown-menu"
-                                aria-labelledby="legacyDropdown"
+                                aria-labelledby="navbarDropdown"
                             >
                                 <li>
                                     <a class="dropdown-item" href="/about"
@@ -226,31 +142,60 @@
                                         >Staff</a
                                     >
                                 </li>
+                                <li><hr class="dropdown-divider" /></li>
                                 <li>
                                     <a class="dropdown-item" href="/mrc"
                                         >Minecraft</a
                                     >
                                 </li>
+                                <li><hr class="dropdown-divider" /></li>
                                 <li>
                                     <a class="dropdown-item" href="/logopack"
                                         >Logos</a
                                     >
                                 </li>
-                                <li><hr class="dropdown-divider" /></li>
-                                <li>
-                                    <a class="dropdown-item" href="/hall-of-fame"
-                                        >Events</a
-                                    >
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="/rules"
-                                        >Rules</a
-                                    >
-                                </li>
-                                <li><hr class="dropdown-divider" /></li>
+                            </ul>
+                        </li>
+
+                        <!-- Nav Item - Event stuff -->
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                aria-current="page"
+                                href="/hall-of-fame"
+                                >Events</a
+                            >
+                        </li>
+
+                        <!-- Nav Item - Rules -->
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                aria-current="page"
+                                href="/rules"
+                                >Rules</a
+                            >
+                        </li>
+
+                        <!-- Nav Item - Highscores -->
+                        <li class="nav-item dropdown">
+                            <a
+                                class="nav-link dropdown-toggle"
+                                href="#"
+                                id="highscoresDropdown"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                Highscores
+                            </a>
+                            <ul
+                                class="dropdown-menu"
+                                aria-labelledby="highscoresDropdown"
+                            >
                                 <li>
                                     <a class="dropdown-item" href="/highscores"
-                                        >Highscores Leaderboards</a
+                                        >Leaderboards</a
                                     >
                                 </li>
                                 <li>
@@ -267,10 +212,27 @@
                                         >Overall Leaderboard</a
                                     >
                                 </li>
-                                <li><hr class="dropdown-divider" /></li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a
+                                class="nav-link dropdown-toggle"
+                                href="#"
+                                id="rankedDropdown"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                Ranked
+                            </a>
+                            <ul
+                                class="dropdown-menu"
+                                aria-labelledby="rankedDropdown"
+                            >
                                 <li>
                                     <a class="dropdown-item" href="/ranked"
-                                        >Ranked Leaderboards</a
+                                        >Leaderboards</a
                                     >
                                 </li>
                                 <li>
@@ -397,7 +359,7 @@
                     <a href="https://github.com/SecondRobotics/SecondWebsite">Open Source</a>
                 </div>
                 <div class="footer-copyright" style="margin-top: 1rem; color: var(--text-secondary);">
-                    © {% now "Y" %} Second Robotics, xRC Simulator, and the shareholder delight committee at Sonysoft Ubivalve.
+                    © {% now "Y" %} Second Robotics. Built with passion for competitive robotics.
                 </div>
             </div>
         </div>
