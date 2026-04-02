@@ -485,10 +485,12 @@
                     </div>
                     <div class="video-wrapper">
                         <iframe
-                            src="https://www.youtube-nocookie.com/embed/videoseries?list=PL-CZUOdLrE16yF1WyGbqh2ft0QwtKoZdW"
+                            title="SRC in Action playlist"
+                            src="https://www.youtube-nocookie.com/embed/videoseries?list=PL-CZUOdLrE16yF1WyGbqh2ft0QwtKoZdW&playsinline=1&rel=0&origin={{ request.scheme }}://{{ request.get_host }}"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowfullscreen
                             loading="lazy"
+                            referrerpolicy="strict-origin-when-cross-origin"
                         ></iframe>
                     </div>
                 </div>

@@ -613,9 +613,11 @@
                     <div class="video-wrapper">
                         <iframe
                             title="SRC Trailer"
-                            src="https://www.youtube-nocookie.com/embed/YDvl09S-LUA"
+                            src="https://www.youtube-nocookie.com/embed/YDvl09S-LUA?playsinline=1&rel=0&origin={{ request.scheme }}://{{ request.get_host }}"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowfullscreen
+                            loading="lazy"
+                            referrerpolicy="strict-origin-when-cross-origin"
                         ></iframe>
                     </div>
                 </div>

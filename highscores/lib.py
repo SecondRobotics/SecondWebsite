@@ -10,6 +10,7 @@ from SRCweb.settings import NEW_AES_KEY, DEBUG, ADMIN_EMAILS, EMAIL_HOST_USER, D
 from typing import Callable, Union
 from Crypto.Cipher import AES
 from urllib.request import urlopen, Request
+from urllib.parse import parse_qs, urlparse
 import json
 
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
@@ -376,22 +377,26 @@ def submission_screenshot_check(score_obj: Score) -> Union[str, None]:
     try:
         if "youtube" in score_obj.source or "youtu.be" in score_obj.source:
             # YouTube video...
-            # Extract the video id
-            score_obj.source = score_obj.source[score_obj.source.rfind('/')+1:]
-            if (score_obj.source.rfind('v=') != -1):
-                score_obj.source = score_obj.source[score_obj.source.rfind(
-                    'v=')+2:]
-            if (score_obj.source.rfind('?') != -1):
-                score_obj.source = score_obj.source[:score_obj.source.rfind(
-                    '?')]
-            if (score_obj.source.rfind('&') != -1):
-                score_obj.source = score_obj.source[:score_obj.source.rfind(
-                    '&')]
+            parsed_url = urlparse(score_obj.source)
+            if parsed_url.hostname == "youtu.be":
+                video_id = parsed_url.path.strip("/")
+            else:
+                video_id = parse_qs(parsed_url.query).get("v", [None])[0]
+                if video_id is None:
+                    video_id = parsed_url.path.rstrip("/").split("/")[-1]
+
+            if not video_id:
+                return BAD_URL_MESSAGE
+
             # Check if the video exists
             urlopen(
-                "http://img.youtube.com/vi/{}/mqdefault.jpg".format(score_obj.source))
+                "https://img.youtube.com/vi/{}/mqdefault.jpg".format(video_id))
             # Convert to embed
-            score_obj.source = "https://www.youtube-nocookie.com/embed/" + score_obj.source
+            score_obj.source = (
+                "https://www.youtube-nocookie.com/embed/"
+                + video_id
+                + "?playsinline=1&rel=0"
+            )
         elif "streamable" in score_obj.source:
             # Streamable video...
             # Check if the video exists
