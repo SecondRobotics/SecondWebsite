@@ -57,3 +57,4 @@ jobs:
                   REMOTE_USER: ${{ secrets.REMOTE_USER }}
                   REMOTE_PORT: 21098 -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa
                   TARGET: ${{ secrets.REMOTE_TARGET }}
+                  EXCLUDE: "/db.sqlite3"
