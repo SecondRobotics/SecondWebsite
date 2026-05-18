@@ -250,8 +250,8 @@ def post_match_result(request: Request, game_mode_code: str) -> Response:
     if res:
         return res
 
-    red_starting_elo = sum([elo.elo for elo in red_player_elos])
-    blue_starting_elo = sum([elo.elo for elo in blue_player_elos])
+    red_starting_elo = sum(elo.elo for elo in red_player_elos) / players_per_alliance
+    blue_starting_elo = sum(elo.elo for elo in blue_player_elos) / players_per_alliance
 
     match = Match(
         game_mode=game_mode,
