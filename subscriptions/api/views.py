@@ -22,14 +22,16 @@ def _require_auth(request):
     return None
 
 
-def _auth_token_key(request):
-    auth = getattr(request, 'auth', None)
-    return getattr(auth, 'key', None) or (str(auth) if auth else '')
-
-
 def _is_service_request(request):
-    expected = getattr(settings, 'SECONDWEBSITE_SERVICE_TOKEN', '')
-    return bool(expected and _auth_token_key(request) == expected)
+    expected = getattr(settings, 'API_KEY', '')
+    provided = request.META.get('HTTP_X_API_KEY', '')
+    return bool(expected and provided and provided == expected)
+
+
+def _require_auth_or_service(request):
+    if request.user.is_authenticated or _is_service_request(request):
+        return None
+    return Response({'success': False, 'message': 'User is not authenticated.'}, status=401)
 
 
 def _resolve_launch_user(request):
@@ -54,11 +56,11 @@ def my_entitlement(request):
 
 @api_view(['GET'])
 def user_entitlement(request, discord_user_id):
-    auth_error = _require_auth(request)
+    auth_error = _require_auth_or_service(request)
     if auth_error:
         return auth_error
     if not _is_service_request(request):
-        return Response({'success': False, 'message': 'Service token is required.'}, status=403)
+        return Response({'success': False, 'message': 'Service API key is required.'}, status=403)
     try:
         user = User.objects.get(id=discord_user_id)
     except User.DoesNotExist:
@@ -68,7 +70,7 @@ def user_entitlement(request, discord_user_id):
 
 @api_view(['GET'])
 def casual_games(request):
-    auth_error = _require_auth(request)
+    auth_error = _require_auth_or_service(request)
     if auth_error:
         return auth_error
     try:
@@ -80,7 +82,7 @@ def casual_games(request):
 
 @api_view(['POST'])
 def start_session(request):
-    auth_error = _require_auth(request)
+    auth_error = _require_auth_or_service(request)
     if auth_error:
         return auth_error
 
@@ -109,7 +111,7 @@ def start_session(request):
 
 @api_view(['POST'])
 def stop_session(request, session_id):
-    auth_error = _require_auth(request)
+    auth_error = _require_auth_or_service(request)
     if auth_error:
         return auth_error
 
@@ -148,11 +150,11 @@ def heartbeat_session(request, session_id):
 
 @api_view(['POST'])
 def orchestrator_event(request, session_id):
-    auth_error = _require_auth(request)
+    auth_error = _require_auth_or_service(request)
     if auth_error:
         return auth_error
     if not _is_service_request(request):
-        return Response({'success': False, 'message': 'Service token is required.'}, status=403)
+        return Response({'success': False, 'message': 'Service API key is required.'}, status=403)
 
     try:
         event = process_orchestrator_event(session_id, request.data or {})
