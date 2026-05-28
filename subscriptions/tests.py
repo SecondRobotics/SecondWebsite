@@ -276,17 +276,15 @@ class SubscriptionApiTests(TestCase):
     @override_settings(
         ORCHESTRATOR_API_BASE_URL='https://orchestrator.example.test',
         ORCHESTRATOR_API_TOKEN='orch-token',
-        SECONDWEBSITE_SERVICE_TOKEN='service-token',
+        API_KEY='service-api-key',
     )
     @patch('subscriptions.orchestrator.requests.request')
-    def test_service_token_can_launch_for_discord_user(self, mock_request):
+    def test_api_key_can_launch_for_discord_user(self, mock_request):
         mock_request.return_value = MockResponse(payload={'id': 'orch-1', 'state': 'starting'})
         owner = create_user(2002)
-        service_user = create_user(9999)
         create_entitlement(owner, tier='host')
-        token = Token.objects.create(user=service_user, key='service-token')
         client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
+        client.credentials(HTTP_X_API_KEY='service-api-key')
 
         response = client.post('/api/subscriptions/server-sessions/start/', {
             'owner_discord_id': str(owner.id),
@@ -300,14 +298,12 @@ class SubscriptionApiTests(TestCase):
         self.assertEqual(session.user, owner)
         self.assertEqual(session.status, ServerSession.STATUS_LAUNCHING)
 
-    @override_settings(SECONDWEBSITE_SERVICE_TOKEN='service-token')
-    def test_service_token_can_read_user_entitlement(self):
+    @override_settings(API_KEY='service-api-key')
+    def test_api_key_can_read_user_entitlement(self):
         owner = create_user(2005)
-        service_user = create_user(9998)
         create_entitlement(owner, tier='host')
-        token = Token.objects.create(user=service_user, key='service-token')
         client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
+        client.credentials(HTTP_X_API_KEY='service-api-key')
 
         response = client.get(f'/api/subscriptions/users/{owner.id}/entitlement/')
 
@@ -315,15 +311,13 @@ class SubscriptionApiTests(TestCase):
         self.assertEqual(response.data['discord_user_id'], str(owner.id))
         self.assertTrue(response.data['entitlement']['active'])
 
-    @override_settings(SECONDWEBSITE_SERVICE_TOKEN='service-token')
-    def test_orchestrator_callback_requires_service_token(self):
+    @override_settings(API_KEY='service-api-key')
+    def test_orchestrator_callback_requires_api_key(self):
         owner = create_user(3003)
         create_entitlement(owner)
         session = start_server_session(owner, status=ServerSession.STATUS_LAUNCHING)
-        caller = create_user(3004)
-        token = Token.objects.create(user=caller, key='not-service')
         client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
+        client.credentials(HTTP_X_API_KEY='wrong-key')
 
         response = client.post(f'/api/subscriptions/server-sessions/{session.id}/orchestrator-event/', {
             'event_id': 'evt-ready',
@@ -333,7 +327,25 @@ class SubscriptionApiTests(TestCase):
             'orchestrator_state': 'running',
         }, format='json')
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
+
+    @override_settings(API_KEY='service-api-key')
+    def test_orchestrator_callback_accepts_api_key(self):
+        owner = create_user(3005)
+        create_entitlement(owner)
+        session = start_server_session(owner, status=ServerSession.STATUS_LAUNCHING)
+        client = APIClient()
+        client.credentials(HTTP_X_API_KEY='service-api-key')
+
+        response = client.post(f'/api/subscriptions/server-sessions/{session.id}/orchestrator-event/', {
+            'event_id': 'evt-ready',
+            'event': 'ready',
+            'occurred_at': timezone.now().isoformat(),
+            'orchestrator_session_id': 'orch-1',
+            'orchestrator_state': 'running',
+        }, format='json')
+
+        self.assertEqual(response.status_code, 200)
 
 
 class PolarWebhookTests(TestCase):

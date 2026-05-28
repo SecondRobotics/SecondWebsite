@@ -48,7 +48,6 @@ POLAR_CUSTOMER_PORTAL_URL = os.getenv("POLAR_CUSTOMER_PORTAL_URL") or ""
 ORCHESTRATOR_API_BASE_URL = os.getenv("ORCHESTRATOR_API_BASE_URL") or ""
 ORCHESTRATOR_API_TOKEN = os.getenv("ORCHESTRATOR_API_TOKEN") or ""
 ORCHESTRATOR_REQUEST_TIMEOUT_SECONDS = float(os.getenv("ORCHESTRATOR_REQUEST_TIMEOUT_SECONDS") or 10)
-SECONDWEBSITE_SERVICE_TOKEN = os.getenv("SECONDWEBSITE_SERVICE_TOKEN") or ""
 
 # Sends an email to admins when debug = false and a 500 server error occurs
 ADMINS = [('Webmaster', 'webmaster@secondrobotics.org')]
