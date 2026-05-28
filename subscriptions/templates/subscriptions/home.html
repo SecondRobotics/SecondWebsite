@@ -1,0 +1,180 @@
+{% extends "home/base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        <div>
+            <h1 class="h2 mb-2">Premium</h1>
+            <p class="text-muted mb-0">Casual server hosting for Second Robotics community members.</p>
+        </div>
+        {% if customer_portal_url %}
+        <a class="btn btn-outline-light mt-3 mt-md-0" href="{{ customer_portal_url }}">Manage billing</a>
+        {% endif %}
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="card bg-dark border-secondary mb-4">
+        <div class="card-body">
+            <h2 class="h4">Your subscription</h2>
+            {% if entitlement.active %}
+            <p class="mb-2">
+                <strong>{{ entitlement.plan }}</strong>
+                {% if entitlement.cancel_at_period_end %}
+                <span class="badge bg-warning text-dark ms-2">Cancels at period end</span>
+                {% else %}
+                <span class="badge bg-success ms-2">Active</span>
+                {% endif %}
+            </p>
+            <div class="progress mb-2" style="height: 1.2rem;">
+                <div
+                    class="progress-bar"
+                    role="progressbar"
+                    style="width: {% widthratio entitlement.used_server_minutes entitlement.monthly_server_minutes 100 %}%"
+                    aria-valuenow="{{ entitlement.used_server_minutes }}"
+                    aria-valuemin="0"
+                    aria-valuemax="{{ entitlement.monthly_server_minutes }}"
+                ></div>
+            </div>
+            <p class="mb-0">
+                {{ entitlement.remaining_server_minutes }} of {{ entitlement.monthly_server_minutes }} minutes remaining this billing period.
+            </p>
+            {% if entitlement.active_session %}
+            <p class="mt-2 mb-0 text-warning">You have a casual server session active.</p>
+            {% endif %}
+            {% else %}
+            <p class="mb-0">No active premium subscription.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if entitlement.active %}
+    <div class="card bg-dark border-secondary mb-4">
+        <div class="card-body">
+            <h2 class="h4">Launch casual server</h2>
+            {% if not orchestrator_configured %}
+            <p class="mb-0 text-warning">Casual server launching is not configured yet.</p>
+            {% elif games_error %}
+            <p class="mb-0 text-warning">{{ games_error }}</p>
+            {% elif entitlement.active_session %}
+            <p class="mb-0 text-warning">Stop your active casual session before launching another one.</p>
+            {% else %}
+            <form method="post" action="/subscriptions/server-sessions/launch/">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label" for="game_code">Game</label>
+                        {% if casual_games %}
+                        <select class="form-select bg-dark text-light border-secondary" id="game_code" name="game_code" required>
+                            {% for game in casual_games %}
+                            <option value="{{ game.gameCode }}">{{ game.name }}</option>
+                            {% endfor %}
+                        </select>
+                        {% else %}
+                        <input class="form-control bg-dark text-light border-secondary" id="game_code" name="game_code" maxlength="32" required>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label" for="requested_minutes">Minutes</label>
+                        <input class="form-control bg-dark text-light border-secondary" id="requested_minutes" name="requested_minutes" type="number" min="5" max="{{ entitlement.max_session_minutes }}" value="{{ entitlement.max_session_minutes }}" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="comment">Server name</label>
+                        <input class="form-control bg-dark text-light border-secondary" id="comment" name="comment" maxlength="120" value="CasualPB" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="password">Password</label>
+                        <input class="form-control bg-dark text-light border-secondary" id="password" name="password" maxlength="80" placeholder="Generated if blank">
+                    </div>
+                </div>
+                <button class="btn btn-primary mt-3" type="submit">Launch server</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-3 mb-4">
+        {% for plan in plans %}
+        <div class="col-md-6">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-body d-flex flex-column">
+                    <h2 class="h4">{{ plan.name }}</h2>
+                    {% if plan.description %}
+                    <p class="text-muted">{{ plan.description }}</p>
+                    {% endif %}
+                    <p class="display-6">${{ plan.monthly_price_usd }}<span class="fs-6 text-muted">/month</span></p>
+                    <ul>
+                        {% for benefit in plan.benefits %}
+                        <li>{{ benefit }}</li>
+                        {% endfor %}
+                        <li>{{ plan.monthly_server_minutes }} casual server minutes per billing period</li>
+                        <li>{{ plan.max_session_minutes }} minute max casual server session</li>
+                        <li>{{ plan.max_concurrent_servers }} active casual server{{ plan.max_concurrent_servers|pluralize }} at a time</li>
+                    </ul>
+                    <a class="btn btn-primary mt-auto" href="/subscriptions/checkout/{{ plan.tier }}/">Subscribe with Polar</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="card bg-dark border-secondary">
+        <div class="card-body">
+            <h2 class="h4">Recent casual sessions</h2>
+            {% if sessions %}
+            <div class="table-responsive">
+                <table class="table table-dark table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Started</th>
+                            <th>Status</th>
+                            <th>Game</th>
+                            <th>Connection</th>
+                            <th>Allocated</th>
+                            <th>Stopped</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in sessions %}
+                        <tr>
+                            <td>{{ session.started_at }}</td>
+                            <td>{{ session.status }}</td>
+                            <td>{{ session.game|default:"Casual" }}</td>
+                            <td>
+                                {% if session.host and session.port %}
+                                {{ session.host }}:{{ session.port }}
+                                {% if session.server_password %}
+                                <br><span class="text-muted">Password: {{ session.server_password }}</span>
+                                {% endif %}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>{{ session.allocated_minutes }} min</td>
+                            <td>{{ session.stopped_at|default:"-" }}</td>
+                            <td>
+                                {% if session.is_open %}
+                                <form method="post" action="/subscriptions/server-sessions/{{ session.id }}/stop/">
+                                    {% csrf_token %}
+                                    <button class="btn btn-sm btn-outline-light" type="submit">Stop</button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="mb-0">No casual server sessions yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
