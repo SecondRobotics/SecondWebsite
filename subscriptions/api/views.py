@@ -8,7 +8,6 @@ from subscriptions import orchestrator
 from subscriptions.services import (
     SubscriptionError,
     entitlement_payload,
-    heartbeat_server_session,
     launch_casual_server,
     process_orchestrator_event,
     request_stop_server_session,
@@ -127,24 +126,6 @@ def stop_session(request, session_id):
         session = request_stop_server_session(session, reason=(request.data or {}).get('reason', 'stopped'))
     except SubscriptionError as exc:
         return Response({'success': False, 'message': str(exc), 'code': exc.code}, status=exc.status_code)
-    return Response({'success': True, 'session': serialize_session(session)})
-
-
-@api_view(['POST'])
-def heartbeat_session(request, session_id):
-    auth_error = _require_auth(request)
-    if auth_error:
-        return auth_error
-
-    try:
-        session = ServerSession.objects.get(id=session_id, user=request.user)
-    except ServerSession.DoesNotExist:
-        return Response({'success': False, 'message': 'Server session does not exist.'}, status=404)
-
-    try:
-        session = heartbeat_server_session(session, server_identifier=(request.data or {}).get('server_identifier', ''))
-    except SubscriptionError as exc:
-        return Response({'success': False, 'message': str(exc)}, status=409)
     return Response({'success': True, 'session': serialize_session(session)})
 
 

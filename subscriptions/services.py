@@ -320,18 +320,6 @@ def mark_server_session_failed(session, code='', message=''):
 
 
 @transaction.atomic
-def heartbeat_server_session(session, server_identifier=''):
-    session = ServerSession.objects.select_for_update().get(pk=session.pk)
-    if session.status not in OPEN_SESSION_STATUSES:
-        raise SubscriptionError('This server session is not running.')
-    session.last_heartbeat_at = timezone.now()
-    if server_identifier:
-        session.server_identifier = server_identifier
-    session.save(update_fields=['last_heartbeat_at', 'server_identifier', 'updated_at'])
-    return session
-
-
-@transaction.atomic
 def stop_server_session(session, reason='stopped'):
     session = ServerSession.objects.select_for_update().get(pk=session.pk)
     if session.status not in OPEN_SESSION_STATUSES:
