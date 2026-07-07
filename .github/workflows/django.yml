@@ -1,32 +1,81 @@
-name: 🚀 Deploy Django
+name: Deploy Django
 
 on:
     push:
         branches: [main]
 
 jobs:
-    build-deploy:
-        name: 🎉 Build and Deploy
+    validate:
+        name: Validate
 
         runs-on: ubuntu-latest
 
         steps:
-            - name: 🚚 Get latest code
-              uses: actions/checkout@v2
+            - name: Checkout
+              uses: actions/checkout@v4
 
-            - name: 🔨 Set up Python 3.12
-              uses: actions/setup-python@v2
+            - name: Set up Python 3.12
+              uses: actions/setup-python@v5
               with:
-                  python-version: 3.12
+                  python-version: "3.12"
+                  cache: pip
 
-            - name: 🛠 Install Dependencies
+            - name: Install dependencies
               run: |
                   python -m pip install --upgrade pip
                   pip install -r requirements.txt
 
-            - name: ▶ Run Tests
+            - name: Check for missing migrations
+              run: python manage.py makemigrations --check --dry-run
+              env:
+                  SECRET_KEY: ci-secret-key
+                  NEW_AES_KEY: 0123456789abcdef
+                  DISCORD_CLIENT_SECRET: ci-discord-secret
+
+            - name: Apply migrations on a fresh database
+              run: python manage.py migrate --noinput
+              env:
+                  SECRET_KEY: ci-secret-key
+                  NEW_AES_KEY: 0123456789abcdef
+                  DISCORD_CLIENT_SECRET: ci-discord-secret
+
+            - name: Run Django checks
+              run: python manage.py check
+              env:
+                  SECRET_KEY: ci-secret-key
+                  NEW_AES_KEY: 0123456789abcdef
+                  DISCORD_CLIENT_SECRET: ci-discord-secret
+
+            - name: Run tests
+              run: pytest
+              env:
+                  SECRET_KEY: ci-secret-key
+                  NEW_AES_KEY: 0123456789abcdef
+                  DISCORD_CLIENT_SECRET: ci-discord-secret
+
+    build-deploy:
+        name: Build and Deploy
+        needs: validate
+
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Python 3.12
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+                  cache: pip
+
+            - name: Install dependencies
               run: |
-                  python manage.py test
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt
+
+            - name: Collect static files
+              run: python manage.py collectstatic --noinput
               env:
                   SECRET_KEY: ${{ secrets.BASE_KEY }}
                   SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
@@ -34,22 +83,12 @@ jobs:
                   NEW_AES_KEY: ${{ secrets.NEW_AES_KEY }}
                   DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
 
-            - name: 📦 Collect Static Files
-              run: |
-                  python manage.py collectstatic --noinput
-              env:
-                  SECRET_KEY: ${{ secrets.BASE_KEY }}
-                  SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
-                  SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-                  NEW_AES_KEY: ${{ secrets.NEW_AES_KEY }}
-                  DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
-
-            - name: 🔃 Restart Server
+            - name: Restart server
               run: |
                   mkdir tmp
                   touch tmp/restart.txt
 
-            - name: ☁ SFTP Deploy
+            - name: SFTP deploy
               uses: easingthemes/ssh-deploy@v2
               env:
                   SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
