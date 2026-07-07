@@ -10,7 +10,7 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
         'name',
         'tier',
         'monthly_price_usd',
-        'monthly_server_minutes',
+        'monthly_credits',
         'max_session_minutes',
         'max_concurrent_servers',
         'entitlement_priority',
@@ -27,7 +27,7 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
             'fields': ('monthly_price_usd', 'polar_product_id', 'discord_role_id'),
         }),
         ('Casual server limits', {
-            'fields': ('monthly_server_minutes', 'max_session_minutes', 'max_concurrent_servers'),
+            'fields': ('monthly_credits', 'max_session_minutes', 'max_concurrent_servers'),
         }),
         ('Display and entitlement resolution', {
             'fields': ('display_order', 'entitlement_priority'),
@@ -53,7 +53,7 @@ class ServerSessionAdmin(admin.ModelAdmin):
 
 @admin.register(UsageLedgerEntry)
 class UsageLedgerEntryAdmin(admin.ModelAdmin):
-    list_display = ('user', 'entitlement', 'minutes', 'reason', 'billing_period_start', 'billing_period_end', 'created_at')
+    list_display = ('user', 'entitlement', 'credits', 'reason', 'billing_period_start', 'billing_period_end', 'created_at')
     list_filter = ('reason',)
     search_fields = ('user__username', 'user__display_name')
 

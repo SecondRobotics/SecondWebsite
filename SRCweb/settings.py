@@ -38,11 +38,15 @@ DISCORD_CLIENT_SECRET = os.getenv(
 API_KEY = os.getenv("API_KEY") or "API_KEY"
 
 # Polar subscriptions
-POLAR_API_BASE_URL = os.getenv("POLAR_API_BASE_URL") or "https://api.polar.sh"
+POLAR_SERVER = os.getenv("POLAR_SERVER") or "production"
+POLAR_API_BASE_URL = os.getenv("POLAR_API_BASE_URL") or ""
 POLAR_ACCESS_TOKEN = os.getenv("POLAR_ACCESS_TOKEN") or ""
 POLAR_WEBHOOK_SECRET = os.getenv("POLAR_WEBHOOK_SECRET") or ""
 POLAR_CHECKOUT_SUCCESS_URL = os.getenv("POLAR_CHECKOUT_SUCCESS_URL") or ""
 POLAR_CUSTOMER_PORTAL_URL = os.getenv("POLAR_CUSTOMER_PORTAL_URL") or ""
+POLAR_CASUAL_SERVER_METER_ID = os.getenv("POLAR_CASUAL_SERVER_METER_ID") or ""
+POLAR_CASUAL_SERVER_EVENT_NAME = os.getenv("POLAR_CASUAL_SERVER_EVENT_NAME") or "casual_server_credits"
+POLAR_REQUEST_TIMEOUT_SECONDS = float(os.getenv("POLAR_REQUEST_TIMEOUT_SECONDS") or 10)
 
 # xRC server orchestrator
 ORCHESTRATOR_API_BASE_URL = os.getenv("ORCHESTRATOR_API_BASE_URL") or ""

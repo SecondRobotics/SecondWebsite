@@ -1,5 +1,3 @@
-import json
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -18,7 +16,7 @@ from .services import (
     launch_casual_server,
     process_polar_webhook,
     request_stop_server_session,
-    verify_standard_webhook_signature,
+    validate_polar_webhook,
 )
 
 
@@ -111,25 +109,15 @@ def stop_server_session_view(request, session_id):
 @csrf_exempt
 @require_POST
 def polar_webhook(request):
-    webhook_id = request.META.get('HTTP_WEBHOOK_ID', '')
-    webhook_timestamp = request.META.get('HTTP_WEBHOOK_TIMESTAMP', '')
-    webhook_signature = request.META.get('HTTP_WEBHOOK_SIGNATURE', '')
-
     try:
-        verify_standard_webhook_signature(
+        payload = validate_polar_webhook(
             getattr(settings, 'POLAR_WEBHOOK_SECRET', ''),
             request.body,
-            webhook_id,
-            webhook_timestamp,
-            webhook_signature,
+            {key[5:].replace('_', '-').lower(): value for key, value in request.META.items() if key.startswith('HTTP_')},
         )
     except WebhookVerificationError as exc:
         return HttpResponseBadRequest(str(exc))
 
-    try:
-        payload = json.loads(request.body.decode('utf-8'))
-    except json.JSONDecodeError:
-        return HttpResponseBadRequest('Invalid JSON payload.')
-
-    event = process_polar_webhook(payload, event_id=webhook_id)
+    event_id = request.META.get('HTTP_WEBHOOK_ID', '') or str(payload.get('id') or '')
+    event = process_polar_webhook(payload, event_id=event_id)
     return JsonResponse({'success': True, 'status': event.status})

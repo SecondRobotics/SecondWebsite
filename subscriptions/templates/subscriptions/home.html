@@ -34,15 +34,22 @@
                 <div
                     class="progress-bar"
                     role="progressbar"
-                    style="width: {% widthratio entitlement.used_server_minutes entitlement.monthly_server_minutes 100 %}%"
-                    aria-valuenow="{{ entitlement.used_server_minutes }}"
+                    style="width: {% widthratio entitlement.used_credits entitlement.monthly_credits 100 %}%"
+                    aria-valuenow="{{ entitlement.used_credits }}"
                     aria-valuemin="0"
-                    aria-valuemax="{{ entitlement.monthly_server_minutes }}"
+                    aria-valuemax="{{ entitlement.monthly_credits }}"
                 ></div>
             </div>
+            {% if entitlement.credit_balance_available %}
             <p class="mb-0">
-                {{ entitlement.remaining_server_minutes }} of {{ entitlement.monthly_server_minutes }} minutes remaining this billing period.
+                {{ entitlement.remaining_credits }} of {{ entitlement.monthly_credits }} credits remaining this billing period.
+                {% if entitlement.reserved_credits %}
+                {{ entitlement.reserved_credits }} credits are reserved by active sessions.
+                {% endif %}
             </p>
+            {% else %}
+            <p class="mb-0 text-warning">Polar credit balance is temporarily unavailable.</p>
+            {% endif %}
             {% if entitlement.active_session %}
             <p class="mt-2 mb-0 text-warning">You have a casual server session active.</p>
             {% endif %}
@@ -112,7 +119,7 @@
                         {% for benefit in plan.benefits %}
                         <li>{{ benefit }}</li>
                         {% endfor %}
-                        <li>{{ plan.monthly_server_minutes }} casual server minutes per billing period</li>
+                        <li>{{ plan.monthly_credits }} casual server credits per billing period</li>
                         <li>{{ plan.max_session_minutes }} minute max casual server session</li>
                         <li>{{ plan.max_concurrent_servers }} active casual server{{ plan.max_concurrent_servers|pluralize }} at a time</li>
                     </ul>
