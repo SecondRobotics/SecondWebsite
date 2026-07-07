@@ -1,10 +1,5 @@
-import base64
-import hashlib
-import hmac
-import json
 from datetime import timedelta, timezone as datetime_timezone
 
-import requests
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
@@ -19,6 +14,7 @@ from .models import (
     WebhookEvent,
 )
 from . import orchestrator
+from . import polar_gateway
 
 
 ACTIVE_STATUSES = {
@@ -74,18 +70,18 @@ def get_active_entitlement(user):
     ).select_related('plan').order_by(
         '-plan__entitlement_priority',
         '-plan__monthly_price_usd',
-        '-plan__monthly_server_minutes',
+        '-plan__monthly_credits',
         'plan__display_order',
     )
     return entitlements.first()
 
 
-def used_minutes(entitlement):
+def used_credits(entitlement):
     return UsageLedgerEntry.objects.filter(
         entitlement=entitlement,
         billing_period_start=entitlement.current_period_start,
         billing_period_end=entitlement.current_period_end,
-    ).aggregate(total=models_sum('minutes'))['total'] or 0
+    ).aggregate(total=models_sum('credits'))['total'] or 0
 
 
 def models_sum(field_name):
@@ -94,8 +90,61 @@ def models_sum(field_name):
     return Sum(field_name)
 
 
-def remaining_minutes(entitlement):
-    return max(entitlement.monthly_server_minutes - used_minutes(entitlement), 0)
+def locally_reserved_credits(entitlement):
+    return ServerSession.objects.filter(
+        user=entitlement.user,
+        entitlement=entitlement,
+        status__in=OPEN_SESSION_STATUSES,
+    ).aggregate(total=models_sum('allocated_minutes'))['total'] or 0
+
+
+def _polar_credit_balance(entitlement):
+    try:
+        return polar_gateway.get_customer_credit_balance(entitlement.user)
+    except polar_gateway.PolarGatewayError as exc:
+        raise SubscriptionError(str(exc), status_code=503, code='POLAR_CREDIT_BALANCE_UNAVAILABLE') from exc
+
+
+def available_credits(entitlement):
+    if entitlement.provider == SubscriptionEntitlement.PROVIDER_POLAR:
+        return max(_polar_credit_balance(entitlement) - locally_reserved_credits(entitlement), 0)
+    return max(entitlement.monthly_credits - used_credits(entitlement) - locally_reserved_credits(entitlement), 0)
+
+
+def credit_summary(entitlement):
+    if entitlement.provider == SubscriptionEntitlement.PROVIDER_POLAR:
+        try:
+            remaining = max(polar_gateway.get_customer_credit_balance(entitlement.user), 0)
+            monthly = entitlement.monthly_credits
+            return {
+                'monthly_credits': monthly,
+                'used_credits': max(monthly - remaining, 0),
+                'remaining_credits': remaining,
+                'reserved_credits': locally_reserved_credits(entitlement),
+                'balance_source': 'polar',
+                'balance_available': True,
+            }
+        except polar_gateway.PolarGatewayError:
+            return {
+                'monthly_credits': entitlement.monthly_credits,
+                'used_credits': used_credits(entitlement),
+                'remaining_credits': 0,
+                'reserved_credits': locally_reserved_credits(entitlement),
+                'balance_source': 'polar',
+                'balance_available': False,
+            }
+
+    used = used_credits(entitlement)
+    monthly = entitlement.monthly_credits
+    reserved = locally_reserved_credits(entitlement)
+    return {
+        'monthly_credits': monthly,
+        'used_credits': used,
+        'remaining_credits': max(monthly - used - reserved, 0),
+        'reserved_credits': reserved,
+        'balance_source': 'local',
+        'balance_available': True,
+    }
 
 
 def entitlement_payload(user):
@@ -107,24 +156,30 @@ def entitlement_payload(user):
             'plan': None,
             'period_start': None,
             'period_end': None,
-            'monthly_server_minutes': 0,
-            'used_server_minutes': 0,
-            'remaining_server_minutes': 0,
+            'monthly_credits': 0,
+            'used_credits': 0,
+            'remaining_credits': 0,
+            'reserved_credits': 0,
+            'credit_balance_source': None,
+            'credit_balance_available': False,
             'max_session_minutes': 0,
             'active_session': None,
         }
 
     active_session = ServerSession.objects.filter(user=user, status__in=OPEN_SESSION_STATUSES).first()
-    used = used_minutes(entitlement)
+    credits = credit_summary(entitlement)
     return {
         'active': True,
         'tier': entitlement.plan.tier,
         'plan': entitlement.plan.name,
         'period_start': entitlement.current_period_start,
         'period_end': entitlement.current_period_end,
-        'monthly_server_minutes': entitlement.monthly_server_minutes,
-        'used_server_minutes': used,
-        'remaining_server_minutes': max(entitlement.monthly_server_minutes - used, 0),
+        'monthly_credits': credits['monthly_credits'],
+        'used_credits': credits['used_credits'],
+        'remaining_credits': credits['remaining_credits'],
+        'reserved_credits': credits['reserved_credits'],
+        'credit_balance_source': credits['balance_source'],
+        'credit_balance_available': credits['balance_available'],
         'max_session_minutes': entitlement.max_session_minutes,
         'max_concurrent_servers': entitlement.max_concurrent_servers,
         'provider': entitlement.provider,
@@ -166,6 +221,7 @@ def start_server_session(user, requested_minutes=None, game='', server_identifie
     entitlement = get_active_entitlement(user)
     if entitlement is None:
         raise SubscriptionError('An active premium subscription is required to launch a casual server.')
+    entitlement = SubscriptionEntitlement.objects.select_for_update().select_related('plan').get(pk=entitlement.pk)
 
     running_sessions = ServerSession.objects.select_for_update().filter(
         user=user,
@@ -176,9 +232,9 @@ def start_server_session(user, requested_minutes=None, game='', server_identifie
             raise SubscriptionError('You already have a casual server session running.')
         raise SubscriptionError('You have reached your plan limit for concurrent casual servers.')
 
-    remaining = remaining_minutes(entitlement)
+    remaining = available_credits(entitlement)
     if remaining <= 0:
-        raise SubscriptionError('You have used all of your casual server hours for this billing period.')
+        raise SubscriptionError('You have used all of your casual server credits for this billing period.')
 
     requested = requested_minutes or entitlement.max_session_minutes
     try:
@@ -332,18 +388,7 @@ def stop_server_session(session, reason='stopped'):
     session.stop_reason = reason or 'stopped'
     session.save(update_fields=['status', 'stopped_at', 'stop_reason', 'updated_at'])
 
-    UsageLedgerEntry.objects.get_or_create(
-        server_session=session,
-        defaults={
-            'user': session.user,
-            'entitlement': session.entitlement,
-            'billing_period_start': session.entitlement.current_period_start,
-            'billing_period_end': session.entitlement.current_period_end,
-            'minutes': billed_minutes,
-            'reason': UsageLedgerEntry.REASON_SERVER_SESSION,
-            'metadata': {'stop_reason': session.stop_reason},
-        },
-    )
+    _create_usage_entry(session, billed_minutes, {'stop_reason': session.stop_reason})
     return session
 
 
@@ -353,6 +398,34 @@ def _rounded_runtime_minutes_from_seconds(runtime_seconds, allocated_minutes):
         return 0
     rounded = int((elapsed + 299) // 300 * 5)
     return min(max(rounded, 5), allocated_minutes)
+
+
+def _create_usage_entry(session, credits, metadata):
+    usage, created = UsageLedgerEntry.objects.get_or_create(
+        server_session=session,
+        defaults={
+            'user': session.user,
+            'entitlement': session.entitlement,
+            'billing_period_start': session.entitlement.current_period_start,
+            'billing_period_end': session.entitlement.current_period_end,
+            'credits': credits,
+            'reason': UsageLedgerEntry.REASON_SERVER_SESSION,
+            'metadata': metadata,
+        },
+    )
+    if created and session.entitlement.provider == SubscriptionEntitlement.PROVIDER_POLAR:
+        try:
+            response = polar_gateway.ingest_usage_event(session, credits, session.stopped_at or timezone.now())
+        except polar_gateway.PolarGatewayError as exc:
+            raise SubscriptionError(str(exc), status_code=503, code='POLAR_USAGE_INGEST_FAILED') from exc
+        usage.metadata = {
+            **usage.metadata,
+            'polar_event_name': getattr(settings, 'POLAR_CASUAL_SERVER_EVENT_NAME', '') or 'casual_server_credits',
+            'polar_inserted': getattr(response, 'inserted', None),
+            'polar_duplicates': getattr(response, 'duplicates', None),
+        }
+        usage.save(update_fields=['metadata'])
+    return usage
 
 
 def _record_orchestrator_usage(session, stopped_at, runtime_seconds=None):
@@ -366,19 +439,11 @@ def _record_orchestrator_usage(session, stopped_at, runtime_seconds=None):
     if billed_minutes <= 0:
         return None
 
-    usage, _created = UsageLedgerEntry.objects.get_or_create(
-        server_session=session,
-        defaults={
-            'user': session.user,
-            'entitlement': session.entitlement,
-            'billing_period_start': session.entitlement.current_period_start,
-            'billing_period_end': session.entitlement.current_period_end,
-            'minutes': billed_minutes,
-            'reason': UsageLedgerEntry.REASON_SERVER_SESSION,
-            'metadata': {'stop_reason': session.stop_reason, 'source': 'orchestrator'},
-        },
+    return _create_usage_entry(
+        session,
+        billed_minutes,
+        {'stop_reason': session.stop_reason, 'source': 'orchestrator'},
     )
-    return usage
 
 
 @transaction.atomic
@@ -495,39 +560,11 @@ def expire_stale_sessions(max_heartbeat_age_minutes=10):
     return expired
 
 
-def verify_standard_webhook_signature(secret, body, webhook_id, webhook_timestamp, webhook_signature):
-    if not secret:
-        raise WebhookVerificationError('Polar webhook secret is not configured.')
-    if not webhook_id or not webhook_timestamp or not webhook_signature:
-        raise WebhookVerificationError('Missing webhook signature headers.')
-
+def validate_polar_webhook(secret, body, headers):
     try:
-        timestamp = int(webhook_timestamp)
-    except (TypeError, ValueError) as exc:
-        raise WebhookVerificationError('Invalid webhook timestamp.') from exc
-
-    if abs(int(timezone.now().timestamp()) - timestamp) > 300:
-        raise WebhookVerificationError('Webhook timestamp is outside the replay window.')
-
-    signing_secret = secret
-    if signing_secret.startswith('whsec_'):
-        signing_secret = signing_secret[len('whsec_'):]
-    try:
-        secret_bytes = base64.b64decode(signing_secret, validate=True)
-    except Exception:
-        secret_bytes = secret.encode('utf-8')
-
-    signed_content = b'.'.join([
-        webhook_id.encode('utf-8'),
-        webhook_timestamp.encode('utf-8'),
-        body,
-    ])
-    digest = hmac.new(secret_bytes, signed_content, hashlib.sha256).digest()
-    expected = 'v1,' + base64.b64encode(digest).decode('utf-8')
-
-    signatures = webhook_signature.split(' ')
-    if not any(hmac.compare_digest(expected, signature) for signature in signatures):
-        raise WebhookVerificationError('Invalid webhook signature.')
+        return polar_gateway.validate_webhook(body, headers, secret)
+    except polar_gateway.PolarGatewayError as exc:
+        raise WebhookVerificationError(str(exc)) from exc
 
 
 def process_polar_webhook(payload, event_id):
@@ -563,43 +600,10 @@ def process_polar_webhook(payload, event_id):
 
 
 def create_polar_checkout_url(user, plan, customer_ip_address=''):
-    token = getattr(settings, 'POLAR_ACCESS_TOKEN', '')
-    if not token:
-        raise SubscriptionError('Polar access token is not configured.')
-    if not plan.polar_product_id:
-        raise SubscriptionError(f'Polar product ID is not configured for {plan.name}.')
-
-    payload = {
-        'products': [plan.polar_product_id],
-        'external_customer_id': str(user.id),
-        'customer_email': user.email,
-        'metadata': {
-            'discord_user_id': str(user.id),
-            'tier': plan.tier,
-        },
-    }
-    success_url = getattr(settings, 'POLAR_CHECKOUT_SUCCESS_URL', '')
-    if success_url:
-        payload['success_url'] = success_url
-    if customer_ip_address:
-        payload['customer_ip_address'] = customer_ip_address
-
-    response = requests.post(
-        f'{settings.POLAR_API_BASE_URL}/v1/checkouts',
-        headers={
-            'Authorization': f'Bearer {token}',
-            'Content-Type': 'application/json',
-        },
-        data=json.dumps(payload),
-        timeout=10,
-    )
-    if response.status_code >= 400:
-        raise SubscriptionError('Polar checkout could not be created.')
-    data = response.json()
-    checkout_url = data.get('url')
-    if not checkout_url:
-        raise SubscriptionError('Polar checkout response did not include a checkout URL.')
-    return checkout_url
+    try:
+        return polar_gateway.create_checkout_url(user, plan, customer_ip_address=customer_ip_address)
+    except polar_gateway.PolarGatewayError as exc:
+        raise SubscriptionError(str(exc)) from exc
 
 
 def _upsert_entitlement_from_polar_subscription(data, event_id):

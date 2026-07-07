@@ -21,7 +21,9 @@ class SubscriptionPlan(models.Model):
         help_text='Optional website benefit copy, one benefit per line.',
     )
     monthly_price_usd = models.PositiveIntegerField()
-    monthly_server_minutes = models.PositiveIntegerField()
+    monthly_credits = models.PositiveIntegerField(
+        help_text='Credits granted by the plan each billing period. Casual servers currently consume 1 credit per runtime minute.',
+    )
     max_session_minutes = models.PositiveIntegerField()
     max_concurrent_servers = models.PositiveIntegerField(default=1)
     polar_product_id = models.CharField(max_length=128, blank=True)
@@ -109,8 +111,8 @@ class SubscriptionEntitlement(models.Model):
         return self.status in {self.STATUS_ACTIVE, self.STATUS_TRIALING} and self.current_period_end > timezone.now()
 
     @property
-    def monthly_server_minutes(self) -> int:
-        return self.plan.monthly_server_minutes
+    def monthly_credits(self) -> int:
+        return self.plan.monthly_credits
 
     @property
     def max_session_minutes(self) -> int:
@@ -213,7 +215,7 @@ class UsageLedgerEntry(models.Model):
     server_session = models.OneToOneField(ServerSession, on_delete=models.SET_NULL, related_name='usage_entry', null=True, blank=True)
     billing_period_start = models.DateTimeField()
     billing_period_end = models.DateTimeField()
-    minutes = models.IntegerField()
+    credits = models.IntegerField()
     reason = models.CharField(max_length=32, choices=REASON_CHOICES)
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -225,7 +227,7 @@ class UsageLedgerEntry(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.user} - {self.minutes} minutes - {self.reason}'
+        return f'{self.user} - {self.credits} credits - {self.reason}'
 
 
 class WebhookEvent(models.Model):

@@ -1,6 +1,3 @@
-import base64
-import hashlib
-import hmac
 import json
 from datetime import timedelta
 from unittest.mock import patch
@@ -18,7 +15,7 @@ from subscriptions.services import (
     process_orchestrator_event,
     start_server_session,
     stop_server_session,
-    verify_standard_webhook_signature,
+    validate_polar_webhook,
 )
 
 
@@ -47,17 +44,17 @@ def create_user(user_id=1001):
     )
 
 
-def create_entitlement(user, tier='supporter', minutes=360):
+def create_entitlement(user, tier='supporter', credits=360, provider=SubscriptionEntitlement.PROVIDER_COMP):
     plan = SubscriptionPlan.objects.get(tier=tier)
-    if minutes != plan.monthly_server_minutes:
-        plan.monthly_server_minutes = minutes
-        plan.save(update_fields=['monthly_server_minutes'])
+    if credits != plan.monthly_credits:
+        plan.monthly_credits = credits
+        plan.save(update_fields=['monthly_credits'])
     now = timezone.now()
     return SubscriptionEntitlement.objects.create(
         user=user,
         plan=plan,
-        provider=SubscriptionEntitlement.PROVIDER_COMP,
-        provider_subscription_id=f'comp-{user.id}-{tier}',
+        provider=provider,
+        provider_subscription_id=f'{provider}-{user.id}-{tier}',
         status=SubscriptionEntitlement.STATUS_ACTIVE,
         current_period_start=now,
         current_period_end=now + timedelta(days=30),
@@ -73,7 +70,7 @@ class SubscriptionServiceTests(TestCase):
 
     def test_start_limits_session_to_plan_and_remaining_minutes(self):
         user = create_user()
-        create_entitlement(user, tier='supporter', minutes=30)
+        create_entitlement(user, tier='supporter', credits=30)
 
         session = start_server_session(user, requested_minutes=240, game='xRC')
 
@@ -93,8 +90,8 @@ class SubscriptionServiceTests(TestCase):
         user = create_user()
         plan = SubscriptionPlan.objects.get(tier='supporter')
         plan.max_concurrent_servers = 2
-        plan.monthly_server_minutes = 360
-        plan.save(update_fields=['max_concurrent_servers', 'monthly_server_minutes'])
+        plan.monthly_credits = 360
+        plan.save(update_fields=['max_concurrent_servers', 'monthly_credits'])
         create_entitlement(user)
 
         start_server_session(user, requested_minutes=30)
@@ -107,13 +104,13 @@ class SubscriptionServiceTests(TestCase):
         supporter = SubscriptionPlan.objects.get(tier='supporter')
         host = SubscriptionPlan.objects.get(tier='host')
         supporter.entitlement_priority = 100
-        supporter.monthly_server_minutes = 30
-        supporter.save(update_fields=['entitlement_priority', 'monthly_server_minutes'])
+        supporter.monthly_credits = 30
+        supporter.save(update_fields=['entitlement_priority', 'monthly_credits'])
         host.entitlement_priority = 10
-        host.monthly_server_minutes = 1500
-        host.save(update_fields=['entitlement_priority', 'monthly_server_minutes'])
+        host.monthly_credits = 1500
+        host.save(update_fields=['entitlement_priority', 'monthly_credits'])
         create_entitlement(user, tier='host')
-        create_entitlement(user, tier='supporter', minutes=30)
+        create_entitlement(user, tier='supporter', credits=30)
 
         session = start_server_session(user, requested_minutes=240)
 
@@ -131,23 +128,62 @@ class SubscriptionServiceTests(TestCase):
         stop_server_session(session)
 
         usage = UsageLedgerEntry.objects.get(server_session=session)
-        self.assertEqual(usage.minutes, 10)
+        self.assertEqual(usage.credits, 10)
         self.assertEqual(UsageLedgerEntry.objects.count(), 1)
 
     def test_exhausted_entitlement_rejects_start(self):
         user = create_user()
-        entitlement = create_entitlement(user, minutes=30)
+        entitlement = create_entitlement(user, credits=30)
         UsageLedgerEntry.objects.create(
             user=user,
             entitlement=entitlement,
             billing_period_start=entitlement.current_period_start,
             billing_period_end=entitlement.current_period_end,
-            minutes=30,
+            credits=30,
             reason=UsageLedgerEntry.REASON_ADMIN_ADJUSTMENT,
         )
 
         with self.assertRaises(SubscriptionError):
             start_server_session(user)
+
+    @patch('subscriptions.polar_gateway.get_customer_credit_balance')
+    def test_polar_entitlement_uses_meter_balance_for_launch(self, mock_balance):
+        mock_balance.return_value = 25
+        user = create_user()
+        create_entitlement(user, provider=SubscriptionEntitlement.PROVIDER_POLAR, credits=360)
+
+        session = start_server_session(user, requested_minutes=60)
+
+        self.assertEqual(session.allocated_minutes, 25)
+        mock_balance.assert_called_once_with(user)
+
+    @patch('subscriptions.polar_gateway.get_customer_credit_balance')
+    def test_polar_entitlement_rejects_exhausted_meter_balance(self, mock_balance):
+        mock_balance.return_value = 0
+        user = create_user()
+        create_entitlement(user, provider=SubscriptionEntitlement.PROVIDER_POLAR, credits=360)
+
+        with self.assertRaises(SubscriptionError):
+            start_server_session(user, requested_minutes=30)
+
+    @patch('subscriptions.polar_gateway.ingest_usage_event')
+    @patch('subscriptions.polar_gateway.get_customer_credit_balance')
+    def test_polar_usage_is_ingested_when_session_stops(self, mock_balance, mock_ingest):
+        mock_balance.return_value = 60
+        mock_ingest.return_value = type('PolarIngestResponse', (), {'inserted': 1, 'duplicates': 0})()
+        user = create_user()
+        create_entitlement(user, provider=SubscriptionEntitlement.PROVIDER_POLAR, credits=360)
+        session = start_server_session(user, requested_minutes=60)
+        session.started_at = timezone.now() - timedelta(minutes=6)
+        session.save(update_fields=['started_at'])
+
+        stop_server_session(session)
+        stop_server_session(session)
+
+        usage = UsageLedgerEntry.objects.get(server_session=session)
+        self.assertEqual(usage.credits, 10)
+        self.assertEqual(usage.metadata['polar_inserted'], 1)
+        mock_ingest.assert_called_once()
 
     def test_expire_stale_sessions_marks_expired_and_records_usage(self):
         user = create_user()
@@ -162,7 +198,7 @@ class SubscriptionServiceTests(TestCase):
         self.assertEqual(len(expired), 1)
         session.refresh_from_db()
         self.assertEqual(session.status, ServerSession.STATUS_EXPIRED)
-        self.assertEqual(UsageLedgerEntry.objects.get(server_session=session).minutes, 20)
+        self.assertEqual(UsageLedgerEntry.objects.get(server_session=session).credits, 20)
 
     def test_orchestrator_ready_and_stopped_events_record_usage_once(self):
         user = create_user()
@@ -205,7 +241,7 @@ class SubscriptionServiceTests(TestCase):
         self.assertEqual(session.host, 'play.example.test')
         self.assertEqual(session.port, 11115)
         self.assertEqual(session.server_password, 'secret')
-        self.assertEqual(UsageLedgerEntry.objects.get(server_session=session).minutes, 10)
+        self.assertEqual(UsageLedgerEntry.objects.get(server_session=session).credits, 10)
         self.assertEqual(WebhookEvent.objects.filter(provider='orchestrator').count(), 2)
 
     def test_orchestrator_launch_failed_does_not_record_usage(self):
@@ -349,24 +385,21 @@ class SubscriptionApiTests(TestCase):
 
 
 class PolarWebhookTests(TestCase):
-    @override_settings(POLAR_WEBHOOK_SECRET='whsec_' + base64.b64encode(b'secret').decode('utf-8'))
-    def test_standard_webhook_signature_verification_accepts_valid_signature(self):
+    @override_settings(POLAR_WEBHOOK_SECRET='whsec_test')
+    @patch('subscriptions.polar_gateway.validate_event')
+    def test_polar_webhook_validation_uses_sdk(self, mock_validate_event):
         body = b'{"type":"subscription.updated"}'
-        webhook_id = 'evt_123'
-        timestamp = str(int(timezone.now().timestamp()))
-        signed = b'.'.join([webhook_id.encode(), timestamp.encode(), body])
-        signature = 'v1,' + base64.b64encode(hmac.new(b'secret', signed, hashlib.sha256).digest()).decode('utf-8')
+        payload = {'type': 'subscription.updated', 'data': {}}
+        mock_validate_event.return_value = payload
 
-        verify_standard_webhook_signature(
-            'whsec_' + base64.b64encode(b'secret').decode('utf-8'),
-            body,
-            webhook_id,
-            timestamp,
-            signature,
-        )
+        result = validate_polar_webhook('whsec_test', body, {'webhook-id': 'evt_123'})
+
+        self.assertEqual(result, payload)
+        mock_validate_event.assert_called_once_with(body, {'webhook-id': 'evt_123'}, 'whsec_test')
 
     @override_settings(POLAR_WEBHOOK_SECRET='plain-secret')
-    def test_polar_subscription_webhook_upserts_entitlement_and_is_idempotent(self):
+    @patch('subscriptions.polar_gateway.validate_event')
+    def test_polar_subscription_webhook_upserts_entitlement_and_is_idempotent(self, mock_validate_event):
         user = create_user()
         plan = SubscriptionPlan.objects.get(tier='supporter')
         plan.polar_product_id = 'prod_supporter'
@@ -382,11 +415,9 @@ class PolarWebhookTests(TestCase):
                 'product_id': 'prod_supporter',
             },
         }
+        mock_validate_event.return_value = body
         raw_body = json.dumps(body).encode('utf-8')
         webhook_id = 'evt_123'
-        timestamp = str(int(timezone.now().timestamp()))
-        signed = b'.'.join([webhook_id.encode(), timestamp.encode(), raw_body])
-        signature = 'v1,' + base64.b64encode(hmac.new(b'plain-secret', signed, hashlib.sha256).digest()).decode('utf-8')
 
         client = APIClient()
         response = client.post(
@@ -394,8 +425,6 @@ class PolarWebhookTests(TestCase):
             data=raw_body,
             content_type='application/json',
             HTTP_WEBHOOK_ID=webhook_id,
-            HTTP_WEBHOOK_TIMESTAMP=timestamp,
-            HTTP_WEBHOOK_SIGNATURE=signature,
         )
         self.assertEqual(response.status_code, 200)
 
@@ -404,8 +433,6 @@ class PolarWebhookTests(TestCase):
             data=raw_body,
             content_type='application/json',
             HTTP_WEBHOOK_ID=webhook_id,
-            HTTP_WEBHOOK_TIMESTAMP=timestamp,
-            HTTP_WEBHOOK_SIGNATURE=signature,
         )
         self.assertEqual(response.status_code, 200)
 
