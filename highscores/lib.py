@@ -295,6 +295,11 @@ def submit_decode(score_obj: Score) -> Union[str, None, tuple[None, str]]:
 def submit_rebuilt(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, rebuilt_clean_code_check)
 
+def submit_biobuzz(score_obj: Score) -> Union[str, None, tuple[None, str]]:
+    return submit_score(score_obj, biobuzz_clean_code_check)
+
+
+
 
 def decode_time_data(in_string: str) -> str:
     out_bytes = ""
@@ -542,6 +547,9 @@ def decode_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, st
 
 def rebuilt_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_rebuilt_game_settings, check_subtraction_score)
+
+def biozbuzz_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
+    return clean_code_check(score_obj, check_biozbuzz_game_settings, check_subtraction_score)
 
 
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str, str]:
@@ -846,6 +854,15 @@ def check_rebuilt_game_settings(game_options: list, restart_option: str, game_in
 
     return None  # No error
 
+def check_biobuzz_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
+    """ Checks if the BIOBUZZ game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if (game_index != '23'):
+        return 'Wrong game! This form is for BIOBUZZ.'
+
+    return None  # No error
+
 
 def check_robot_type(score_obj: Score, robot_model: str) -> Union[str, None]:
     """ Checks if the robot model is valid.
@@ -1040,6 +1057,7 @@ game_slug_to_submit_func = {
     "pb": submit_push_back,
     "dc": submit_decode,
     "rb": submit_rebuilt,
+    "bb": submit_biobuzz,
 }
 
 game_to_submit_func = {
@@ -1062,4 +1080,5 @@ game_to_submit_func = {
     "Push Back": submit_push_back,
     "DECODE": submit_decode,
     "REBUILT": submit_rebuilt,
+    "BIOBUZZ": submit_biobuzz,
 }
