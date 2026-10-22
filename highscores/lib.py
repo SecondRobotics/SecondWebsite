@@ -548,8 +548,8 @@ def decode_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, st
 def rebuilt_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_rebuilt_game_settings, check_subtraction_score)
 
-def biozbuzz_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
-    return clean_code_check(score_obj, check_biozbuzz_game_settings, check_subtraction_score)
+def biobuzz_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
+    return clean_code_check(score_obj, check_biobuzz_game_settings, check_subtraction_score)
 
 
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str, str]:
