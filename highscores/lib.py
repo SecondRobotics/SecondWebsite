@@ -298,7 +298,8 @@ def submit_rebuilt(score_obj: Score) -> Union[str, None, tuple[None, str]]:
 def submit_biobuzz(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return submit_score(score_obj, biobuzz_clean_code_check)
 
-
+def submit_override(score_obj: Score) -> Union[str, None, tuple[None, str]]:
+    return submit_score(score_obj, override_clean_code_check)
 
 
 def decode_time_data(in_string: str) -> str:
@@ -550,6 +551,9 @@ def rebuilt_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, s
 
 def biozbuzz_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
     return clean_code_check(score_obj, check_biozbuzz_game_settings, check_subtraction_score)
+
+def override_clean_code_check(score_obj: Score) -> Union[str, None, tuple[None, str]]:
+    return clean_code_check(score_obj, check_override_game_settings, check_subtraction_score)
 
 
 def extract_clean_code_info(score_obj: Score) -> tuple[str, list[str], str, str, str, str, str, str]:
@@ -859,7 +863,16 @@ def check_biobuzz_game_settings(game_options: list, restart_option: str, game_in
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
     if (game_index != '23'):
-        return 'Wrong game! This form is for BIOBUZZ.'
+        return 'Wrong game! This form is for BioBuzz.'
+
+    return None  # No error
+
+def check_override_game_settings(game_options: list, restart_option: str, game_index: str) -> Union[str, None]:
+    """ Checks if the OVERRIDE game settings are valid.
+    :return: None if the settings are valid, or a response with an error message if they are not.
+    """
+    if (game_index != '24'):
+        return 'Wrong game! This form is for OVERRIDE.'
 
     return None  # No error
 
@@ -1058,6 +1071,7 @@ game_slug_to_submit_func = {
     "dc": submit_decode,
     "rb": submit_rebuilt,
     "bb": submit_biobuzz,
+    "or": submit_override,
 }
 
 game_to_submit_func = {
@@ -1080,5 +1094,6 @@ game_to_submit_func = {
     "Push Back": submit_push_back,
     "DECODE": submit_decode,
     "REBUILT": submit_rebuilt,
-    "BIOBUZZ": submit_biobuzz,
+    "BioBuzz": submit_biobuzz,
+    "OVERRIDE": submit_override,
 }
