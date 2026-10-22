@@ -1080,5 +1080,5 @@ game_to_submit_func = {
     "Push Back": submit_push_back,
     "DECODE": submit_decode,
     "REBUILT": submit_rebuilt,
-    "BIOBUZZ": submit_biobuzz,
+    "BioBuzz": submit_biobuzz,
 }
