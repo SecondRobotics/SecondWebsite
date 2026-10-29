@@ -1,5 +1,7 @@
 # Premium hosting release checklist
 
+Current acceptance evidence: [2026-10-29 test run](premium-acceptance-2026-10-29.md).
+
 This is a coordinated website, ranked-bot, and orchestrator release. Nothing in this preparation authorizes merging or deployment. Keep the premium navbar link hidden for the initial beta.
 
 ## Prepared in code
@@ -42,6 +44,8 @@ Set up private configuration, without committing secrets:
 | Client connections | `SERVICE_PUBLIC_HOST`, reachable server port pool and required game traffic allowed by the test host firewall |
 
 The local website is currently missing its orchestrator URL/token. Production mode also requires explicit non-development service tokens, a non-placeholder shared key, real process mode, and stop-on-restart reconciliation.
+
+Set orchestrator `SERVER_PUBLIC_DISCOVERY=false` for acceptance and the initial beta; this forces public game-browser registration off for all launch sources.
 
 Choose one chat-relay owner: orchestrator webhook **or** bot event relay. Preserve runtime log/score directories and `EVENT_LOG_DIR/website-callbacks` across service restarts. Pending callbacks include connection passwords: protect the directory and its backups. No database for live orchestrator state is needed. Periodically review archived score directories and retain/remove them according to your chosen retention policy.
 
