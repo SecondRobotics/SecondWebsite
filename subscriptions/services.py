@@ -515,13 +515,19 @@ def _record_orchestrator_usage(session, stopped_at, runtime_seconds=None):
     )
 
 
-@transaction.atomic
 def process_orchestrator_event(session_id, payload):
+    # Resolve ownership outside the write transaction so SQLite does not retain
+    # a read lock while waiting for another callback/response writer.
+    owner_id = ServerSession.objects.values_list('user_id', flat=True).get(pk=session_id)
+    return _process_orchestrator_event(session_id, payload, owner_id)
+
+
+@transaction.atomic
+def _process_orchestrator_event(session_id, payload, owner_id):
     event_id, event_type = payload.get('event_id'), payload.get('event')
     supported = {'launch_accepted', 'ready', 'heartbeat', 'stopping', 'stopped', 'exited', 'killed', 'launch_failed'}
     if not event_id or event_type not in supported:
         raise SubscriptionError('Orchestrator events require an event_id and a supported event.')
-    owner_id = ServerSession.objects.values_list('user_id', flat=True).get(pk=session_id)
     lock_user(owner_id)
     session = ServerSession.objects.select_for_update().get(pk=session_id)
     event, created = WebhookEvent.objects.get_or_create(
