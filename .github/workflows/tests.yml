@@ -26,6 +26,7 @@ jobs:
       run: python manage.py makemigrations --check --dry-run
       env:
         SECRET_KEY: ci-secret-key
+        API_KEY: ci-api-key
         NEW_AES_KEY: 0123456789abcdef
         DISCORD_CLIENT_SECRET: ci-discord-secret
 
@@ -33,6 +34,7 @@ jobs:
       run: python manage.py migrate --noinput
       env:
         SECRET_KEY: ci-secret-key
+        API_KEY: ci-api-key
         NEW_AES_KEY: 0123456789abcdef
         DISCORD_CLIENT_SECRET: ci-discord-secret
 
@@ -40,6 +42,7 @@ jobs:
       run: python manage.py check
       env:
         SECRET_KEY: ci-secret-key
+        API_KEY: ci-api-key
         NEW_AES_KEY: 0123456789abcdef
         DISCORD_CLIENT_SECRET: ci-discord-secret
     
@@ -47,5 +50,6 @@ jobs:
       run: pytest
       env:
         SECRET_KEY: ci-secret-key
+        API_KEY: ci-api-key
         NEW_AES_KEY: 0123456789abcdef
         DISCORD_CLIENT_SECRET: ci-discord-secret

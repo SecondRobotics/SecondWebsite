@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 from pathlib import Path
 import os
 
@@ -34,8 +35,18 @@ DISCORD_CLIENT_ID = "825618483957071873"
 DISCORD_CLIENT_SECRET = os.getenv(
     "DISCORD_CLIENT_SECRET") or "DISCORD_CLIENT_SECRET"
 
+
+def required_non_placeholder_env(name, *, development_default=None):
+    value = os.getenv(name) or development_default
+    if os.getenv("PYTHON_ENV") == "development":
+        return value
+    if not value or value in {name, "replace-me", "changeme", "CHANGE_ME"}:
+        raise ImproperlyConfigured(f"{name} must be configured in non-development environments.")
+    return value
+
+
 # SECURITY WARNING: keep the API Key used in production secret!
-API_KEY = os.getenv("API_KEY") or "API_KEY"
+API_KEY = required_non_placeholder_env("API_KEY", development_default="API_KEY")
 
 # Polar subscriptions
 POLAR_SERVER = os.getenv("POLAR_SERVER") or "production"

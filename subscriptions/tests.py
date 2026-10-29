@@ -1,13 +1,16 @@
 import json
+from io import StringIO
 from datetime import timedelta
 from unittest.mock import patch
 
+from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from discordoauth2.models import User
+from subscriptions import polar_gateway
 from subscriptions.models import ServerSession, SubscriptionEntitlement, SubscriptionPlan, UsageLedgerEntry, WebhookEvent
 from subscriptions.services import (
     SubscriptionError,
@@ -182,8 +185,54 @@ class SubscriptionServiceTests(TestCase):
 
         usage = UsageLedgerEntry.objects.get(server_session=session)
         self.assertEqual(usage.credits, 10)
+        self.assertEqual(usage.polar_status, UsageLedgerEntry.POLAR_STATUS_SENT)
+        self.assertEqual(usage.polar_error, '')
         self.assertEqual(usage.metadata['polar_inserted'], 1)
         mock_ingest.assert_called_once()
+
+    @patch('subscriptions.polar_gateway.ingest_usage_event')
+    @patch('subscriptions.polar_gateway.get_customer_credit_balance')
+    def test_polar_usage_failure_keeps_local_stop_finalized_for_retry(self, mock_balance, mock_ingest):
+        mock_balance.return_value = 60
+        mock_ingest.side_effect = polar_gateway.PolarGatewayError('temporary polar outage')
+        user = create_user()
+        create_entitlement(user, provider=SubscriptionEntitlement.PROVIDER_POLAR, credits=360)
+        session = start_server_session(user, requested_minutes=60)
+        session.started_at = timezone.now() - timedelta(minutes=6)
+        session.save(update_fields=['started_at'])
+
+        stop_server_session(session)
+
+        session.refresh_from_db()
+        usage = UsageLedgerEntry.objects.get(server_session=session)
+        self.assertEqual(session.status, ServerSession.STATUS_STOPPED)
+        self.assertEqual(usage.credits, 10)
+        self.assertEqual(usage.polar_status, UsageLedgerEntry.POLAR_STATUS_FAILED)
+        self.assertIn('temporary polar outage', usage.polar_error)
+
+    @patch('subscriptions.polar_gateway.ingest_usage_event')
+    @patch('subscriptions.polar_gateway.get_customer_credit_balance')
+    def test_sync_polar_usage_retries_failed_entries(self, mock_balance, mock_ingest):
+        mock_balance.return_value = 60
+        mock_ingest.side_effect = [
+            polar_gateway.PolarGatewayError('temporary polar outage'),
+            type('PolarIngestResponse', (), {'inserted': 1, 'duplicates': 0})(),
+        ]
+        user = create_user()
+        create_entitlement(user, provider=SubscriptionEntitlement.PROVIDER_POLAR, credits=360)
+        session = start_server_session(user, requested_minutes=60)
+        session.started_at = timezone.now() - timedelta(minutes=6)
+        session.save(update_fields=['started_at'])
+        stop_server_session(session)
+
+        output = StringIO()
+        call_command('sync_polar_usage', stdout=output)
+
+        usage = UsageLedgerEntry.objects.get(server_session=session)
+        self.assertEqual(usage.polar_status, UsageLedgerEntry.POLAR_STATUS_SENT)
+        self.assertEqual(usage.polar_error, '')
+        self.assertIn('Synced 1 Polar usage event', output.getvalue())
+        self.assertEqual(mock_ingest.call_count, 2)
 
     def test_expire_stale_sessions_marks_expired_and_records_usage(self):
         user = create_user()

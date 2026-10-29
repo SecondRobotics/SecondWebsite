@@ -205,9 +205,21 @@ class UsageLedgerEntry(models.Model):
     REASON_SERVER_SESSION = 'server_session'
     REASON_ADMIN_ADJUSTMENT = 'admin_adjustment'
 
+    POLAR_STATUS_NOT_REQUIRED = 'not_required'
+    POLAR_STATUS_PENDING = 'pending'
+    POLAR_STATUS_SENT = 'sent'
+    POLAR_STATUS_FAILED = 'failed'
+
     REASON_CHOICES = [
         (REASON_SERVER_SESSION, 'Server Session'),
         (REASON_ADMIN_ADJUSTMENT, 'Admin Adjustment'),
+    ]
+
+    POLAR_STATUS_CHOICES = [
+        (POLAR_STATUS_NOT_REQUIRED, 'Not Required'),
+        (POLAR_STATUS_PENDING, 'Pending'),
+        (POLAR_STATUS_SENT, 'Sent'),
+        (POLAR_STATUS_FAILED, 'Failed'),
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='premium_usage_entries')
@@ -217,6 +229,9 @@ class UsageLedgerEntry(models.Model):
     billing_period_end = models.DateTimeField()
     credits = models.IntegerField()
     reason = models.CharField(max_length=32, choices=REASON_CHOICES)
+    polar_status = models.CharField(max_length=24, choices=POLAR_STATUS_CHOICES, default=POLAR_STATUS_NOT_REQUIRED)
+    polar_error = models.TextField(blank=True)
+    polar_last_attempt_at = models.DateTimeField(null=True, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -224,6 +239,7 @@ class UsageLedgerEntry(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['user', 'billing_period_start', 'billing_period_end']),
+            models.Index(fields=['polar_status']),
         ]
 
     def __str__(self):

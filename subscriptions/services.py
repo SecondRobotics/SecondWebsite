@@ -401,6 +401,7 @@ def _rounded_runtime_minutes_from_seconds(runtime_seconds, allocated_minutes):
 
 
 def _create_usage_entry(session, credits, metadata):
+    polar_required = session.entitlement.provider == SubscriptionEntitlement.PROVIDER_POLAR
     usage, created = UsageLedgerEntry.objects.get_or_create(
         server_session=session,
         defaults={
@@ -410,22 +411,62 @@ def _create_usage_entry(session, credits, metadata):
             'billing_period_end': session.entitlement.current_period_end,
             'credits': credits,
             'reason': UsageLedgerEntry.REASON_SERVER_SESSION,
+            'polar_status': UsageLedgerEntry.POLAR_STATUS_PENDING if polar_required else UsageLedgerEntry.POLAR_STATUS_NOT_REQUIRED,
             'metadata': metadata,
         },
     )
-    if created and session.entitlement.provider == SubscriptionEntitlement.PROVIDER_POLAR:
-        try:
-            response = polar_gateway.ingest_usage_event(session, credits, session.stopped_at or timezone.now())
-        except polar_gateway.PolarGatewayError as exc:
-            raise SubscriptionError(str(exc), status_code=503, code='POLAR_USAGE_INGEST_FAILED') from exc
-        usage.metadata = {
-            **usage.metadata,
-            'polar_event_name': getattr(settings, 'POLAR_CASUAL_SERVER_EVENT_NAME', '') or 'casual_server_credits',
-            'polar_inserted': getattr(response, 'inserted', None),
-            'polar_duplicates': getattr(response, 'duplicates', None),
-        }
-        usage.save(update_fields=['metadata'])
+    if created and polar_required:
+        sync_polar_usage_entry(usage)
     return usage
+
+
+def sync_polar_usage_entry(usage):
+    usage = UsageLedgerEntry.objects.select_related('entitlement', 'server_session', 'user').get(pk=usage.pk)
+    if usage.entitlement.provider != SubscriptionEntitlement.PROVIDER_POLAR:
+        return usage
+    if usage.polar_status == UsageLedgerEntry.POLAR_STATUS_SENT:
+        return usage
+    if usage.server_session is None:
+        usage.polar_status = UsageLedgerEntry.POLAR_STATUS_FAILED
+        usage.polar_error = 'Usage entry is missing its server session.'
+        usage.polar_last_attempt_at = timezone.now()
+        usage.save(update_fields=['polar_status', 'polar_error', 'polar_last_attempt_at'])
+        return usage
+
+    usage.polar_last_attempt_at = timezone.now()
+    try:
+        response = polar_gateway.ingest_usage_event(
+            usage.server_session,
+            usage.credits,
+            usage.server_session.stopped_at or usage.created_at or timezone.now(),
+        )
+    except polar_gateway.PolarGatewayError as exc:
+        usage.polar_status = UsageLedgerEntry.POLAR_STATUS_FAILED
+        usage.polar_error = str(exc)
+        usage.save(update_fields=['polar_status', 'polar_error', 'polar_last_attempt_at'])
+        return usage
+
+    usage.polar_status = UsageLedgerEntry.POLAR_STATUS_SENT
+    usage.polar_error = ''
+    usage.metadata = {
+        **usage.metadata,
+        'polar_event_name': getattr(settings, 'POLAR_CASUAL_SERVER_EVENT_NAME', '') or 'casual_server_credits',
+        'polar_inserted': getattr(response, 'inserted', None),
+        'polar_duplicates': getattr(response, 'duplicates', None),
+    }
+    usage.save(update_fields=['polar_status', 'polar_error', 'polar_last_attempt_at', 'metadata'])
+    return usage
+
+
+def sync_pending_polar_usage(limit=100):
+    pending = UsageLedgerEntry.objects.filter(
+        entitlement__provider=SubscriptionEntitlement.PROVIDER_POLAR,
+        polar_status__in=[
+            UsageLedgerEntry.POLAR_STATUS_PENDING,
+            UsageLedgerEntry.POLAR_STATUS_FAILED,
+        ],
+    ).order_by('created_at')[:limit]
+    return [sync_polar_usage_entry(usage) for usage in pending]
 
 
 def _record_orchestrator_usage(session, stopped_at, runtime_seconds=None):

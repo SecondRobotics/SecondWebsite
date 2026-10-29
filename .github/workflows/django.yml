@@ -29,6 +29,7 @@ jobs:
               run: python manage.py makemigrations --check --dry-run
               env:
                   SECRET_KEY: ci-secret-key
+                  API_KEY: ci-api-key
                   NEW_AES_KEY: 0123456789abcdef
                   DISCORD_CLIENT_SECRET: ci-discord-secret
 
@@ -36,6 +37,7 @@ jobs:
               run: python manage.py migrate --noinput
               env:
                   SECRET_KEY: ci-secret-key
+                  API_KEY: ci-api-key
                   NEW_AES_KEY: 0123456789abcdef
                   DISCORD_CLIENT_SECRET: ci-discord-secret
 
@@ -43,6 +45,7 @@ jobs:
               run: python manage.py check
               env:
                   SECRET_KEY: ci-secret-key
+                  API_KEY: ci-api-key
                   NEW_AES_KEY: 0123456789abcdef
                   DISCORD_CLIENT_SECRET: ci-discord-secret
 
@@ -50,6 +53,7 @@ jobs:
               run: pytest
               env:
                   SECRET_KEY: ci-secret-key
+                  API_KEY: ci-api-key
                   NEW_AES_KEY: 0123456789abcdef
                   DISCORD_CLIENT_SECRET: ci-discord-secret
 
@@ -77,11 +81,10 @@ jobs:
             - name: Collect static files
               run: python manage.py collectstatic --noinput
               env:
-                  SECRET_KEY: ${{ secrets.BASE_KEY }}
-                  SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
-                  SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-                  NEW_AES_KEY: ${{ secrets.NEW_AES_KEY }}
-                  DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
+                  SECRET_KEY: ci-secret-key
+                  API_KEY: ci-api-key
+                  NEW_AES_KEY: 0123456789abcdef
+                  DISCORD_CLIENT_SECRET: ci-discord-secret
 
             - name: Restart server
               run: |

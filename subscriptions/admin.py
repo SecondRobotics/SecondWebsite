@@ -53,8 +53,8 @@ class ServerSessionAdmin(admin.ModelAdmin):
 
 @admin.register(UsageLedgerEntry)
 class UsageLedgerEntryAdmin(admin.ModelAdmin):
-    list_display = ('user', 'entitlement', 'credits', 'reason', 'billing_period_start', 'billing_period_end', 'created_at')
-    list_filter = ('reason',)
+    list_display = ('user', 'entitlement', 'credits', 'reason', 'polar_status', 'polar_last_attempt_at', 'billing_period_start', 'billing_period_end', 'created_at')
+    list_filter = ('reason', 'polar_status')
     search_fields = ('user__username', 'user__display_name')
 
 
