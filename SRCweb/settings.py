@@ -171,6 +171,7 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
+            'filters': ['redact_customer_session_token'],
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
@@ -178,12 +179,13 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,
             'formatter': 'verbose',
+            'filters': ['redact_customer_session_token'],
         },
         'mail_admins': {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',
             'include_html': True,
-            'filters': ['require_debug_false'],
+            'filters': ['require_debug_false', 'redact_customer_session_token'],
         }
     },
     'loggers': {
@@ -209,6 +211,9 @@ LOGGING = {
         },
     },
     'filters': {
+        'redact_customer_session_token': {
+            '()': 'SRCweb.log_filters.RedactCustomerSessionToken',
+        },
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse',
         },

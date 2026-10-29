@@ -29,6 +29,10 @@ def _get_client_ip(request):
 
 @login_required(login_url='/login')
 def subscription_home(request):
+    # Polar appends a portal credential to success URLs; this page uses the
+    # existing Django session and should not retain that credential in its URL.
+    if 'customer_session_token' in request.GET:
+        return redirect(request.path)
     plans = SubscriptionPlan.objects.filter(is_active=True).order_by('display_order', 'monthly_price_usd', 'name')
     entitlement = entitlement_payload(request.user)
     sessions = ServerSession.objects.filter(user=request.user).order_by('-started_at')[:10]
