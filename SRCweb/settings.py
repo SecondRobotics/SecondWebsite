@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
 from pathlib import Path
 import os
+from urllib.parse import urlencode
 
 load_dotenv()
 
@@ -29,7 +30,7 @@ SECRET_KEY = os.getenv("SECRET_KEY") or "SECRET_KEY"
 NEW_AES_KEY = os.getenv("NEW_AES_KEY") or "NEW_AES_KEY"
 
 # Discord Client ID (client safe)
-DISCORD_CLIENT_ID = "825618483957071873"
+DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID") or "825618483957071873"
 
 # SECURITY WARNING: keep the Discord Client Secret used in production secret!
 DISCORD_CLIENT_SECRET = os.getenv(
@@ -271,18 +272,30 @@ if os.getenv("PYTHON_ENV") == "development":
     STATICFILES_DIRS = [BASE_DIR / "static"]
     DISCORD_REDIRECT_URI = "http://localhost:8000/oauth2/login/redirect"
     DISCORD_API_REDIRECT_URI = "http://localhost:8000/oauth2/loginapi/redirect"
-    DISCORD_AUTH_URL = "https://discord.com/api/oauth2/authorize?client_id=825618483957071873&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Foauth2%2Flogin%2Fredirect&response_type=code&scope=identify%20email"
-    DISCORD_AUTH_API_URL = "https://discord.com/api/oauth2/authorize?client_id=825618483957071873&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Foauth2%2Floginapi%2Fredirect&response_type=code&scope=identify%20email"
 else:  # production
     DEBUG = False
     ALLOWED_HOSTS = ["secondrobotics.org",
                      "www.secondrobotics.org", "mail.secondrobotics.org"]
     DISCORD_REDIRECT_URI = "https://secondrobotics.org/oauth2/login/redirect"
     DISCORD_API_REDIRECT_URI = "https://secondrobotics.org/oauth2/loginapi/redirect"
-    DISCORD_AUTH_URL = "https://discord.com/api/oauth2/authorize?client_id=825618483957071873&redirect_uri=https%3A%2F%2Fsecondrobotics.org%2Foauth2%2Flogin%2Fredirect&response_type=code&scope=identify%20email"
-    DISCORD_AUTH_API_URL = "https://discord.com/api/oauth2/authorize?client_id=825618483957071873&redirect_uri=https%3A%2F%2Fsecondrobotics.org%2Foauth2%2Floginapi%2Fredirect&response_type=code&scope=identify%20email"
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
+
+# A dedicated test application can share its ID with the test bot. Preserve
+# production defaults while allowing isolated OAuth login and redirect URLs.
+DISCORD_REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI") or DISCORD_REDIRECT_URI
+DISCORD_API_REDIRECT_URI = os.getenv("DISCORD_API_REDIRECT_URI") or DISCORD_API_REDIRECT_URI
+
+
+def discord_authorization_url(redirect_uri):
+    return "https://discord.com/api/oauth2/authorize?" + urlencode({
+        "client_id": DISCORD_CLIENT_ID, "redirect_uri": redirect_uri,
+        "response_type": "code", "scope": "identify email",
+    })
+
+
+DISCORD_AUTH_URL = discord_authorization_url(DISCORD_REDIRECT_URI)
+DISCORD_AUTH_API_URL = discord_authorization_url(DISCORD_API_REDIRECT_URI)
 
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
 MAX_UPLOAD_SIZE = "5242880"
