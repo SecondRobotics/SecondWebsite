@@ -157,3 +157,18 @@ class LaunchReadinessTests(TestCase):
         self.entitlement.save()
         session = start_server_session(self.user, 120)
         self.assertLessEqual(session.allocated_minutes, 11)
+
+    def test_benefit_cleanup_preserves_customized_tier_and_copy(self):
+        from importlib import import_module
+        from django.apps import apps
+        plan = SubscriptionPlan.objects.create(
+            tier='vip-supporter', name='VIP Supporter', monthly_price_usd=12,
+            monthly_credits=1500, max_session_minutes=240,
+            benefit_lines='Custom benefit\nSaved casual presets / faster relaunch flow',
+        )
+        migration = import_module('subscriptions.migrations.0006_correct_host_benefits')
+        migration.correct_unimplemented_benefit(apps, None)
+        plan.refresh_from_db()
+        self.assertEqual(plan.tier, 'vip-supporter')
+        self.assertIn('Custom benefit', plan.benefit_lines)
+        self.assertNotIn('presets', plan.benefit_lines)
