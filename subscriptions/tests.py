@@ -441,6 +441,19 @@ class SubscriptionApiTests(TestCase):
 
 
 class PolarWebhookTests(TestCase):
+    @patch('subscriptions.polar_gateway.validate_event')
+    def test_sdk_event_model_preserves_wire_discriminator(self, mock_validate_event):
+        from polar_sdk.models.webhooksubscriptionactivepayload import WebhookSubscriptionActivePayload
+        from polar_sdk.models.subscription import Subscription
+
+        event = WebhookSubscriptionActivePayload.model_construct(
+            timestamp=timezone.now(), data=Subscription.model_construct(id='sub-test'),
+        )
+        mock_validate_event.return_value = event
+        result = validate_polar_webhook('test-secret', b'{}', {})
+        self.assertEqual(result['type'], 'subscription.active')
+        self.assertNotIn('TYPE', result)
+
     @override_settings(POLAR_WEBHOOK_SECRET='whsec_test')
     @patch('subscriptions.polar_gateway.validate_event')
     def test_polar_webhook_validation_uses_sdk(self, mock_validate_event):

@@ -115,5 +115,5 @@ def validate_webhook(body, headers, secret):
     except Exception as exc:
         raise PolarGatewayError('Invalid Polar webhook signature.') from exc
     if hasattr(event, 'model_dump'):
-        return event.model_dump(mode='json')
+        return event.model_dump(mode='json', by_alias=True)
     return dict(event)
