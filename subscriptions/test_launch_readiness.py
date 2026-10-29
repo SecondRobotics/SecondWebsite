@@ -57,7 +57,7 @@ class LaunchReadinessTests(TestCase):
         session = start_server_session(self.user, 30)
         self.callback(session, 'stopped', runtime_seconds=61)
         self.callback(session, 'ready', occurred_at=(timezone.now() - timedelta(minutes=2)).isoformat())
-        _record_launch_response(session.pk, {'id': 'orchestrator', 'state': 'starting'})
+        _record_launch_response(session.pk, {'id': 'orchestrator', 'state': 'starting'}, self.user.pk)
         session.refresh_from_db()
         self.assertEqual(session.status, ServerSession.STATUS_STOPPED)
         self.assertEqual(UsageLedgerEntry.objects.get().credits, 5)

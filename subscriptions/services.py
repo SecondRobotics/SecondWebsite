@@ -351,11 +351,13 @@ def launch_casual_server(user, requested_minutes=None, game='', game_code='', co
             mark_server_session_failed(session, exc.code, str(exc))
         raise SubscriptionError(str(exc), status_code=503, code=exc.code) from exc
 
-    return _record_launch_response(session.pk, payload)
+    return _record_launch_response(session.pk, payload, user.pk)
 
 
 @transaction.atomic
-def _record_launch_response(session_id, payload):
+def _record_launch_response(session_id, payload, user_id):
+    # Acquire the SQLite writer before reading a callback-updated session.
+    lock_user(user_id)
     session = ServerSession.objects.select_for_update().get(pk=session_id)
     if session.status in TERMINAL_SESSION_STATUSES:
         return session

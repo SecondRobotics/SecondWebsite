@@ -89,11 +89,17 @@ process.on('SIGTERM', async () => { await server.close(); process.exit(0); });
         self.fail(f'Session did not become {status}')
 
     def test_stop_response_waits_for_sqlite_callback_writer(self):
+        self.assert_response_waits_for_sqlite_callback_writer('stop')
+
+    def test_launch_response_waits_for_sqlite_callback_writer(self):
+        self.assert_response_waits_for_sqlite_callback_writer('launch')
+
+    def assert_response_waits_for_sqlite_callback_writer(self, response_kind):
         import threading
         from unittest.mock import patch
         from django.db import close_old_connections, connection, transaction
         from django.utils import timezone
-        from subscriptions.services import request_stop_server_session
+        from subscriptions.services import request_stop_server_session, _record_launch_response
 
         if connection.vendor != 'sqlite':
             self.skipTest('Exercises SQLite read-to-write lock upgrades.')
@@ -131,8 +137,12 @@ process.on('SIGTERM', async () => { await server.close(); process.exit(0); });
             self.assertTrue(writer_locked.wait(5), 'Callback writer did not start')
 
         try:
-            with patch('subscriptions.orchestrator.stop_server', side_effect=stop_response):
-                result = request_stop_server_session(session)
+            if response_kind == 'stop':
+                with patch('subscriptions.orchestrator.stop_server', side_effect=stop_response):
+                    result = request_stop_server_session(session)
+            else:
+                stop_response()
+                result = _record_launch_response(session.pk, {}, user.pk)
             self.assertEqual(result.status, 'stopped')
             self.assertEqual(result.stop_reason, 'callback')
         finally:
