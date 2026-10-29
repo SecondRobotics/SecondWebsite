@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import ServerSession, SubscriptionEntitlement, SubscriptionPlan, UsageLedgerEntry, WebhookEvent
+from .models import PolarCreditAccount, ServerSession, SubscriptionEntitlement, SubscriptionPlan, UsageLedgerEntry, WebhookEvent
 
 
 @admin.register(SubscriptionPlan)
@@ -64,3 +64,15 @@ class WebhookEventAdmin(admin.ModelAdmin):
     list_filter = ('provider', 'status', 'event_type')
     search_fields = ('event_id', 'event_type')
     readonly_fields = ('received_at', 'processed_at')
+
+
+@admin.register(PolarCreditAccount)
+class PolarCreditAccountAdmin(admin.ModelAdmin):
+    list_display = ('user', 'meter_id', 'observed_consumed_units', 'local_credits_seen', 'unreflected_credits')
+    readonly_fields = list_display
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

@@ -166,6 +166,9 @@ class ServerSession(models.Model):
     launch_context = models.JSONField(default=dict, blank=True)
     started_at = models.DateTimeField(default=timezone.now)
     last_heartbeat_at = models.DateTimeField(default=timezone.now)
+    last_event_at = models.DateTimeField(null=True, blank=True)
+    billing_period_start = models.DateTimeField(null=True, blank=True)
+    billing_period_end = models.DateTimeField(null=True, blank=True)
     stopped_at = models.DateTimeField(null=True, blank=True)
     stop_reason = models.CharField(max_length=80, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -239,11 +242,27 @@ class UsageLedgerEntry(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['user', 'billing_period_start', 'billing_period_end']),
-            models.Index(fields=['polar_status']),
+            models.Index(fields=['polar_status'], name='subscriptio_polar_s_9533a3_idx'),
         ]
 
     def __str__(self):
         return f'{self.user} - {self.credits} credits - {self.reason}'
+
+
+class PolarCreditAccount(models.Model):
+    """Reconcile our dedicated Polar meter with locally committed usage.
+
+    Ingestion and meter aggregation are asynchronous. Keep usage reserved until
+    consumed_units advances, independently of credits granted in the portal.
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    meter_id = models.CharField(max_length=128)
+    observed_consumed_units = models.DecimalField(max_digits=20, decimal_places=6, default=0)
+    local_credits_seen = models.PositiveBigIntegerField(default=0)
+    unreflected_credits = models.DecimalField(max_digits=20, decimal_places=6, default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['user', 'meter_id'], name='unique_user_polar_meter')]
 
 
 class WebhookEvent(models.Model):

@@ -85,3 +85,11 @@ def stop_server(orchestrator_session_id, *, reason='website_stop', actor=None):
     if actor:
         payload['actor'] = actor
     return _request('POST', f'/v1/servers/{orchestrator_session_id}/stop', json=payload)
+
+
+def get_server(session_id):
+    return _request('GET', f'/v1/servers/{session_id}')
+
+
+def find_website_sessions(website_session_id):
+    return _request('GET', '/v1/servers', params={'websiteServerSessionId': str(website_session_id)}).get('sessions', [])

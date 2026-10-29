@@ -1,5 +1,6 @@
 import json
 from io import StringIO
+from types import SimpleNamespace
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -149,9 +150,9 @@ class SubscriptionServiceTests(TestCase):
         with self.assertRaises(SubscriptionError):
             start_server_session(user)
 
-    @patch('subscriptions.polar_gateway.get_customer_credit_balance')
+    @patch('subscriptions.polar_gateway.get_customer_meter')
     def test_polar_entitlement_uses_meter_balance_for_launch(self, mock_balance):
-        mock_balance.return_value = 25
+        mock_balance.return_value = SimpleNamespace(balance=25, consumed_units=0)
         user = create_user()
         create_entitlement(user, provider=SubscriptionEntitlement.PROVIDER_POLAR, credits=360)
 
@@ -160,9 +161,9 @@ class SubscriptionServiceTests(TestCase):
         self.assertEqual(session.allocated_minutes, 25)
         mock_balance.assert_called_once_with(user)
 
-    @patch('subscriptions.polar_gateway.get_customer_credit_balance')
+    @patch('subscriptions.polar_gateway.get_customer_meter')
     def test_polar_entitlement_rejects_exhausted_meter_balance(self, mock_balance):
-        mock_balance.return_value = 0
+        mock_balance.return_value = SimpleNamespace(balance=0, consumed_units=0)
         user = create_user()
         create_entitlement(user, provider=SubscriptionEntitlement.PROVIDER_POLAR, credits=360)
 
@@ -170,9 +171,9 @@ class SubscriptionServiceTests(TestCase):
             start_server_session(user, requested_minutes=30)
 
     @patch('subscriptions.polar_gateway.ingest_usage_event')
-    @patch('subscriptions.polar_gateway.get_customer_credit_balance')
+    @patch('subscriptions.polar_gateway.get_customer_meter')
     def test_polar_usage_is_ingested_when_session_stops(self, mock_balance, mock_ingest):
-        mock_balance.return_value = 60
+        mock_balance.return_value = SimpleNamespace(balance=60, consumed_units=0)
         mock_ingest.return_value = type('PolarIngestResponse', (), {'inserted': 1, 'duplicates': 0})()
         user = create_user()
         create_entitlement(user, provider=SubscriptionEntitlement.PROVIDER_POLAR, credits=360)
@@ -182,6 +183,8 @@ class SubscriptionServiceTests(TestCase):
 
         stop_server_session(session)
         stop_server_session(session)
+        mock_ingest.assert_not_called()
+        call_command('sync_polar_usage')
 
         usage = UsageLedgerEntry.objects.get(server_session=session)
         self.assertEqual(usage.credits, 10)
@@ -191,9 +194,9 @@ class SubscriptionServiceTests(TestCase):
         mock_ingest.assert_called_once()
 
     @patch('subscriptions.polar_gateway.ingest_usage_event')
-    @patch('subscriptions.polar_gateway.get_customer_credit_balance')
+    @patch('subscriptions.polar_gateway.get_customer_meter')
     def test_polar_usage_failure_keeps_local_stop_finalized_for_retry(self, mock_balance, mock_ingest):
-        mock_balance.return_value = 60
+        mock_balance.return_value = SimpleNamespace(balance=60, consumed_units=0)
         mock_ingest.side_effect = polar_gateway.PolarGatewayError('temporary polar outage')
         user = create_user()
         create_entitlement(user, provider=SubscriptionEntitlement.PROVIDER_POLAR, credits=360)
@@ -202,6 +205,7 @@ class SubscriptionServiceTests(TestCase):
         session.save(update_fields=['started_at'])
 
         stop_server_session(session)
+        call_command('sync_polar_usage')
 
         session.refresh_from_db()
         usage = UsageLedgerEntry.objects.get(server_session=session)
@@ -211,9 +215,9 @@ class SubscriptionServiceTests(TestCase):
         self.assertIn('temporary polar outage', usage.polar_error)
 
     @patch('subscriptions.polar_gateway.ingest_usage_event')
-    @patch('subscriptions.polar_gateway.get_customer_credit_balance')
+    @patch('subscriptions.polar_gateway.get_customer_meter')
     def test_sync_polar_usage_retries_failed_entries(self, mock_balance, mock_ingest):
-        mock_balance.return_value = 60
+        mock_balance.return_value = SimpleNamespace(balance=60, consumed_units=0)
         mock_ingest.side_effect = [
             polar_gateway.PolarGatewayError('temporary polar outage'),
             type('PolarIngestResponse', (), {'inserted': 1, 'duplicates': 0})(),
@@ -225,6 +229,7 @@ class SubscriptionServiceTests(TestCase):
         session.save(update_fields=['started_at'])
         stop_server_session(session)
 
+        call_command('sync_polar_usage')
         output = StringIO()
         call_command('sync_polar_usage', stdout=output)
 
@@ -234,20 +239,22 @@ class SubscriptionServiceTests(TestCase):
         self.assertIn('Synced 1 Polar usage event', output.getvalue())
         self.assertEqual(mock_ingest.call_count, 2)
 
-    def test_expire_stale_sessions_marks_expired_and_records_usage(self):
+    @patch('subscriptions.orchestrator.find_website_sessions', return_value=[])
+    def test_expire_stale_sessions_marks_expired_and_records_usage(self, mock_sessions):
         user = create_user()
         create_entitlement(user)
         session = start_server_session(user)
         session.started_at = timezone.now() - timedelta(minutes=16)
+        session.ready_at = session.started_at
         session.last_heartbeat_at = timezone.now() - timedelta(minutes=12)
-        session.save(update_fields=['started_at', 'last_heartbeat_at'])
+        session.save(update_fields=['started_at', 'ready_at', 'last_heartbeat_at'])
 
         expired = expire_stale_sessions(max_heartbeat_age_minutes=10)
 
         self.assertEqual(len(expired), 1)
         session.refresh_from_db()
         self.assertEqual(session.status, ServerSession.STATUS_EXPIRED)
-        self.assertEqual(UsageLedgerEntry.objects.get(server_session=session).credits, 20)
+        self.assertEqual(UsageLedgerEntry.objects.get(server_session=session).credits, 5)
 
     def test_orchestrator_ready_and_stopped_events_record_usage_once(self):
         user = create_user()

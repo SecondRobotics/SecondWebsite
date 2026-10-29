@@ -12,6 +12,7 @@ from subscriptions.services import (
     process_orchestrator_event,
     request_stop_server_session,
     serialize_session,
+    _actor_for_user,
 )
 
 
@@ -123,7 +124,8 @@ def stop_session(request, session_id):
         return Response({'success': False, 'message': 'Server session does not exist.'}, status=404)
 
     try:
-        session = request_stop_server_session(session, reason=(request.data or {}).get('reason', 'stopped'))
+        actor = _actor_for_user(session.user, 'discord_user' if _is_service_request(request) else 'website_user')
+        session = request_stop_server_session(session, reason=(request.data or {}).get('reason', 'stopped'), actor=actor)
     except SubscriptionError as exc:
         return Response({'success': False, 'message': str(exc), 'code': exc.code}, status=exc.status_code)
     return Response({'success': True, 'session': serialize_session(session)})

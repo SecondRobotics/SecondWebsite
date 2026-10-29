@@ -1,7 +1,7 @@
 from datetime import timedelta, timezone as datetime_timezone
 
 from django.conf import settings
-from django.db import transaction
+from django.db import OperationalError, transaction
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
@@ -15,6 +15,7 @@ from .models import (
 )
 from . import orchestrator
 from . import polar_gateway
+from .credits import lock_user, spendable_polar_balance
 
 
 ACTIVE_STATUSES = {
@@ -66,6 +67,7 @@ def get_active_entitlement(user):
     entitlements = SubscriptionEntitlement.objects.filter(
         user=user,
         status__in=ACTIVE_STATUSES,
+        current_period_start__lte=now,
         current_period_end__gt=now,
     ).select_related('plan').order_by(
         '-plan__entitlement_priority',
@@ -100,7 +102,7 @@ def locally_reserved_credits(entitlement):
 
 def _polar_credit_balance(entitlement):
     try:
-        return polar_gateway.get_customer_credit_balance(entitlement.user)
+        return spendable_polar_balance(entitlement.user)
     except polar_gateway.PolarGatewayError as exc:
         raise SubscriptionError(str(exc), status_code=503, code='POLAR_CREDIT_BALANCE_UNAVAILABLE') from exc
 
@@ -114,7 +116,7 @@ def available_credits(entitlement):
 def credit_summary(entitlement):
     if entitlement.provider == SubscriptionEntitlement.PROVIDER_POLAR:
         try:
-            remaining = max(polar_gateway.get_customer_credit_balance(entitlement.user), 0)
+            remaining = max(spendable_polar_balance(entitlement.user) - locally_reserved_credits(entitlement), 0)
             monthly = entitlement.monthly_credits
             return {
                 'monthly_credits': monthly,
@@ -149,6 +151,7 @@ def credit_summary(entitlement):
 
 def entitlement_payload(user):
     entitlement = get_active_entitlement(user)
+    active_session = ServerSession.objects.filter(user=user, status__in=OPEN_SESSION_STATUSES).first()
     if entitlement is None:
         return {
             'active': False,
@@ -163,10 +166,9 @@ def entitlement_payload(user):
             'credit_balance_source': None,
             'credit_balance_available': False,
             'max_session_minutes': 0,
-            'active_session': None,
+            'active_session': serialize_session(active_session),
         }
 
-    active_session = ServerSession.objects.filter(user=user, status__in=OPEN_SESSION_STATUSES).first()
     credits = credit_summary(entitlement)
     return {
         'active': True,
@@ -218,6 +220,7 @@ def serialize_session(session):
 
 @transaction.atomic
 def start_server_session(user, requested_minutes=None, game='', server_identifier='', launch_context=None, status=ServerSession.STATUS_RUNNING):
+    lock_user(user.pk)
     entitlement = get_active_entitlement(user)
     if entitlement is None:
         raise SubscriptionError('An active premium subscription is required to launch a casual server.')
@@ -242,7 +245,12 @@ def start_server_session(user, requested_minutes=None, game='', server_identifie
     except (TypeError, ValueError) as exc:
         raise SubscriptionError('requested_minutes must be an integer.', status_code=400, code='INVALID_REQUESTED_MINUTES') from exc
     requested = max(requested, 5)
-    allocated = min(requested, entitlement.max_session_minutes, remaining)
+    # Do not carry an old billing-cycle reservation into the next cycle. Leave
+    # a minute for the launch request and the orchestrator's timeout polling.
+    period_minutes = int((entitlement.current_period_end - timezone.now()).total_seconds() // 60) - 1
+    if period_minutes < 5:
+        raise SubscriptionError('This billing period ends shortly. Try again after renewal.')
+    allocated = min(requested, entitlement.max_session_minutes, remaining, period_minutes)
 
     session = ServerSession.objects.create(
         user=user,
@@ -250,6 +258,8 @@ def start_server_session(user, requested_minutes=None, game='', server_identifie
         status=status,
         requested_minutes=requested,
         allocated_minutes=allocated,
+        billing_period_start=entitlement.current_period_start,
+        billing_period_end=entitlement.current_period_end,
         game=game or '',
         server_identifier=server_identifier or '',
         launch_context=launch_context or {},
@@ -307,22 +317,23 @@ def reserve_server_session(user, requested_minutes=None, game='', game_code='', 
         status=ServerSession.STATUS_PENDING,
     )
     session.game_code = str(game_code or '')
-    session.comment = (comment or '')[:120]
+    session.comment = (comment or f'Casual {game_code}')[:120]
     session.server_password = (password or '')[:80]
     session.save(update_fields=['game_code', 'comment', 'server_password', 'updated_at'])
     return session
 
 
 def launch_casual_server(user, requested_minutes=None, game='', game_code='', comment='', password='', launch_source='website', launch_context=None):
-    session = reserve_server_session(
-        user,
-        requested_minutes=requested_minutes,
-        game=game,
-        game_code=game_code,
-        comment=comment,
-        password=password,
-        launch_context=launch_context,
-    )
+    try:
+        session = reserve_server_session(
+            user, requested_minutes=requested_minutes, game=game, game_code=game_code,
+            comment=comment, password=password, launch_context=launch_context,
+        )
+    except OperationalError as exc:
+        if 'locked' not in str(exc).lower():
+            raise
+        raise SubscriptionError('Another session update is in progress. Try again shortly.',
+                                status_code=409, code='SESSION_UPDATE_IN_PROGRESS') from exc
 
     try:
         payload = orchestrator.launch_casual(
@@ -331,15 +342,29 @@ def launch_casual_server(user, requested_minutes=None, game='', game_code='', co
             comment=session.comment,
             password=session.server_password,
             launch_source=launch_source,
-            actor=_actor_for_user(user, actor_type='discord_bot' if launch_source == 'discord_bot' else 'website_user'),
+            actor=_actor_for_user(user, actor_type='discord_user' if launch_source == 'discord_bot' else 'website_user'),
         )
     except orchestrator.OrchestratorError as exc:
-        mark_server_session_failed(session, exc.code, str(exc))
+        # A timeout/5xx may follow a successful spawn. Keep the reservation so
+        # reconciliation can recover by websiteServerSessionId.
+        if (exc.status_code and 400 <= exc.status_code < 500) or exc.code == 'ORCHESTRATOR_NOT_CONFIGURED':
+            mark_server_session_failed(session, exc.code, str(exc))
         raise SubscriptionError(str(exc), status_code=503, code=exc.code) from exc
 
-    session = ServerSession.objects.get(pk=session.pk)
+    return _record_launch_response(session.pk, payload)
+
+
+@transaction.atomic
+def _record_launch_response(session_id, payload):
+    session = ServerSession.objects.select_for_update().get(pk=session_id)
+    if session.status in TERMINAL_SESSION_STATUSES:
+        return session
+    previous_state = session.orchestrator_state
     _apply_orchestrator_payload(session, payload)
-    session.status = ServerSession.STATUS_LAUNCHING
+    if session.last_event_at:
+        session.orchestrator_state = previous_state
+    if session.status == ServerSession.STATUS_PENDING:
+        session.status = ServerSession.STATUS_LAUNCHING
     session.save(update_fields=[
         'status',
         'orchestrator_session_id',
@@ -355,6 +380,7 @@ def launch_casual_server(user, requested_minutes=None, game='', game_code='', co
 
 @transaction.atomic
 def mark_server_session_failed(session, code='', message=''):
+    lock_user(session.user_id)
     session = ServerSession.objects.select_for_update().get(pk=session.pk)
     if session.status in TERMINAL_SESSION_STATUSES:
         return session
@@ -377,6 +403,7 @@ def mark_server_session_failed(session, code='', message=''):
 
 @transaction.atomic
 def stop_server_session(session, reason='stopped'):
+    lock_user(session.user_id)
     session = ServerSession.objects.select_for_update().get(pk=session.pk)
     if session.status not in OPEN_SESSION_STATUSES:
         return session
@@ -407,16 +434,15 @@ def _create_usage_entry(session, credits, metadata):
         defaults={
             'user': session.user,
             'entitlement': session.entitlement,
-            'billing_period_start': session.entitlement.current_period_start,
-            'billing_period_end': session.entitlement.current_period_end,
+            'billing_period_start': session.billing_period_start or session.entitlement.current_period_start,
+            'billing_period_end': session.billing_period_end or session.entitlement.current_period_end,
             'credits': credits,
             'reason': UsageLedgerEntry.REASON_SERVER_SESSION,
             'polar_status': UsageLedgerEntry.POLAR_STATUS_PENDING if polar_required else UsageLedgerEntry.POLAR_STATUS_NOT_REQUIRED,
-            'metadata': metadata,
+            'metadata': {**metadata, 'polar_meter_id': getattr(settings, 'POLAR_CASUAL_SERVER_METER_ID', '')},
         },
     )
-    if created and polar_required:
-        sync_polar_usage_entry(usage)
+    # Persist first; the scheduled worker owns network ingestion.
     return usage
 
 
@@ -489,85 +515,67 @@ def _record_orchestrator_usage(session, stopped_at, runtime_seconds=None):
 
 @transaction.atomic
 def process_orchestrator_event(session_id, payload):
-    event_id = payload.get('event_id')
-    event_type = payload.get('event')
-    if not event_id or not event_type:
-        raise SubscriptionError('Orchestrator events require event_id and event.')
-
+    event_id, event_type = payload.get('event_id'), payload.get('event')
+    supported = {'launch_accepted', 'ready', 'heartbeat', 'stopping', 'stopped', 'exited', 'killed', 'launch_failed'}
+    if not event_id or event_type not in supported:
+        raise SubscriptionError('Orchestrator events require an event_id and a supported event.')
+    owner_id = ServerSession.objects.values_list('user_id', flat=True).get(pk=session_id)
+    lock_user(owner_id)
+    session = ServerSession.objects.select_for_update().get(pk=session_id)
     event, created = WebhookEvent.objects.get_or_create(
-        provider='orchestrator',
-        event_id=event_id,
-        defaults={
-            'event_type': event_type,
-            'payload': payload,
-            'status': WebhookEvent.STATUS_PROCESSED,
-            'processed_at': timezone.now(),
-        },
+        provider='orchestrator', event_id=event_id,
+        defaults={'event_type': event_type, 'payload': {**payload, 'website_session_id': str(session_id)}, 'processed_at': timezone.now()},
     )
     if not created:
+        if str(event.payload.get('website_session_id', session_id)) != str(session_id):
+            raise SubscriptionError('Event belongs to another session.')
         return event
-
-    session = ServerSession.objects.select_for_update().get(pk=session_id)
     occurred_at = _parse_datetime(payload.get('occurred_at')) or timezone.now()
-
-    if payload.get('orchestrator_session_id'):
-        session.orchestrator_session_id = str(payload['orchestrator_session_id'])
-        session.server_identifier = str(payload['orchestrator_session_id'])
-    if payload.get('orchestrator_state'):
-        session.orchestrator_state = str(payload['orchestrator_state'])
-    if payload.get('host'):
-        session.host = str(payload['host'])
-    if payload.get('port') is not None:
-        session.port = int(payload['port'])
-    if payload.get('password'):
-        session.server_password = str(payload['password'])
-
+    terminal = event_type in {'stopped', 'exited', 'killed', 'launch_failed'}
+    if session.status in TERMINAL_SESSION_STATUSES or (not terminal and session.last_event_at and occurred_at < session.last_event_at):
+        event.status = WebhookEvent.STATUS_SKIPPED
+        event.save(update_fields=['status'])
+        return event
+    if session.status == ServerSession.STATUS_STOPPING and not terminal:
+        # A delayed heartbeat/ready can refresh liveness, never undo a stop.
+        if event_type == 'heartbeat':
+            session.last_heartbeat_at = max(session.last_heartbeat_at, occurred_at)
+            session.save(update_fields=['last_heartbeat_at'])
+        return event
+    for key, field in [('orchestrator_session_id', 'orchestrator_session_id'), ('orchestrator_state', 'orchestrator_state'),
+                       ('host', 'host'), ('port', 'port'), ('password', 'server_password')]:
+        if payload.get(key) is not None:
+            setattr(session, field, payload[key])
+    if session.orchestrator_session_id:
+        session.server_identifier = session.orchestrator_session_id
     if event_type == 'launch_accepted':
-        session.status = ServerSession.STATUS_LAUNCHING
+        if session.status == ServerSession.STATUS_PENDING:
+            session.status = ServerSession.STATUS_LAUNCHING
     elif event_type == 'ready':
         session.status = ServerSession.STATUS_RUNNING
-        session.ready_at = _parse_datetime(payload.get('ready_at')) or occurred_at
-        session.last_heartbeat_at = occurred_at
+        session.ready_at = session.ready_at or _parse_datetime(payload.get('ready_at')) or occurred_at
+        session.last_heartbeat_at = max(session.last_heartbeat_at, occurred_at)
     elif event_type == 'heartbeat':
-        if session.status not in TERMINAL_SESSION_STATUSES:
+        # Starting/stopping processes also send heartbeats; they are not ready.
+        if payload.get('orchestrator_state') == 'running' or session.ready_at:
             session.status = ServerSession.STATUS_RUNNING
-            session.last_heartbeat_at = occurred_at
+            session.ready_at = session.ready_at or _parse_datetime(payload.get('ready_at'))
+        session.last_heartbeat_at = max(session.last_heartbeat_at, occurred_at)
     elif event_type == 'stopping':
-        if session.status not in TERMINAL_SESSION_STATUSES:
-            session.status = ServerSession.STATUS_STOPPING
-            session.stop_reason = payload.get('reason') or 'stopping'
-    elif event_type in {'stopped', 'exited', 'killed'}:
-        stopped_at = _parse_datetime(payload.get('stopped_at')) or occurred_at
-        session.status = ServerSession.STATUS_KILLED if event_type == 'killed' else ServerSession.STATUS_STOPPED
-        session.stopped_at = stopped_at
-        session.orchestrator_stopped_at = stopped_at
+        session.status = ServerSession.STATUS_STOPPING
+        session.stop_reason = payload.get('reason') or 'stopping'
+    elif terminal:
+        session.status = ServerSession.STATUS_FAILED if event_type == 'launch_failed' else (
+            ServerSession.STATUS_KILLED if event_type == 'killed' else ServerSession.STATUS_STOPPED)
+        session.stopped_at = _parse_datetime(payload.get('stopped_at')) or occurred_at
+        session.orchestrator_stopped_at = session.stopped_at
         session.stop_reason = payload.get('reason') or event_type
-        runtime_seconds = payload.get('runtime_seconds')
-        _record_orchestrator_usage(session, stopped_at, runtime_seconds=runtime_seconds)
-    elif event_type == 'launch_failed':
-        session.status = ServerSession.STATUS_FAILED
-        session.stopped_at = occurred_at
-        session.stop_reason = 'launch_failed'
         session.launch_error_code = payload.get('error_code') or ''
         session.launch_error_message = payload.get('error_message') or ''
-
-    session.save(update_fields=[
-        'status',
-        'orchestrator_session_id',
-        'orchestrator_state',
-        'host',
-        'port',
-        'server_password',
-        'server_identifier',
-        'ready_at',
-        'last_heartbeat_at',
-        'stopped_at',
-        'orchestrator_stopped_at',
-        'stop_reason',
-        'launch_error_code',
-        'launch_error_message',
-        'updated_at',
-    ])
+    session.last_event_at = max(session.last_event_at or occurred_at, occurred_at)
+    session.save()
+    if terminal and event_type != 'launch_failed':
+        _record_orchestrator_usage(session, session.stopped_at, runtime_seconds=payload.get('runtime_seconds'))
     return event
 
 
@@ -575,29 +583,71 @@ def request_stop_server_session(session, reason='stopped', actor=None):
     session = ServerSession.objects.get(pk=session.pk)
     if session.status in TERMINAL_SESSION_STATUSES:
         return session
-
-    if session.orchestrator_session_id:
-        try:
-            orchestrator.stop_server(session.orchestrator_session_id, reason=reason, actor=actor)
-        except orchestrator.OrchestratorError as exc:
-            raise SubscriptionError(str(exc), status_code=503, code=exc.code) from exc
-        session.status = ServerSession.STATUS_STOPPING
-        session.stop_reason = reason or 'stopping'
-        session.save(update_fields=['status', 'stop_reason', 'updated_at'])
-        return session
-
-    return stop_server_session(session, reason=reason)
+    if not session.orchestrator_session_id:
+        raise SubscriptionError('The server launch is still being confirmed. Try again shortly.', status_code=409)
+    try:
+        orchestrator.stop_server(session.orchestrator_session_id, reason=reason,
+                                 actor=actor or _actor_for_user(session.user))
+    except orchestrator.OrchestratorError as exc:
+        raise SubscriptionError(str(exc), status_code=503, code=exc.code) from exc
+    # A stop callback may have arrived while the HTTP request was in flight.
+    with transaction.atomic():
+        session = ServerSession.objects.select_for_update().get(pk=session.pk)
+        if session.status not in TERMINAL_SESSION_STATUSES:
+            session.status = ServerSession.STATUS_STOPPING
+            session.stop_reason = reason or 'stopping'
+            session.save(update_fields=['status', 'stop_reason', 'updated_at'])
+    return session
 
 
 def expire_stale_sessions(max_heartbeat_age_minutes=10):
     cutoff = timezone.now() - timedelta(minutes=max_heartbeat_age_minutes)
-    stale_sessions = ServerSession.objects.filter(
-        status=ServerSession.STATUS_RUNNING,
-        last_heartbeat_at__lt=cutoff,
-    )
+    stale_ids = list(ServerSession.objects.filter(
+        status__in=OPEN_SESSION_STATUSES, last_heartbeat_at__lt=cutoff,
+    ).values_list('pk', flat=True))
     expired = []
-    for session in stale_sessions:
-        expired.append(stop_server_session(session, reason=ServerSession.STATUS_EXPIRED))
+    for session_id in stale_ids:
+        session = ServerSession.objects.get(pk=session_id)
+        try:
+            if session.orchestrator_session_id:
+                details = orchestrator.get_server(session.orchestrator_session_id)
+            else:
+                matches = orchestrator.find_website_sessions(session.id)
+                details = matches[0] if matches else None
+        except orchestrator.OrchestratorError as exc:
+            if exc.status_code != 404:
+                # Network outage is not evidence of process death.
+                continue
+            details = None
+        if details:
+            state = details.get('state')
+            stopped = state in {'stopped', 'exited', 'killed', 'failed'}
+            process_orchestrator_event(session.id, {
+                'event_id': f'reconcile:{session.id}:{details.get("id")}:{details.get("stoppedAt") or timezone.now().isoformat()}',
+                'event': ('launch_failed' if state == 'failed' else 'stopped') if stopped else 'heartbeat',
+                'occurred_at': details.get('stoppedAt') or timezone.now().isoformat(),
+                'ready_at': details.get('readyAt'), 'stopped_at': details.get('stoppedAt'),
+                'runtime_seconds': details.get('runtimeSeconds'),
+                'orchestrator_session_id': details.get('id'), 'orchestrator_state': state,
+                'reason': 'reconciled',
+            })
+            if not stopped:
+                continue
+        else:
+            # The service is reachable and the old session no longer exists:
+            # destructive restart. Charge only runtime last confirmed alive.
+            with transaction.atomic():
+                lock_user(session.user_id)
+                session = ServerSession.objects.select_for_update().get(pk=session_id)
+                if not session.is_open or session.last_heartbeat_at >= cutoff:
+                    continue
+                session.status = ServerSession.STATUS_EXPIRED
+                session.stopped_at = min(session.last_heartbeat_at, timezone.now())
+                session.stop_reason = 'orchestrator_session_lost'
+                session.save()
+                if session.ready_at:
+                    _record_orchestrator_usage(session, session.stopped_at)
+        expired.append(ServerSession.objects.get(pk=session_id))
     return expired
 
 
@@ -620,17 +670,18 @@ def process_polar_webhook(payload, event_id):
             'payload': payload,
         },
     )
-    if not created:
+    if not created and event.status != WebhookEvent.STATUS_FAILED:
         return event
 
     try:
         if event_type.startswith('subscription.'):
-            _upsert_entitlement_from_polar_subscription(data, event_id)
+            _upsert_entitlement_from_polar_subscription(data, event_id, payload.get('timestamp'))
             event.status = WebhookEvent.STATUS_PROCESSED
+            event.error = ''
         else:
             event.status = WebhookEvent.STATUS_SKIPPED
         event.processed_at = timezone.now()
-        event.save(update_fields=['status', 'processed_at'])
+        event.save(update_fields=['status', 'error', 'processed_at'])
     except Exception as exc:
         event.status = WebhookEvent.STATUS_FAILED
         event.error = str(exc)
@@ -647,7 +698,8 @@ def create_polar_checkout_url(user, plan, customer_ip_address=''):
         raise SubscriptionError(str(exc)) from exc
 
 
-def _upsert_entitlement_from_polar_subscription(data, event_id):
+@transaction.atomic
+def _upsert_entitlement_from_polar_subscription(data, event_id, event_timestamp=None):
     user = _user_from_polar_data(data)
     plan = _plan_from_polar_data(data)
     if user is None or plan is None:
@@ -656,6 +708,16 @@ def _upsert_entitlement_from_polar_subscription(data, event_id):
     subscription_id = str(data.get('id') or data.get('subscription_id') or '')
     if not subscription_id:
         raise SubscriptionError('Polar subscription webhook did not include a subscription ID.')
+
+    lock_user(user.pk)
+    incoming_at = _parse_dt(data.get('modified_at') or event_timestamp)
+    previous = SubscriptionEntitlement.objects.filter(
+        provider=SubscriptionEntitlement.PROVIDER_POLAR, provider_subscription_id=subscription_id,
+    ).first()
+    previous_at = _parse_dt((previous.metadata or {}).get('_event_at')) if previous else None
+    if previous_at and (incoming_at is None or incoming_at <= previous_at):
+        return
+    data = {**data, '_event_at': incoming_at.isoformat() if incoming_at else None}
 
     period_start = _parse_dt(
         data.get('current_period_start')
@@ -668,7 +730,9 @@ def _upsert_entitlement_from_polar_subscription(data, event_id):
         or data.get('ended_at')
     ) or (period_start + timedelta(days=31))
     raw_status = str(data.get('status') or '').lower()
-    status = POLAR_STATUS_MAP.get(raw_status, SubscriptionEntitlement.STATUS_ACTIVE)
+    status = POLAR_STATUS_MAP.get(raw_status, SubscriptionEntitlement.STATUS_INACTIVE)
+    if status == SubscriptionEntitlement.STATUS_CANCELED and data.get('cancel_at_period_end') and period_end > timezone.now():
+        status = SubscriptionEntitlement.STATUS_ACTIVE
 
     customer = data.get('customer') or {}
     customer_id = str(data.get('customer_id') or customer.get('id') or '')
@@ -708,13 +772,6 @@ def _user_from_polar_data(data):
 
 
 def _plan_from_polar_data(data):
-    metadata = data.get('metadata') or {}
-    tier = metadata.get('tier')
-    if tier:
-        plan = SubscriptionPlan.objects.filter(tier=tier).first()
-        if plan:
-            return plan
-
     product_id = (
         data.get('product_id')
         or (data.get('product') or {}).get('id')
@@ -722,8 +779,10 @@ def _plan_from_polar_data(data):
     )
     if product_id:
         plan = SubscriptionPlan.objects.filter(polar_product_id=product_id).first()
-        if plan:
-            return plan
+        return plan
+    tier = (data.get('metadata') or {}).get('tier')
+    if tier:
+        return SubscriptionPlan.objects.filter(tier=tier).first()
     return None
 
 

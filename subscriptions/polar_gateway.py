@@ -59,7 +59,7 @@ def create_checkout_url(user, plan, customer_ip_address=''):
     return checkout_url
 
 
-def get_customer_credit_balance(user):
+def get_customer_meter(user):
     meter_id = getattr(settings, 'POLAR_CASUAL_SERVER_METER_ID', '')
     if not meter_id:
         raise PolarGatewayError('Polar casual server meter ID is not configured.')
@@ -77,7 +77,11 @@ def get_customer_credit_balance(user):
     items = getattr(result, 'items', None) or []
     if not items:
         raise PolarGatewayError('Polar credit balance is not available for this customer yet.')
-    return int(getattr(items[0], 'balance', 0))
+    return items[0]
+
+
+def get_customer_credit_balance(user):
+    return int(get_customer_meter(user).balance)
 
 
 def ingest_usage_event(session, credits, occurred_at):
