@@ -74,6 +74,8 @@ The utility opens the source read-only, makes a disposable backup, runs `migrate
 
 After green CI, sandbox/real-game acceptance, and the current-backup rehearsal, review the three PRs together. Explicit approval to merge/deploy remains a separate step. At cutover: pause new launches, drain legacy servers, back up/migrate the website, start the orchestrator, then switch the bot to the matching release. Keep public discovery disabled during the initial beta. Record all deployed SHAs.
 
+**The existing website workflow deploys automatically after a push to `main`. Merging its PR is therefore a deployment trigger. Keep it unmerged until the coordinated cutover is authorized, or explicitly pause that workflow first.**
+
 Install and verify these recurring tasks on the actual host at cutover, using its Python environment and environment variables:
 
 ```cron
