@@ -1,68 +1,100 @@
 # Premium acceptance evidence — 2026-10-29
 
-Status: **in progress; not cleared for merge or launch**. No production deployment or merge has been performed.
+**Status: core integration proven; remaining launch gates are listed below. Do not merge or deploy yet.**
 
-## Tested candidates and environment
+No production deployment, merge, production billing change, or main-guild role change was performed. The three coordinated PRs remain unmerged: website #67, bot #85, orchestrator #18.
 
-- Website: `7b46bfc37bcbe04e8ff0c808a9b9dd80b6f35722`.
-- Bot: `9927f3e` (acceptance found and fixed idle event polling timeouts).
-- Orchestrator: `971a3b1` (adds a host control for private discovery).
-- Isolated application files: `ssh digitalocean`, `/home/nick/.local/share/second-robotics-test/releases/20261029/`.
-- Test website: loopback port 8000, available locally through the SSH tunnel at `http://localhost:8000/`.
-- Test orchestrator: loopback port 3300. Port 3000 belongs to an existing unrelated service and was left intact.
-- Discord: guild `663201408581107712`, application `724063847958184046`.
-- Fresh SQLite database; only public game-mode and plan configuration copied. Production/customer databases were not copied.
-- Python 3.12.16 (website), Python 3.10.22 (bot), Node 22.23.4 (orchestrator).
+## Candidate verification
 
-## Verified
+| Candidate | Code revision | Verification |
+| --- | --- | --- |
+| Website | `020a90c` | 45 tests pass locally and on the Linux droplet, including real Django/Fastify HTTP contracts and three concurrent SQLite regressions; final code CI passes |
+| Ranked bot | `9927f3e` | 31 tests plus 2 log-parser tests pass on Linux; CI passes |
+| Orchestrator | `971a3b1` | 28 tests pass locally and in CI; build and website-contract CI pass; preceding 27-test suite also passed on the droplet |
 
-- Fresh migrations and Django system checks pass.
-- Discord OAuth redirects persist; real browser login returned successfully and created an authenticated test session.
-- Test bot connects and completes startup in the selected guild.
-- Linux automated verification: website **39 tests passed**, including the real HTTP contract test; bot **31 tests plus 2 log-parser tests passed**; orchestrator **27 tests passed** before the discovery addition. The updated orchestrator suite **28 tests passed locally**, and its build/test and website-contract CI checks passed.
-- The original low-memory cross-service timeout and later OOM were resolved by cleaning up the orphaned test child and adding temporary swap; the complete website rerun passed.
-- Real official xRC server v21.2b reached `running` with readiness timestamps for Override (23) and BioBuzz (24). Both then reached `stopped`; their OS processes were verified absent.
-- Official Polar CLI authenticated against the **sandbox** SecondRobotics organization (not the separate SecondRoboticsSandbox organization).
-- Configured meter: `ae0c267f-dbbf-4e3f-9041-2ac8d43eedac`; filter selects `casual_server_credits`, aggregation sums `credits`.
-- Existing meter benefits grant 360 / 1,500 units with rollover disabled. The application token can read customer meters. It lacks product/meter inspection scopes; those inspections used the authorized CLI instead.
-- Signed Polar sample `order.created` was forwarded through the official CLI to the real Django webhook handler: **200 OK**. Real `checkout.created` also returned **200 OK**.
-- Real website checkout creation succeeds for the isolated Supporter test product; browser checkout is awaiting user completion.
+Fresh database migrations and Django system checks pass. The test database contains copied public game/plan configuration and disposable test users; no production/customer database was copied.
 
-## Acceptance fixes
+## Live acceptance results
 
-Bot event requests previously used a 15-second timeout while asking the service to wait 25 seconds. Event polls now allow the complete wait plus response overhead; Python 3.10 asyncio timeouts are translated into the normal service-unavailable error. Regression tests exercise a delayed real localhost HTTP response and Python 3.10 timeout handling. Bot PR CI passed.
+| Gate | Evidence |
+| --- | --- |
+| Discord OAuth | Both registered localhost redirects persist. Real login returned successfully and created an authenticated session for the intended Discord account. |
+| Bot connectivity | The test bot connects and completes startup in Nick's Test Server. A real 25-second idle event poll completes without timing out. |
+| Real game processes | Official xRC v21.2b starts Override (23) and BioBuzz (24), reaches `running` with readiness timestamps, then stops. Old OS processes were verified absent. |
+| Sandbox checkout | Browser test-card checkout succeeded and created a real Supporter subscription. Initial custom-price checkout could remain in `confirmed` for several minutes before completing. |
+| Entitlement and credits | Real signed subscription events activate the correct plan. The initial grant was 360 credits. |
+| Service API launch | A Polar-backed real Override session launched through the bot's website API contract. Concurrent launch was rejected (HTTP 403, existing website contract), stop succeeded, and duplicate stop retained one ledger entry. |
+| Website UI | A real BioBuzz session launched and stopped using the browser forms. |
+| Actual Discord commands | `/casual_start` with Override autocomplete and 5 minutes created a real session; `/casual_status` reported it running; `/casual_stop` finalized it. |
+| Usage billing | Three real subscriber sessions each produced one 5-credit ledger entry. Ingestion succeeded, and Polar consumption/balance matched 15 credits consumed / 345 remaining before lifecycle tests. |
+| Aggregation delay | After accepted ingestion but before meter aggregation, Polar still reported 360 while the website held the charge and exposed 355. Once aggregation reached 5 consumed, website and meter both reported 355. |
+| Ingestion outage | One real usage entry was synced against an intentionally unreachable Polar URL. It became failed; spendable credits stayed held. Restoring the real sandbox endpoint sent it successfully. Re-sync did not duplicate the ledger charge. |
+| Exhaustion | A separate zero-credit fixture account was rejected without a reservation or process being created. |
+| Duration cap | A 999-minute request was capped to a five-minute fixture plan. The real server stopped automatically with `max_runtime_elapsed`, and one 5-credit usage entry was recorded. |
+| Callback outage/restart | Four callback files persisted while the configured receiver was unreachable. Restoring it and restarting the orchestrator replayed them, finalized one charge, and emptied the outbox. This used the complimentary fixture, not paid Polar usage. |
+| Crash recovery | With one real ranked and one real casual process alive, the orchestrator was killed. Restart removed both old game processes; reconciliation finalized the lost casual session once. The test invoked reconciliation with zero staleness grace rather than waiting the normal ten minutes. It did not create a real Discord ranked match or prove its role/channel cleanup. |
+| Period-end cancellation | A real sandbox cancellation webhook set the cancellation flag while retaining active access. Renewal was then restored. |
+| Upgrade | After changing only the private acceptance products to fixed pricing, a real upgrade selected VIP from the actual product ID despite stale supporter metadata. The website showed 1,500 credits and a 240-minute limit; Polar also reported 1,500. |
+| Scheduled downgrade | Polar scheduled a Supporter downgrade for the next period while current website access remained VIP. The test schedule was subsequently cleared. |
+| Revocation | Immediate revocation of the newly created test subscription removed access. A launch was rejected with HTTP 403 and created no session. A fresh VIP checkout was submitted afterward; it remained confirmed without a payment or new subscription at the final provider check. |
+| Billing portal entry | `https://sandbox.polar.sh/secondrobotics/portal` was verified as this organization's customer portal sign-in page and configured as the test website's Manage billing destination. Customer authentication inside that portal remains a manual gate. |
 
-Orchestrator `SERVER_PUBLIC_DISCOVERY=false` forces `Register=Off` even if a caller requests registration. Set this during acceptance and the initial beta. Existing installations retain the prior default when unset.
+## Defects found and fixed during acceptance
 
-## Test runtime compatibility
+1. **Idle bot polling:** the bot asked for a 25-second server wait with a 15-second HTTP deadline. Event requests now allow the whole wait plus overhead; Python 3.10 asyncio timeouts are translated consistently. Regression includes a delayed real localhost HTTP response.
+2. **Webhook SDK aliases:** SDK `model_dump()` returned `TYPE`, so signed events were acknowledged but skipped. Serialization now uses wire aliases (`type`); a regression uses the actual SDK event model. Three stored real subscription events were recovered in the disposable test database.
+3. **SQLite callback/response races:** stop-response recording, launch-response recording, and callback ownership lookup could upgrade a retained read lock while another writer was active. Stop uses a guarded SQL update; launch locks the user before reading; callback ownership is resolved before its write transaction. Three concurrent file-backed SQLite regressions pass, along with the complete Linux suite.
+4. **Private discovery:** `SERVER_PUBLIC_DISCOVERY=false` forces `Register=Off` even when callers request public registration. This is enabled on the test orchestrator and documented for the initial beta.
+5. **Return credential handling:** Polar appends a customer-session credential to the checkout success URL. The website discards it from the URL and redacts it from Django access logs. Reverse-proxy access logs must also avoid recording that parameter at eventual cutover.
 
-The droplet runs Ubuntu 20.04 with glibc 2.31; the current official game binary requires glibc 2.34 symbols. The test harness downloaded Ubuntu Jammy libc6 2.35-0ubuntu3.15, verified the signed Ubuntu archive index and SHA256 hashes, and extracted it into the private test runtime. Only the test executable's interpreter/RPATH were changed; its original executable is preserved as `xRC Simulator.x86_64.original`. System libc and unrelated services were not changed.
+## Findings that still block launch clearance
 
-A temporary 512 MiB swap file at `/home/nick/.local/share/second-robotics-test/acceptance.swap` is active, with root ownership and mode 600. It is not configured to survive reboot. Test startup timeout is 120 seconds. The host is shared and memory constrained; these accommodations do not establish production capacity. Confirm the production host can run the chosen official binary and sustain the planned concurrency before cutover.
+### Billing lifecycle and product configuration
 
-## Billing isolation
+The original sandbox Supporter/VIP products use **custom/name-your-price** prices. Polar rejects changing a subscription **to** a custom-price product. Fixed-price copies support the tested upgrade and scheduled downgrade. Nick approved **fixed $5/$12 launch pricing**. Configure production products accordingly; do not retain custom-price targets if normal plan switching is promised. Original products were not modified; only the private acceptance products use fixed prices.
 
-Existing sandbox products include a Discord role benefit pointing at the main guild. To avoid changing that guild during acceptance, separate private sandbox products were created with only the matching meter-credit benefits:
+A deliberately shortened billing period advanced to a new period, and the meter's consumed units reset. However, its old 360-credit benefit did **not** replenish within the observed test window; balance remained zero before the later separate VIP upgrade granted 1,500. Do not treat the successful upgrade grant as proof of monthly renewal replenishment. Resolve and retest actual renewal grants, no rollover, and no paid overage before launch. The organization's `reset` proration mode is disabled; tests used the supported `invoice` mode instead of changing organization settings.
 
-| Tier | Test product ID |
+A real past-due/failed-renewal payment lifecycle has not been exercised. Revocation, period-end cancellation, and mocked failure behavior are covered, but they do not replace this check.
+
+### Discord benefit and real players
+
+The existing sandbox products include a role benefit pointing at the **main guild**. Acceptance products omit that benefit to avoid changing main-guild roles. If the launch promises a Discord role, install/configure Polar's role integration for the isolated guild and test grant/revocation there. Otherwise remove that promise from actual launch plan copy.
+
+Still required with the game client/test players: join/password verification, actual player/chat/score/OPR updates, a complete ranked queue-to-ELO match, inactivity behavior, Discord match resource cleanup, and IP scoping with actual player data. Nick deferred player participation until automated checks were complete.
+
+### Production prerequisites
+
+- Rehearse migrations on a **fresh production backup**. Only the older local copy and a fresh empty database have been rehearsed so far.
+- Verify the production host can run the official binary and sustain planned concurrency. The current test host required private newer libc and temporary swap.
+- Configure production product/meter/benefit IDs, webhook secret, portal URL, service tokens, and recurring workers separately. Sandbox IDs must not be reused in production.
+- Review all three PRs together and obtain separate merge/cutover authorization. Website main pushes trigger automatic deployment.
+
+## Isolated test environment and preservation
+
+- SSH alias: `digitalocean`.
+- Root: `/home/nick/.local/share/second-robotics-test/`; release directory: `releases/20261029/`.
+- Website listens on `127.0.0.1:8000`; localhost-only SSH forwarding exposes it at `http://localhost:8000/`.
+- Orchestrator listens on `127.0.0.1:3300`. Existing unrelated services on port 3000 were left intact.
+- Guild: `663201408581107712`; bot application: `724063847958184046`.
+- Runtimes: Python 3.12.16 / Python 3.10.22 / Node 22.23.4.
+- The droplet is Ubuntu 20.04, glibc 2.31. Official xRC requires newer libc symbols. Ubuntu Jammy libc6 2.35-0ubuntu3.15 was verified using the signed archive index and SHA256 hashes and extracted privately. Only the test binary's interpreter/RPATH were changed; its original is preserved as `xRC Simulator.x86_64.original`. System libc was not replaced.
+- Temporary root-owned mode-600 512 MiB swap file: `acceptance.swap`; it is not configured across reboot. Test startup timeout is 120 seconds. These accommodations do not establish production capacity.
+- Private service configuration remains mode 600. Logs, callback outbox, and score archives must be preserved across test restarts. Pending callback files contain connection credentials.
+- Official Polar CLI is authenticated to sandbox **SecondRobotics**, not the separate **SecondRoboticsSandbox** organization. It forwards signed events to the private website through the SSH tunnel. Private local artifacts/forwarder logs are under `/private/tmp/second-e2e-prep/`.
+- The interrupted turn closed the original SSH tunnel; it was restored as a separate process. Forwarding and the CLI listener must remain running for future events.
+- An older sandbox VIP subscription under the original email was left intact. Only the disposable Django profile email was changed to a unique acceptance alias to avoid that pre-existing customer conflict. Do not delete the older subscription as cleanup for this run.
+
+| Tier | Private acceptance product |
 | --- | --- |
 | Supporter | `4a900d30-03fb-45cb-a0c4-9053f964d966` |
 | VIP Supporter | `794d2bb8-5f3b-4868-975a-fb7c181d8a70` |
 
-Only the test database uses these mappings. Main sandbox products and their benefits were not modified. Discord-role acceptance remains outstanding.
+The copied catalog's stale saved-presets promise was cleaned using the existing migration, and role promises were removed from these credit-only test plans. Preserve customized launch prices/allowances when applying the actual migration.
 
-The signed-in account already had an older active sandbox VIP subscription under its original email, with no customer external ID. It was left intact. Only the disposable Django account email was changed to a unique acceptance alias for fresh checkout; the real Discord identity is unchanged. A subsequent OAuth login refreshes that test profile email, so finish this run before logging in again.
+## State left for the next acceptance step
 
-Secrets remain in private configuration on the host and the CLI's local credential store; never commit or print them. The official local CLI forwards only to `http://localhost:8000/subscriptions/polar/webhook/`, through the SSH tunnel. Its protected log and temporary files live under `/private/tmp/second-e2e-prep/`. Forwarding and the SSH tunnel must remain running for real checkout events to arrive.
-
-## Remaining gates, in order
-
-1. Complete the open **sandbox** Supporter checkout. Verify real subscription webhooks, correct entitlement, 360-credit grant, and no rollover/paid overage configuration.
-2. Exercise real casual launches from the website and Discord command. Verify concurrency rejection, duration bounds, stops from both entry points, exactly one five-minute-rounded ledger charge per session, ingestion, and matching meter debit.
-3. Exercise live retry/recovery: Polar unavailable at stop, callback outbox replay after website outage, orchestrator restart with live casual/ranked processes, and recovery without double charging.
-4. Exercise sandbox lifecycle: upgrade/downgrade, period-end cancellation, renewal reset, past-due/revoked access, and manage-billing link. `POLAR_CUSTOMER_PORTAL_URL` remains to be configured/verified.
-5. Configure and verify an isolated Discord role benefit; current test products intentionally omit the main-guild benefit.
-6. User deferred real-client/multiplayer participation until automated checks are complete. Still required: client joins, password/player/chat/score verification, complete ranked match, ELO submission, inactivity and resource cleanup, and moderation/IP scoping with actual players.
-7. Rehearse migrations on a fresh production backup, review coordinated PRs, and obtain separate merge/cutover authorization.
-
-The catalog import initially reintroduced stale editable plan copy in the test database. The existing saved-presets migration cleanup was reapplied, and main-guild role promises were removed from the credit-only test plans; do not interpret those promises as implemented features. Preserve customized plan prices and allowances.
+- Final website code is running on the droplet after the 45-test Linux pass; all code PR checks are green. No game sessions were intentionally left running.
+- The post-revocation VIP checkout remained in `confirmed`, with a blank Stripe 3-D Secure challenge and no payment/subscription at the last check. Reloading it did not resolve the pending provider state. Browser control disconnected during the final UI verification. Do not submit repeated duplicate checkouts or report restoration as successful.
+- To keep client acceptance usable while that checkout is pending, the disposable account has a clearly labelled **Temporary client acceptance** complimentary entitlement for two days: 1,500 credits, 240-minute maximum, priority -100. A normal active Polar plan has higher priority and automatically wins. This fixture does not constitute paid-billing or renewal evidence; its usage is not sent to Polar.
+- Next owner inputs, in order: authorize/configure the isolated Polar Discord-role integration if roles remain promised; join the test game server and arrange enough people for a complete ranked match; provide a fresh production database backup through a private file path for rehearsal. These can proceed alongside resolving the remaining renewal/checkout provider issues.

@@ -19,6 +19,8 @@ This is a coordinated website, ranked-bot, and orchestrator release. Nothing in 
 
 ### 1. Finish the existing Polar sandbox configuration
 
+The 2026-10-29 acceptance run proves checkout, initial credits, real usage ingestion/debit, outage holds, upgrades with fixed prices, cancellation, and revocation. Fixed $5/$12 pricing is approved; configure the production products that way (Polar rejects upgrades to custom-price targets). Actual renewal replenishment and the post-revocation checkout restoration still require resolution. See the linked evidence report before repeating completed setup.
+
 Local configuration already specifies `POLAR_SERVER=sandbox`, an access token, and a meter ID. Do not paste secrets into chat. Add missing values to the appropriate local/private configuration or secret store:
 
 1. Configure the sandbox webhook endpoint `/subscriptions/polar/webhook/` on a reachable **test** website URL and save its signing secret as `POLAR_WEBHOOK_SECRET`. A local test receiver needs a tunnel or test host; do not point sandbox events at the live production database.
