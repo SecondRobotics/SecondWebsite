@@ -87,3 +87,55 @@ process.on('SIGTERM', async () => { await server.close(); process.exit(0); });
                 return
             time.sleep(0.05)
         self.fail(f'Session did not become {status}')
+
+    def test_stop_response_waits_for_sqlite_callback_writer(self):
+        import threading
+        from unittest.mock import patch
+        from django.db import close_old_connections, connection, transaction
+        from django.utils import timezone
+        from subscriptions.services import request_stop_server_session
+
+        if connection.vendor != 'sqlite':
+            self.skipTest('Exercises SQLite read-to-write lock upgrades.')
+        SubscriptionPlan.objects.get_or_create(tier='supporter', defaults={
+            'name': 'Supporter', 'monthly_price_usd': 5, 'monthly_credits': 360,
+            'max_session_minutes': 120,
+        })
+        user = create_user()
+        entitlement = create_entitlement(user)
+        session = ServerSession.objects.create(
+            user=user, entitlement=entitlement, requested_minutes=5, allocated_minutes=5,
+            status='running', orchestrator_session_id='stop-race',
+        )
+        writer_locked = threading.Event()
+        errors = []
+
+        def callback_writer():
+            close_old_connections()
+            try:
+                with transaction.atomic():
+                    ServerSession.objects.filter(pk=session.pk).update(
+                        status='stopped', stop_reason='callback', stopped_at=timezone.now(),
+                    )
+                    writer_locked.set()
+                    time.sleep(0.15)
+            except Exception as exc:
+                errors.append(exc)
+            finally:
+                close_old_connections()
+
+        writer = threading.Thread(target=callback_writer)
+
+        def stop_response(*args, **kwargs):
+            writer.start()
+            self.assertTrue(writer_locked.wait(5), 'Callback writer did not start')
+
+        try:
+            with patch('subscriptions.orchestrator.stop_server', side_effect=stop_response):
+                result = request_stop_server_session(session)
+            self.assertEqual(result.status, 'stopped')
+            self.assertEqual(result.stop_reason, 'callback')
+        finally:
+            writer.join(5)
+        self.assertFalse(writer.is_alive())
+        self.assertEqual(errors, [])

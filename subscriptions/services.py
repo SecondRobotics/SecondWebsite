@@ -590,13 +590,13 @@ def request_stop_server_session(session, reason='stopped', actor=None):
                                  actor=actor or _actor_for_user(session.user))
     except orchestrator.OrchestratorError as exc:
         raise SubscriptionError(str(exc), status_code=503, code=exc.code) from exc
-    # A stop callback may have arrived while the HTTP request was in flight.
-    with transaction.atomic():
-        session = ServerSession.objects.select_for_update().get(pk=session.pk)
-        if session.status not in TERMINAL_SESSION_STATUSES:
-            session.status = ServerSession.STATUS_STOPPING
-            session.stop_reason = reason or 'stopping'
-            session.save(update_fields=['status', 'stop_reason', 'updated_at'])
+    # A callback may be writing the terminal state while this response arrives.
+    # A single conditional write waits for SQLite's writer without attempting a
+    # read-to-write transaction upgrade, and cannot overwrite a terminal state.
+    ServerSession.objects.filter(pk=session.pk).exclude(
+        status__in=TERMINAL_SESSION_STATUSES,
+    ).update(status=ServerSession.STATUS_STOPPING, stop_reason=reason or 'stopping', updated_at=timezone.now())
+    session.refresh_from_db()
     return session
 
 
