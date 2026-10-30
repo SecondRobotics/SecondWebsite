@@ -19,7 +19,7 @@ This is a coordinated website, ranked-bot, and orchestrator release. Nothing in 
 
 ### 1. Finish the existing Polar sandbox configuration
 
-The 2026-10-29 acceptance run proves checkout, initial credits, real usage ingestion/debit, outage holds, upgrades with fixed prices, cancellation, and revocation. Fixed $5/$12 pricing is approved; configure the production products that way (Polar rejects upgrades to custom-price targets). Actual renewal replenishment and the post-revocation checkout restoration still require resolution. See the linked evidence report before repeating completed setup.
+The 2026-10-29 acceptance run proves checkout, initial credits, real usage ingestion/debit, outage holds, upgrades with fixed prices, cancellation, revocation, restored access after a fresh checkout, both Discord role lifecycles, and standalone recurring replenishment without rollover. Actual zero-provider-balance launches are denied without creating sessions. Fixed $5/$12 pricing is approved; configure the production products that way (Polar rejects upgrades to custom-price targets). Failed-renewal behavior and recovery still require verification. See the linked evidence report before repeating completed setup.
 
 Local configuration already specifies `POLAR_SERVER=sandbox`, an access token, and a meter ID. Do not paste secrets into chat. Add missing values to the appropriate local/private configuration or secret store:
 
