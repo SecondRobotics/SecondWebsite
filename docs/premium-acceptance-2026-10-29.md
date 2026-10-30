@@ -100,3 +100,7 @@ The copied catalog's stale saved-presets promise was cleaned using the existing 
 - Next owner inputs, in order: authorize/configure the isolated Polar Discord-role integration if roles remain promised; join the test game server and arrange enough people for a complete ranked match; provide a fresh production database backup through a private file path for rehearsal. These can proceed alongside resolving the remaining renewal/checkout provider issues.
 
 Discord setup is now partially automated: two zero-permission premium roles have been created in the test guild. The CLI confirms the remaining blocker is merchant-side Discord server authorization. Exact pages and IDs are in [the Discord test setup guide](premium-discord-test-setup.md).
+
+### Discord integration follow-up
+
+Merchant-side authorization is complete. Both isolated role benefits are attached with `kick_member=false`, credit benefits are preserved, and Polar's role hierarchy is corrected. The real VIP grant is pending **customer Discord account connection**, not server setup. Exact benefit/grant/role IDs and the portal step are in the Discord test setup guide. The restoration checkout now has an active VIP subscription in Polar (`8889315a-38ce-40ee-aa7b-b7c2cd09cde2`), superseding the earlier confirmed/pending observation.
