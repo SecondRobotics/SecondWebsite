@@ -14,7 +14,7 @@ or merge is authorized. Completed evidence remains in
 | 5 | Both players use `/queuestandard`, selecting **Rebuilt 1v1**, in [the test queue channel](https://discord.com/channels/663201408581107712/1565227916432900126). | Bot creates private match resources, supplies a working server/password, and assigns the correct players. No production account creation or leaderboard writes. |
 | 6 | Players play and submit actual red/blue scores with `/submit` in the match channel; continue until the bot reports the series complete. | Staging match rows and ELO history match submitted scores; channels/roles and game process are cleaned up after the series. Respect the command's two-minute cooldown. |
 | 7 | Agent coordinates a fresh test match for idle timeout, then a separate restart/network-disruption check. Players follow the requested join/leave steps. | Idle/restart cleanup removes stale Discord resources and game processes; a transient network failure does not erase a live match; a new match can start afterward. |
-| 8 | Owner supplies a working local production SSH alias and absolute SQLite path. Agent makes a consistent snapshot through a read-only SQLite connection and runs the rehearsal on a disposable copy. | Migrations, modeled columns, and foreign-key checks pass. Production database and service processes are unchanged. |
+| 8 — passed | Agent used the supplied `ssh namecheap` alias to take a consistent read-only SQLite snapshot and migrate a disposable local copy on October 30. | All modeled columns present; zero foreign-key violations; existing data preserved exactly across 22 application tables; original snapshot unchanged. Production was not migrated. |
 | 9 | Agent reconciles evidence, fixes findings, runs relevant checks, and updates the three draft PRs. | Every required gate has recorded evidence or a specific unresolved blocker. Merge and production cutover remain a separate owner decision. |
 
 ## Inputs still needed
@@ -24,13 +24,13 @@ or merge is authorized. Completed evidence remains in
 - The second player's Discord ID if they are not the existing `easierthanpai`
   test-guild member. Any profile seeded for ranked acceptance is a test fixture;
   it does not count as an additional OAuth login test.
-- Production SSH alias and absolute database path. Keep credentials in local SSH
-  configuration or the SSH agent, not chat. Do not copy a live SQLite file using
-  plain file copying while writes may be occurring. If the database path is
-  unknown, provide the working alias first; the agent can locate it read-only.
-- Complete the pending Polar sandbox customer-portal email verification in Edge.
-  The acceptance alias contains `+premium-acceptance-20261029`; its mail arrives
-  in the owner's usual Gmail inbox. Keep the verification code out of chat.
+- Production SSH access and the fresh-backup rehearsal are complete. The live
+  application's Python 3.9 → 3.12 switch remains a cutover prerequisite; it has
+  not been performed.
+- Polar reauthentication is complete. The failure card is now selected, and the
+  shortened failed renewal is scheduled for October 30, 15:09:47 UTC. Observe the
+  actual payment attempt after the fifteen-minute billing delay before judging
+  past-due behavior. Keep credentials and verification codes out of chat.
 
 Temporary UFW rules now permit game TCP/UDP ports 11115–11117 from the current
 SSH client address only, in addition to the existing SSH and Nginx rules. The

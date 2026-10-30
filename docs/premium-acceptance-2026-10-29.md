@@ -12,7 +12,9 @@ No production deployment, merge, production billing change, or main-guild role c
 | Ranked bot | `9927f3e` | 31 tests plus 2 log-parser tests pass on Linux; CI passes |
 | Orchestrator | `971a3b1` | 28 tests pass locally and in CI; build and website-contract CI pass; preceding 27-test suite also passed on the droplet |
 
-Fresh database migrations and Django system checks pass. The test database contains copied public game/plan configuration and disposable test users; no production/customer database was copied.
+Fresh database migrations and Django system checks pass. The staging database contains copied public game/plan configuration and disposable test users; it does not contain production customer records.
+
+On October 30, a fresh production SQLite snapshot was copied into private local storage for the migration rehearsal only. It was not uploaded to the droplet, committed, or used as the staging customer database. The read-only source was `/home/bottxleg/repositories/SecondWebsite/db.sqlite3` through `ssh namecheap`; SQLite's backup API produced a consistent 142,123,008-byte snapshot and its quick check passed. The release migrated a separate disposable copy successfully, including the existing ranked schema's fake-initial baseline and subscriptions migrations through `0006`. All modeled columns were present, foreign-key violations were zero, and exact data digests/counts matched across all 22 existing application tables. The original snapshot's checksum was unchanged after rehearsal.
 
 ## Live acceptance results
 
@@ -66,15 +68,21 @@ The customer portal's Add Payment Method flow initially stalled on a dimmed load
 
 After successful renewal, selecting the saved failure card showed “Failed to update default payment method / Failed to update customer.” A fresh attachment attempt stalled; refreshing returned the portal to sign-in. The session is now awaiting the owner's emailed verification code in Edge. The failure cause is not established. Final API verification still shows the successful `4242` card as default, subscription active through November 30, and no second shortened period scheduled. Resume failed-renewal setup after reauthentication; do not claim that gate passed.
 
+October 30 follow-up: the owner completed fresh portal authentication, and selecting the existing failure card succeeded. The provider API verified `0341` as default. The test period was shortened to `2026-10-30T15:09:47.809701Z`; observe the failed charge after the fifteen-minute billing delay. The localhost SSH tunnel had stopped overnight while the official webhook listener remained alive, causing connection-refused forwarding failures. The tunnel was restored, its HTTP endpoint returned 200, and a metadata-only update preserving existing metadata requested a fresh signed full-state event. This local forwarding interruption must not be confused with application webhook rejection. The earlier portal/card-setting blockage is resolved; failed payment and recovery remain under observation.
+
 ### Discord benefit and real players
 
 Discord role acceptance is now complete in the isolated guild: actual VIP grant/removal/regrant and Supporter grant/removal passed. Both private products preserve their credit benefits and use `kick_member=false`. The VIP product is restored to VIP-only role benefits. The original main-guild benefit was not edited. See the Discord test setup guide for exact IDs and evidence.
 
 Still required with the game client/test players: join/password verification, actual player/chat/score/OPR updates, a complete ranked queue-to-ELO match, inactivity behavior, Discord match resource cleanup, and IP scoping with actual player data. Nick has confirmed two players can participate. The droplet initially blocked game ports; temporary source-restricted rules are now prepared as described below. A real Rebuilt 1v1 preflight reached running, listened on TCP and UDP port 11115 with public discovery off, and stopped. This is not a completed Discord ranked match or a real-client reachability test.
 
+The fresh production snapshot includes Override/BioBuzz ranked modes missing from the older public catalog copied into staging. Only its 53 public game-mode records were copied to the isolated test database; no production user data was uploaded. With no active server sessions, only the test bot was restarted. Discord REST confirmed registered standard choices for BioBuzz 1v1/2v2, Override 1v1/2v2, and Rebuilt 1v1/2v2/3v3.
+
 ### Production prerequisites
 
-- Rehearse migrations on a **fresh production backup**. Only the older local copy and a fresh empty database have been rehearsed so far.
+- Fresh production-backup migration rehearsal **passed October 30** as recorded above. Take another consistent backup immediately before the eventual authorized cutover.
+- Namecheap currently runs Python 3.9.23/Django 3.2.25. Python 3.12 is installed at `/opt/alt/python312/bin/python3.12`; the application's live Python selection/virtual environment must be moved to 3.12 at the separately authorized cutover. It has not been changed. The candidate requires Django 5.x and CI uses Python 3.12.
+- Production currently has no subscriptions tables. The rehearsal seeds the default Host plan; the approved fixed $5/$12 Supporter/VIP plans, allowances, and production Polar mappings still need explicit configuration before exposing premium. Local/staging plan customization is not production configuration.
 - Verify the production host can run the official binary and sustain planned concurrency. The current test host required private newer libc and temporary swap.
 - Configure production product/meter/benefit IDs, webhook secret, portal URL, service tokens, and recurring workers separately. Sandbox IDs must not be reused in production.
 - Review all three PRs together and obtain separate merge/cutover authorization. Website main pushes trigger automatic deployment.
@@ -108,5 +116,5 @@ The copied catalog's stale saved-presets promise was cleaned using the existing 
 - No production/main-guild resources were changed, and all coordinated PRs remain unmerged.
 - Follow the [ordered remaining live-test sequence](premium-live-test-sequence.md), including exact test queue/channel and evidence requirements. Temporary UFW rules now allow TCP/UDP ports 11115–11117 only from the current SSH client address; a private cleanup record is stored at `acceptance-firewall.json` under the test root. A second player on another network requires a separate source rule.
 - Remaining billing gate: a failed-renewal/past-due lifecycle and payment recovery. Standalone recurring credit replenishment, no rollover, and rejecting actual zero-balance launches are now proven.
-- Next owner participation: join a real test game and arrange players for a complete ranked match; provide a consistent fresh production database backup through a private file path for migration rehearsal.
+- Next owner participation: confirm the second player's account and readiness for a real test game/full ranked match. Both players share the current network, and its address matches the prepared source-restricted game rules. The fresh production backup has been supplied through SSH and rehearsed successfully.
 - Production fixed $5/$12 product configuration, credentials, capacity validation, recurring workers, coordinated review, and separate cutover authorization remain required before launch.

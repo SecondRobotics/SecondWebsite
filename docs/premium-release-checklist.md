@@ -66,7 +66,7 @@ The automated checks cover the service contracts and mocked failure cases. They 
 
 ### 4. Rehearse against a fresh production database backup
 
-The old local SQLite copy migrated successfully with all modeled columns and no foreign-key violations. It already contained subscriptions migrations through `0003`, so this does **not** replace testing a current backup from the actual production host.
+**Passed October 30:** a fresh consistent snapshot from `ssh namecheap`, `/home/bottxleg/repositories/SecondWebsite/db.sqlite3`, migrated successfully on a disposable local copy. All modeled columns were present, foreign-key violations were zero, and existing data matched exactly across 22 application tables. Production was opened read-only and was not migrated. The private snapshot remains outside Git and was not uploaded into staging. Take another fresh consistent backup immediately before cutover.
 
 Run against a downloaded backup, using a dependency-equipped Python 3.12 environment:
 
@@ -79,6 +79,10 @@ The utility opens the source read-only, makes a disposable backup, runs `migrate
 ### 5. Approve the reviewed release and a later coordinated cutover
 
 After green CI, sandbox/real-game acceptance, and the current-backup rehearsal, review the three PRs together. Explicit approval to merge/deploy remains a separate step. At cutover: pause new launches, drain legacy servers, back up/migrate the website, start the orchestrator, then switch the bot to the matching release. Keep public discovery disabled during the initial beta. Record all deployed SHAs.
+
+The actual Namecheap application currently uses Python 3.9.23 and Django 3.2.25. Python 3.12 is installed, but the live application still needs to select it. **At the authorized cutover**, use cPanel → Setup Python App → edit the SecondWebsite application → select Python 3.12. Copy the resulting virtual-environment activation command from cPanel, verify `python --version`, and install the release requirements in that environment before migrations/restart. Do not reuse the old `3.9/bin/activate` command or assume changing the SSH shell's Python changes Passenger. [Namecheap's Python application settings](https://www.namecheap.com/support/knowledgebase/article.aspx/10048/2182/how-to-work-with-python-app/).
+
+The fresh production database has no subscriptions tables yet; the migration seeds a default Host plan. Configure the approved Supporter ($5, 360 credits, 120-minute cap) and VIP ($12, 1,500 credits, 240-minute cap) plans and their production Polar IDs explicitly, then deactivate any unintended default plan before exposing checkout. Staging's mapped products and customized plans are not present in production.
 
 **The existing website workflow deploys automatically after a push to `main`. Merging its PR is therefore a deployment trigger. Keep it unmerged until the coordinated cutover is authorized, or explicitly pause that workflow first.**
 
