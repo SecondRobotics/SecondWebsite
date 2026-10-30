@@ -104,3 +104,7 @@ Discord setup is now partially automated: two zero-permission premium roles have
 ### Discord integration follow-up
 
 Merchant-side authorization is complete. Both isolated role benefits are attached with `kick_member=false`, credit benefits are preserved, and Polar's role hierarchy is corrected. The real VIP grant is pending **customer Discord account connection**, not server setup. Exact benefit/grant/role IDs and the portal step are in the Discord test setup guide. The restoration checkout now has an active VIP subscription in Polar (`8889315a-38ce-40ee-aa7b-b7c2cd09cde2`), superseding the earlier confirmed/pending observation.
+
+### VIP role lifecycle passed
+
+Polar's actual VIP role assignment, removal after benefit detachment, and regrant after reattachment have all been verified through Discord's member API. No manual role assignment was used, and guild membership remained intact. Supporter role acceptance is awaiting its own customer-side Discord connection; a temporary additional benefit on the private VIP test purchase exposes that connection without changing credits. Restore the normal VIP-only role benefit list after this final role test.
