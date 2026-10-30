@@ -300,6 +300,48 @@ class SubscriptionServiceTests(TestCase):
         self.assertEqual(UsageLedgerEntry.objects.get(server_session=session).credits, 10)
         self.assertEqual(WebhookEvent.objects.filter(provider='orchestrator').count(), 2)
 
+    def test_subsecond_ready_session_records_minimum_usage_once(self):
+        user = create_user()
+        create_entitlement(user)
+        session = start_server_session(user, requested_minutes=60, status=ServerSession.STATUS_LAUNCHING)
+        ready_at = timezone.now() - timedelta(milliseconds=500)
+        stopped_at = ready_at + timedelta(milliseconds=400)
+        process_orchestrator_event(str(session.id), {
+            'event_id': 'subsecond-ready',
+            'event': 'ready',
+            'occurred_at': ready_at.isoformat(),
+            'ready_at': ready_at.isoformat(),
+        })
+        stopped = {
+            'event_id': 'subsecond-stopped',
+            'event': 'stopped',
+            'occurred_at': stopped_at.isoformat(),
+            'stopped_at': stopped_at.isoformat(),
+            'runtime_seconds': 0,
+        }
+
+        process_orchestrator_event(str(session.id), stopped)
+        process_orchestrator_event(str(session.id), stopped)
+
+        self.assertEqual(UsageLedgerEntry.objects.filter(server_session=session).count(), 1)
+        self.assertEqual(UsageLedgerEntry.objects.get(server_session=session).credits, 5)
+
+    def test_stop_before_readiness_does_not_record_usage(self):
+        user = create_user()
+        create_entitlement(user)
+        session = start_server_session(user, requested_minutes=60, status=ServerSession.STATUS_LAUNCHING)
+
+        process_orchestrator_event(str(session.id), {
+            'event_id': 'unready-stopped',
+            'event': 'stopped',
+            'occurred_at': timezone.now().isoformat(),
+            'runtime_seconds': 0,
+        })
+
+        session.refresh_from_db()
+        self.assertEqual(session.status, ServerSession.STATUS_STOPPED)
+        self.assertEqual(UsageLedgerEntry.objects.count(), 0)
+
     def test_orchestrator_launch_failed_does_not_record_usage(self):
         user = create_user()
         create_entitlement(user)

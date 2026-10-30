@@ -500,6 +500,10 @@ def sync_pending_polar_usage(limit=100):
 def _record_orchestrator_usage(session, stopped_at, runtime_seconds=None):
     if runtime_seconds is not None:
         billed_minutes = _rounded_runtime_minutes_from_seconds(runtime_seconds, session.allocated_minutes)
+        # Orchestrator runtime is floored to whole seconds. A ready session
+        # with positive sub-second runtime still incurs the minimum charge.
+        if billed_minutes == 0 and session.ready_at and stopped_at > session.ready_at:
+            billed_minutes = session.rounded_runtime_minutes(stopped_at=stopped_at)
     elif session.ready_at:
         billed_minutes = session.rounded_runtime_minutes(stopped_at=stopped_at)
     else:
