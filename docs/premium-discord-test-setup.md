@@ -1,47 +1,39 @@
-# Isolated Polar Discord benefit setup
+# Isolated Polar Discord benefit acceptance
 
-Most setup is automated. The official Polar CLI can create Discord benefits and attach them to products, but creation currently fails with: `properties.guild_id: This organization has not connected this Discord server. Please connect it again.`
+**Status: complete.** Merchant authorization and both customer connections are complete. Real role changes were verified through Discord's member API, not inferred from Polar statuses or manually assigned.
 
-## Required owner authorization
+## Final configuration
 
-1. Open https://sandbox.polar.sh/dashboard/secondrobotics/products/benefits in the **SecondRobotics sandbox** organization (ID `c8c9219f-b5eb-42cb-9c75-2d4445de23ad`). Do not use the separate SecondRoboticsSandbox organization.
-2. Start adding a **Discord** benefit, then choose **Connect your Discord server**.
-3. In Discord's authorization screen select **Nick's Test Server**, guild `663201408581107712`.
-4. Authorize Polar's own Discord app. Polar's documentation lists Manage Roles, Kick Members, and Create Invite as required permissions. This adds Polar's role integration; the existing ranked test bot cannot substitute for it. No new developer application, client secret, or bot token needs to be created by Nick.
-5. Return to Polar after authorization. Tell Codex the server is connected; Codex can create/attach the benefits through the CLI. If a role choice is required to finish the dialog, choose the Supporter role below and leave **kick member** disabled.
-
-Official guide: https://polar.sh/docs/features/benefits/discord-access
-
-## Prepared roles and products
-
-Both roles exist already and have permission bitfield `0`; neither has been assigned to users.
-
-| Tier | Discord role | Role ID | Private sandbox product |
-| --- | --- | --- | --- |
-| Supporter | Premium Acceptance Supporter | `1565530199838294038` | `4a900d30-03fb-45cb-a0c4-9053f964d966` |
-| VIP Supporter | Premium Acceptance VIP | `1565530201893380126` | `794d2bb8-5f3b-4868-975a-fb7c181d8a70` |
-
-After authorization, Codex should verify the role hierarchy, create distinct benefits with `kick_member=false`, and attach each to its matching acceptance product while preserving the existing meter-credit benefit. Customer Discord connection/grant/revocation testing follows after this merchant-side connection.
-
-The old benefit `887e581d-f3ca-490c-9a84-cff33751d53b` targets main guild `637407041048281098`; do not edit or reuse it for this test.
-
-## Merchant connection completed
-
-Nick connected the guild and created both benefits. Codex attached them through the CLI, preserving the credit benefits, verified `kick_member=false`, and placed Polar Sandbox's managed role above both premium roles.
-
+- Polar organization: SecondRobotics **sandbox**, `c8c9219f-b5eb-42cb-9c75-2d4445de23ad`.
+- Test guild: Nick's Test Server, `663201408581107712`.
+- Test customer Discord account: `261976608519225345`.
 - Polar Sandbox bot: `1285600567409901569`.
-- Polar managed role: `1565531587368722462` (position 2; premium roles remain below it).
-- Supporter benefit: `d1e7f83d-a107-41d1-ab09-5b7a050a1f2e`.
-- VIP benefit: `1bfbd1df-3201-4ed0-868f-992dd9ed4295`.
-- Active restored VIP subscription: `8889315a-38ce-40ee-aa7b-b7c2cd09cde2`.
-- Pending VIP Discord grant: `c9c0cebc-e752-4c90-8d27-d9086a899d64`.
+- Polar managed role: `1565531587368722462`, positioned above both premium roles.
+- Both premium roles have permission bitfield `0`; both benefits use `kick_member=false`.
 
-The remaining provider-reported action is **The customer needs to connect their Discord account**. Open https://sandbox.polar.sh/secondrobotics/portal, sign in using the `+premium-acceptance-20261029` checkout email alias, open the Acceptance 20261029 VIP Supporter purchase/benefits, and use **Connect Discord** for **vip discord role**. Connect Discord account `261976608519225345`. Merchant server authorization and customer identity connection are separate steps.
+| Tier | Role ID | Benefit ID | Private sandbox product |
+| --- | --- | --- | --- |
+| Supporter | `1565530199838294038` | `d1e7f83d-a107-41d1-ab09-5b7a050a1f2e` | `4a900d30-03fb-45cb-a0c4-9053f964d966` |
+| VIP Supporter | `1565530201893380126` | `1bfbd1df-3201-4ed0-868f-992dd9ed4295` | `794d2bb8-5f3b-4868-975a-fb7c181d8a70` |
 
-The existing application token cannot create a customer-portal session (`403 insufficient_scope`), so it cannot skip the portal sign-in. No additional bot application or secret is required. After customer connection, verify the actual Discord member role via API; do not manually assign it as a substitute for Polar granting it. Then exercise benefit removal/regrant on only the private acceptance product.
+Each product retains its original meter-credit benefit. The VIP product's final benefits are exactly `e16f5f1e-b7fe-4e6b-ade7-e56c338de4cd` (credits) and `1bfbd1df-3201-4ed0-868f-992dd9ed4295` (VIP role). Its temporary Supporter benefit has been removed.
 
-## Live VIP role lifecycle verified
+## Verified behavior
 
-After customer connection, Polar reported the VIP grant successful and the Discord API confirmed role `1565530201893380126` on account `261976608519225345`. Removing the VIP benefit from the private product removed the actual role without removing guild membership; reattaching it restored the role. Codex did not manually assign/revoke the role. The credit benefit remained attached throughout.
+1. Customer connected VIP in the sandbox portal; Polar granted the actual VIP Discord role.
+2. Removing the VIP benefit from the private product removed the actual role, without removing guild membership.
+3. Reattaching the VIP benefit restored the actual role.
+4. The Supporter benefit separately required customer Discord connection. It was temporarily exposed on the private VIP purchase for this test.
+5. After connection, Polar granted the actual Supporter role while VIP remained.
+6. Removing only that temporary benefit removed Supporter and retained VIP. The final account has VIP only.
+7. The website and Polar both retained 1,500 credits throughout the final role cleanup.
 
-The Supporter grant separately reports `BenefitActionRequiredError: The customer needs to connect their Discord account`. Pending grant: `704f5e83-76c9-452a-8558-12d57c9cf8b9`. To finish this second role's acceptance, the private VIP product temporarily includes both role benefits plus its original credit benefit. The customer should connect **supporter discord role** in the same portal purchase. After verifying Supporter assignment, remove only the temporary Supporter benefit from the VIP product and verify that Supporter disappears while VIP remains. Normal final VIP benefits must be only `e16f5f1e-b7fe-4e6b-ade7-e56c338de4cd` and `1bfbd1df-3201-4ed0-868f-992dd9ed4295`.
+The active restored VIP subscription is `8889315a-38ce-40ee-aa7b-b7c2cd09cde2`. VIP grant: `c9c0cebc-e752-4c90-8d27-d9086a899d64`; Supporter test grant: `704f5e83-76c9-452a-8558-12d57c9cf8b9`.
+
+The old benefit `887e581d-f3ca-490c-9a84-cff33751d53b` targets main guild `637407041048281098` and was not edited. No original product, main-guild role, production billing resource, merge, or deployment was changed.
+
+## Repeating the setup
+
+The CLI creates benefits and attaches them to products. The initial server connection requires Discord authorization through the [sandbox benefits page](https://sandbox.polar.sh/dashboard/secondrobotics/products/benefits). Customer connections are completed separately for each benefit in the [sandbox portal](https://sandbox.polar.sh/secondrobotics/portal), using the checkout email alias containing `+premium-acceptance-20261029`.
+
+Official setup guide: https://polar.sh/docs/features/benefits/discord-access

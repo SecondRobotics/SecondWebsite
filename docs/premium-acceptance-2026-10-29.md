@@ -37,7 +37,7 @@ Fresh database migrations and Django system checks pass. The test database conta
 | Upgrade | After changing only the private acceptance products to fixed pricing, a real upgrade selected VIP from the actual product ID despite stale supporter metadata. The website showed 1,500 credits and a 240-minute limit; Polar also reported 1,500. |
 | Scheduled downgrade | Polar scheduled a Supporter downgrade for the next period while current website access remained VIP. The test schedule was subsequently cleared. |
 | Revocation | Immediate revocation of the newly created test subscription removed access. A launch was rejected with HTTP 403 and created no session. A fresh VIP checkout was submitted afterward; it remained confirmed without a payment or new subscription at the final provider check. |
-| Billing portal entry | `https://sandbox.polar.sh/secondrobotics/portal` was verified as this organization's customer portal sign-in page and configured as the test website's Manage billing destination. Customer authentication inside that portal remains a manual gate. |
+| Billing portal entry | `https://sandbox.polar.sh/secondrobotics/portal` was verified as this organization's customer portal sign-in page and configured as the test website's Manage billing destination. Customer portal sign-in and both Discord benefit connections were completed; actual portal UI billing changes remain separate from the API lifecycle checks. |
 
 ## Defects found and fixed during acceptance
 
@@ -59,7 +59,7 @@ A real past-due/failed-renewal payment lifecycle has not been exercised. Revocat
 
 ### Discord benefit and real players
 
-The existing sandbox products include a role benefit pointing at the **main guild**. Acceptance products omit that benefit to avoid changing main-guild roles. If the launch promises a Discord role, install/configure Polar's role integration for the isolated guild and test grant/revocation there. Otherwise remove that promise from actual launch plan copy.
+Discord role acceptance is now complete in the isolated guild: actual VIP grant/removal/regrant and Supporter grant/removal passed. Both private products preserve their credit benefits and use `kick_member=false`. The VIP product is restored to VIP-only role benefits. The original main-guild benefit was not edited. See the Discord test setup guide for exact IDs and evidence.
 
 Still required with the game client/test players: join/password verification, actual player/chat/score/OPR updates, a complete ranked queue-to-ELO match, inactivity behavior, Discord match resource cleanup, and IP scoping with actual player data. Nick deferred player participation until automated checks were complete.
 
@@ -108,3 +108,7 @@ Merchant-side authorization is complete. Both isolated role benefits are attache
 ### VIP role lifecycle passed
 
 Polar's actual VIP role assignment, removal after benefit detachment, and regrant after reattachment have all been verified through Discord's member API. No manual role assignment was used, and guild membership remained intact. Supporter role acceptance is awaiting its own customer-side Discord connection; a temporary additional benefit on the private VIP test purchase exposes that connection without changing credits. Restore the normal VIP-only role benefit list after this final role test.
+
+### Final Discord acceptance and restored access
+
+Both isolated Discord role lifecycle checks are complete. Polar granted Supporter after its customer connection, then removed it when the temporary benefit was removed; VIP and guild membership remained. The private VIP product is restored to its normal credit-plus-VIP-role benefits. Website and Polar balances both remain 1,500. The restored real Polar VIP entitlement is active, so the temporary `acceptance-client-comp` fallback was deactivated, preserving its history. Earlier notes about pending restoration or customer connections are superseded by this result. Remaining launch gates are renewal credit replenishment/failed-payment lifecycle, real-client/full-ranked acceptance, fresh production-backup rehearsal, and production configuration/capacity.
