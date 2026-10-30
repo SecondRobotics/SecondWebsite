@@ -36,7 +36,7 @@ Fresh database migrations and Django system checks pass. The test database conta
 | Period-end cancellation | A real sandbox cancellation webhook set the cancellation flag while retaining active access. Renewal was then restored. |
 | Upgrade | After changing only the private acceptance products to fixed pricing, a real upgrade selected VIP from the actual product ID despite stale supporter metadata. The website showed 1,500 credits and a 240-minute limit; Polar also reported 1,500. |
 | Scheduled downgrade | Polar scheduled a Supporter downgrade for the next period while current website access remained VIP. The test schedule was subsequently cleared. |
-| Revocation | Immediate revocation of the newly created test subscription removed access. A launch was rejected with HTTP 403 and created no session. A fresh VIP checkout was submitted afterward; it remained confirmed without a payment or new subscription at the final provider check. |
+| Revocation | Immediate revocation of the newly created test subscription removed access. A launch was rejected with HTTP 403 and created no session. A fresh VIP checkout was initially delayed, then completed. Real Polar VIP access and its 1,500-credit balance are restored. |
 | Billing portal entry | `https://sandbox.polar.sh/secondrobotics/portal` was verified as this organization's customer portal sign-in page and configured as the test website's Manage billing destination. Customer portal sign-in and both Discord benefit connections were completed; actual portal UI billing changes remain separate from the API lifecycle checks. |
 
 ## Defects found and fixed during acceptance
@@ -92,23 +92,11 @@ Still required with the game client/test players: join/password verification, ac
 
 The copied catalog's stale saved-presets promise was cleaned using the existing migration, and role promises were removed from these credit-only test plans. Preserve customized launch prices/allowances when applying the actual migration.
 
-## State left for the next acceptance step
+## Current state and next gates
 
-- Final website code is running on the droplet after the 45-test Linux pass; all code PR checks are green. No game sessions were intentionally left running.
-- The post-revocation VIP checkout remained in `confirmed`, with a blank Stripe 3-D Secure challenge and no payment/subscription at the last check. Reloading it did not resolve the pending provider state. Browser control disconnected during the final UI verification. Do not submit repeated duplicate checkouts or report restoration as successful.
-- To keep client acceptance usable while that checkout is pending, the disposable account has a clearly labelled **Temporary client acceptance** complimentary entitlement for two days: 1,500 credits, 240-minute maximum, priority -100. A normal active Polar plan has higher priority and automatically wins. This fixture does not constitute paid-billing or renewal evidence; its usage is not sent to Polar.
-- Next owner inputs, in order: authorize/configure the isolated Polar Discord-role integration if roles remain promised; join the test game server and arrange enough people for a complete ranked match; provide a fresh production database backup through a private file path for rehearsal. These can proceed alongside resolving the remaining renewal/checkout provider issues.
-
-Discord setup is now partially automated: two zero-permission premium roles have been created in the test guild. The CLI confirms the remaining blocker is merchant-side Discord server authorization. Exact pages and IDs are in [the Discord test setup guide](premium-discord-test-setup.md).
-
-### Discord integration follow-up
-
-Merchant-side authorization is complete. Both isolated role benefits are attached with `kick_member=false`, credit benefits are preserved, and Polar's role hierarchy is corrected. The real VIP grant is pending **customer Discord account connection**, not server setup. Exact benefit/grant/role IDs and the portal step are in the Discord test setup guide. The restoration checkout now has an active VIP subscription in Polar (`8889315a-38ce-40ee-aa7b-b7c2cd09cde2`), superseding the earlier confirmed/pending observation.
-
-### VIP role lifecycle passed
-
-Polar's actual VIP role assignment, removal after benefit detachment, and regrant after reattachment have all been verified through Discord's member API. No manual role assignment was used, and guild membership remained intact. Supporter role acceptance is awaiting its own customer-side Discord connection; a temporary additional benefit on the private VIP test purchase exposes that connection without changing credits. Restore the normal VIP-only role benefit list after this final role test.
-
-### Final Discord acceptance and restored access
-
-Both isolated Discord role lifecycle checks are complete. Polar granted Supporter after its customer connection, then removed it when the temporary benefit was removed; VIP and guild membership remained. The private VIP product is restored to its normal credit-plus-VIP-role benefits. Website and Polar balances both remain 1,500. The restored real Polar VIP entitlement is active, so the temporary `acceptance-client-comp` fallback was deactivated, preserving its history. Earlier notes about pending restoration or customer connections are superseded by this result. Remaining launch gates are renewal credit replenishment/failed-payment lifecycle, real-client/full-ranked acceptance, fresh production-backup rehearsal, and production configuration/capacity.
+- The real Polar VIP subscription `8889315a-38ce-40ee-aa7b-b7c2cd09cde2` is active. Website and Polar both report **1,500 credits**. The temporary complimentary fallback has been deactivated; earlier restoration-pending observations are resolved.
+- Isolated Discord role acceptance is complete: VIP grant/removal/regrant and Supporter grant/removal were verified directly in Discord. VIP and guild membership were retained during final Supporter removal. Both private products have their intended final benefits, and the temporary extra Supporter benefit was removed from VIP. [Exact configuration and evidence](premium-discord-test-setup.md).
+- No production/main-guild resources were changed, and all coordinated PRs remain unmerged.
+- Remaining billing gates: demonstrate actual recurring credit replenishment and a failed-renewal/past-due lifecycle. The shortened-cycle renewal observation remains unresolved; a later upgrade grant is not evidence of replenishment.
+- Next owner participation: join a real test game and arrange players for a complete ranked match; provide a consistent fresh production database backup through a private file path for migration rehearsal.
+- Production fixed $5/$12 product configuration, credentials, capacity validation, recurring workers, coordinated review, and separate cutover authorization remain required before launch.
