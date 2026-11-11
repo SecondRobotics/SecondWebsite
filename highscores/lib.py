@@ -2,6 +2,7 @@ from django.http import HttpRequest
 from django.core.mail import send_mail
 from django.utils import timezone
 import logging
+import re
 
 from .models import Score, CleanCodeSubmission, ExemptedIP
 from .forms import ScoreForm
@@ -14,6 +15,8 @@ from urllib.parse import parse_qs, urlparse
 import json
 
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+
+MINIMUM_CLIENT_VERSION = '21.3e'
 
 WRONG_ROBOT_MESSAGE = 'Double-check the robot type that you selected!'
 HIGHER_SCORE_MESSAGE = 'You already have a submission with an equal or higher score than this!'
@@ -597,13 +600,30 @@ def clean_code_decryption(score_obj: Score) -> None:
     score_obj.decrypted_code = cipher.decrypt(data).decode("utf-8")
 
 
+def _client_version_key(version: str) -> tuple[int, int, str]:
+    match = re.fullmatch(r"v?([0-9]+)\.([0-9]+)([a-z])", version)
+    if match is None:
+        raise ValueError("Invalid client version")
+    major, minor, revision = match.groups()
+    return int(major), int(minor), revision
+
+
 def check_generic_game_settings(score_obj: Score, auto_or_teleop: str) -> Union[str, None]:
     """ Checks if the universal game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
-    if (not score_obj.client_version or float(score_obj.client_version[1:5]) < 20.0):
+    if not score_obj.client_version:
         return WRONG_VERSION_MESSAGE
-    if "_p" in score_obj.client_version:
+
+    version, prerelease_marker, _ = score_obj.client_version.partition("_p")
+    try:
+        version_key = _client_version_key(version)
+    except ValueError:
+        return ERROR_CORRUPT_CODE_MESSAGE
+
+    if version_key < _client_version_key(MINIMUM_CLIENT_VERSION):
+        return WRONG_VERSION_MESSAGE
+    if prerelease_marker:
         return PRERELEASE_MESSAGE
     if score_obj.leaderboard.auto_or_teleop != auto_or_teleop:
         return WRONG_AUTO_OR_TELEOP_MESSAGE
