@@ -1,7 +1,7 @@
 import pytest
 
-from . import lib
-from .models import Leaderboard, Score
+from highscores import lib
+from highscores.models import Leaderboard, Score
 
 
 @pytest.mark.parametrize(
