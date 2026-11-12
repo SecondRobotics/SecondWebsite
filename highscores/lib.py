@@ -878,7 +878,7 @@ def check_biobuzz_game_settings(game_options: list, restart_option: str, game_in
     """ Checks if the BIOBUZZ game settings are valid.
     :return: None if the settings are valid, or a response with an error message if they are not.
     """
-    if (game_index != '23'):
+    if (game_index != '24'):
         return 'Wrong game! This form is for BIOBUZZ.'
 
     return None  # No error
