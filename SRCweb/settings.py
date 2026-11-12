@@ -11,8 +11,10 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 from pathlib import Path
 import os
+from urllib.parse import urlencode
 
 load_dotenv()
 
@@ -28,14 +30,40 @@ SECRET_KEY = os.getenv("SECRET_KEY") or "SECRET_KEY"
 NEW_AES_KEY = os.getenv("NEW_AES_KEY") or "NEW_AES_KEY"
 
 # Discord Client ID (client safe)
-DISCORD_CLIENT_ID = "825618483957071873"
+DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID") or "825618483957071873"
 
 # SECURITY WARNING: keep the Discord Client Secret used in production secret!
 DISCORD_CLIENT_SECRET = os.getenv(
     "DISCORD_CLIENT_SECRET") or "DISCORD_CLIENT_SECRET"
 
+
+def required_non_placeholder_env(name, *, development_default=None):
+    value = os.getenv(name) or development_default
+    if os.getenv("PYTHON_ENV") == "development":
+        return value
+    if not value or value in {name, "replace-me", "changeme", "CHANGE_ME"}:
+        raise ImproperlyConfigured(f"{name} must be configured in non-development environments.")
+    return value
+
+
 # SECURITY WARNING: keep the API Key used in production secret!
-API_KEY = os.getenv("API_KEY") or "API_KEY"
+API_KEY = required_non_placeholder_env("API_KEY", development_default="API_KEY")
+
+# Polar subscriptions
+POLAR_SERVER = os.getenv("POLAR_SERVER") or "production"
+POLAR_API_BASE_URL = os.getenv("POLAR_API_BASE_URL") or ""
+POLAR_ACCESS_TOKEN = os.getenv("POLAR_ACCESS_TOKEN") or ""
+POLAR_WEBHOOK_SECRET = os.getenv("POLAR_WEBHOOK_SECRET") or ""
+POLAR_CHECKOUT_SUCCESS_URL = os.getenv("POLAR_CHECKOUT_SUCCESS_URL") or ""
+POLAR_CUSTOMER_PORTAL_URL = os.getenv("POLAR_CUSTOMER_PORTAL_URL") or ""
+POLAR_CASUAL_SERVER_METER_ID = os.getenv("POLAR_CASUAL_SERVER_METER_ID") or ""
+POLAR_CASUAL_SERVER_EVENT_NAME = os.getenv("POLAR_CASUAL_SERVER_EVENT_NAME") or "casual_server_credits"
+POLAR_REQUEST_TIMEOUT_SECONDS = float(os.getenv("POLAR_REQUEST_TIMEOUT_SECONDS") or 10)
+
+# xRC server orchestrator
+ORCHESTRATOR_API_BASE_URL = os.getenv("ORCHESTRATOR_API_BASE_URL") or ""
+ORCHESTRATOR_API_TOKEN = os.getenv("ORCHESTRATOR_API_TOKEN") or ""
+ORCHESTRATOR_REQUEST_TIMEOUT_SECONDS = float(os.getenv("ORCHESTRATOR_REQUEST_TIMEOUT_SECONDS") or 10)
 
 # Sends an email to admins when debug = false and a 500 server error occurs
 ADMINS = [('Webmaster', 'webmaster@secondrobotics.org')]
@@ -73,7 +101,8 @@ INSTALLED_APPS = [
     # 'teamleague',
     # 'ladder',
     'discordoauth2',
-    'ranked'
+    'ranked',
+    'subscriptions',
 ]
 
 REST_FRAMEWORK = {
@@ -142,6 +171,7 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
+            'filters': ['redact_customer_session_token'],
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
@@ -149,12 +179,13 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,
             'formatter': 'verbose',
+            'filters': ['redact_customer_session_token'],
         },
         'mail_admins': {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',
             'include_html': True,
-            'filters': ['require_debug_false'],
+            'filters': ['require_debug_false', 'redact_customer_session_token'],
         }
     },
     'loggers': {
@@ -180,6 +211,9 @@ LOGGING = {
         },
     },
     'filters': {
+        'redact_customer_session_token': {
+            '()': 'SRCweb.log_filters.RedactCustomerSessionToken',
+        },
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse',
         },
@@ -243,18 +277,30 @@ if os.getenv("PYTHON_ENV") == "development":
     STATICFILES_DIRS = [BASE_DIR / "static"]
     DISCORD_REDIRECT_URI = "http://localhost:8000/oauth2/login/redirect"
     DISCORD_API_REDIRECT_URI = "http://localhost:8000/oauth2/loginapi/redirect"
-    DISCORD_AUTH_URL = "https://discord.com/api/oauth2/authorize?client_id=825618483957071873&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Foauth2%2Flogin%2Fredirect&response_type=code&scope=identify%20email"
-    DISCORD_AUTH_API_URL = "https://discord.com/api/oauth2/authorize?client_id=825618483957071873&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Foauth2%2Floginapi%2Fredirect&response_type=code&scope=identify%20email"
 else:  # production
     DEBUG = False
     ALLOWED_HOSTS = ["secondrobotics.org",
                      "www.secondrobotics.org", "mail.secondrobotics.org"]
     DISCORD_REDIRECT_URI = "https://secondrobotics.org/oauth2/login/redirect"
     DISCORD_API_REDIRECT_URI = "https://secondrobotics.org/oauth2/loginapi/redirect"
-    DISCORD_AUTH_URL = "https://discord.com/api/oauth2/authorize?client_id=825618483957071873&redirect_uri=https%3A%2F%2Fsecondrobotics.org%2Foauth2%2Flogin%2Fredirect&response_type=code&scope=identify%20email"
-    DISCORD_AUTH_API_URL = "https://discord.com/api/oauth2/authorize?client_id=825618483957071873&redirect_uri=https%3A%2F%2Fsecondrobotics.org%2Foauth2%2Floginapi%2Fredirect&response_type=code&scope=identify%20email"
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
+
+# A dedicated test application can share its ID with the test bot. Preserve
+# production defaults while allowing isolated OAuth login and redirect URLs.
+DISCORD_REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI") or DISCORD_REDIRECT_URI
+DISCORD_API_REDIRECT_URI = os.getenv("DISCORD_API_REDIRECT_URI") or DISCORD_API_REDIRECT_URI
+
+
+def discord_authorization_url(redirect_uri):
+    return "https://discord.com/api/oauth2/authorize?" + urlencode({
+        "client_id": DISCORD_CLIENT_ID, "redirect_uri": redirect_uri,
+        "response_type": "code", "scope": "identify email",
+    })
+
+
+DISCORD_AUTH_URL = discord_authorization_url(DISCORD_REDIRECT_URI)
+DISCORD_AUTH_API_URL = discord_authorization_url(DISCORD_API_REDIRECT_URI)
 
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
 MAX_UPLOAD_SIZE = "5242880"
