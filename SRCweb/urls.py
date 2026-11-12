@@ -30,6 +30,8 @@ urlpatterns = [
     path('oauth2/', include('discordoauth2.urls')),
     path('ranked/', include('ranked.urls')),
     path('api/ranked/', include('ranked.api.urls', namespace="api-ranked")),
+    path('subscriptions/', include('subscriptions.urls')),
+    path('api/subscriptions/', include('subscriptions.api.urls', namespace="api-subscriptions")),
 ]
 
 if settings.DEBUG:
